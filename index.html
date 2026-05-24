@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mi Rincón Rosado ♡</title>
+<meta name="description" content="Un rinconcito personal para coleccionar películas, música, libros y deseos."/>
+<meta name="theme-color" content="#f291ad"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Quicksand:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@1,400;1,600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+<!-- ===== Flores SVG en las esquinas =====
+     Si quieres reemplazarlas por una imagen de My Melody/Sanrio,
+     simplemente sustituye cada <svg class="corner-flower ..."> por:
+     <img class="corner-flower tl" src="tu-imagen.png" alt=""/>
+-->
+<svg class="corner-flower tl" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <g>
+    <circle cx="50" cy="50" r="14" fill="#fbd0dd"/>
+    <circle cx="80" cy="40" r="10" fill="#f7b3c6"/>
+    <circle cx="40" cy="80" r="11" fill="#f7b3c6"/>
+    <circle cx="70" cy="75" r="8" fill="#fde4c9"/>
+    <path d="M50 90 Q60 110 55 140" stroke="#c5d9b3" stroke-width="2.5" fill="none"/>
+    <path d="M70 80 Q90 100 95 130" stroke="#c5d9b3" stroke-width="2.5" fill="none"/>
+    <ellipse cx="58" cy="115" rx="6" ry="3" fill="#c5d9b3" transform="rotate(40 58 115)"/>
+    <ellipse cx="85" cy="110" rx="6" ry="3" fill="#c5d9b3" transform="rotate(-30 85 110)"/>
+    <g transform="translate(95,55)">
+      <ellipse cx="0" cy="-12" rx="8" ry="14" fill="#f291ad"/>
+      <ellipse cx="11" cy="-3" rx="14" ry="8" fill="#f291ad"/>
+      <ellipse cx="-11" cy="-3" rx="14" ry="8" fill="#f291ad"/>
+      <ellipse cx="6" cy="10" rx="10" ry="12" fill="#f291ad" transform="rotate(35 6 10)"/>
+      <ellipse cx="-6" cy="10" rx="10" ry="12" fill="#f291ad" transform="rotate(-35 -6 10)"/>
+      <circle cx="0" cy="0" r="5" fill="#d9a86c"/>
+    </g>
+  </g>
+</svg>
+<svg class="corner-flower tr" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <g>
+    <circle cx="50" cy="50" r="14" fill="#fbd0dd"/>
+    <circle cx="80" cy="40" r="10" fill="#f7b3c6"/>
+    <circle cx="40" cy="80" r="11" fill="#f7b3c6"/>
+    <g transform="translate(95,55)">
+      <ellipse cx="0" cy="-12" rx="8" ry="14" fill="#f291ad"/>
+      <ellipse cx="11" cy="-3" rx="14" ry="8" fill="#f291ad"/>
+      <ellipse cx="-11" cy="-3" rx="14" ry="8" fill="#f291ad"/>
+      <ellipse cx="6" cy="10" rx="10" ry="12" fill="#f291ad" transform="rotate(35 6 10)"/>
+      <ellipse cx="-6" cy="10" rx="10" ry="12" fill="#f291ad" transform="rotate(-35 -6 10)"/>
+      <circle cx="0" cy="0" r="5" fill="#d9a86c"/>
+    </g>
+  </g>
+</svg>
+<svg class="corner-flower bl" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <g>
+    <circle cx="60" cy="60" r="12" fill="#fbd0dd"/>
+    <circle cx="90" cy="55" r="9" fill="#f7b3c6"/>
+    <g transform="translate(110,80)">
+      <ellipse cx="0" cy="-12" rx="8" ry="14" fill="#f291ad"/>
+      <ellipse cx="11" cy="-3" rx="14" ry="8" fill="#f291ad"/>
+      <ellipse cx="-11" cy="-3" rx="14" ry="8" fill="#f291ad"/>
+      <ellipse cx="6" cy="10" rx="10" ry="12" fill="#f291ad" transform="rotate(35 6 10)"/>
+      <ellipse cx="-6" cy="10" rx="10" ry="12" fill="#f291ad" transform="rotate(-35 -6 10)"/>
+      <circle cx="0" cy="0" r="5" fill="#d9a86c"/>
+    </g>
+  </g>
+</svg>
+<svg class="corner-flower br" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <g>
+    <circle cx="60" cy="60" r="12" fill="#fbd0dd"/>
+    <circle cx="90" cy="55" r="9" fill="#f7b3c6"/>
+    <g transform="translate(110,80)">
+      <ellipse cx="0" cy="-12" rx="8" ry="14" fill="#f291ad"/>
+      <ellipse cx="11" cy="-3" rx="14" ry="8" fill="#f291ad"/>
+      <ellipse cx="-11" cy="-3" rx="14" ry="8" fill="#f291ad"/>
+      <ellipse cx="6" cy="10" rx="10" ry="12" fill="#f291ad" transform="rotate(35 6 10)"/>
+      <ellipse cx="-6" cy="10" rx="10" ry="12" fill="#f291ad" transform="rotate(-35 -6 10)"/>
+      <circle cx="0" cy="0" r="5" fill="#d9a86c"/>
+    </g>
+  </g>
+</svg>
+
+<div class="petals" id="petals"></div>
+
+<!-- ===== Pantalla de bienvenida ===== -->
+<div class="setup-screen" id="setupScreen">
+  <div class="setup-card">
+    <div style="font-size:3rem;margin-bottom:8px;">🌸</div>
+    <h2>¡Hola, hermosa!</h2>
+    <p>Antes de empezar, dime cómo te llamas para preparar este rinconcito solo para ti</p>
+    <input type="text" id="setupName" placeholder="Tu nombre..." maxlength="30"/>
+    <button class="btn" id="setupBtn" style="width:100%;padding:14px;font-size:1rem;">Comenzar mi rincón ♡</button>
+  </div>
+</div>
+
+<div class="container">
+  <header>
+    <button class="settings-btn" id="settingsBtn" title="Ajustes" aria-label="Ajustes">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+    <div class="greeting" id="greetingTime">Buenos días</div>
+    <h1 class="title" id="userName">Mi Rincón</h1>
+    <div class="heart-divider">♡</div>
+    <div class="subtitle" id="randomQuote">"Coleccionando momentos, historias y melodías"</div>
+  </header>
+
+  <div class="stats" id="stats"></div>
+
+  <!-- ===== Tabs de categoría ===== -->
+  <div class="category-tabs">
+    <button class="cat-tab active" data-cat="movies">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
+      Películas
+    </button>
+    <button class="cat-tab" data-cat="music">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+      Música
+    </button>
+    <button class="cat-tab" data-cat="books">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      Libros
+    </button>
+    <button class="cat-tab" data-cat="wishlist">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+      Wishlist
+    </button>
+  </div>
+
+  <!-- ===== Películas ===== -->
+  <section class="cat-content active" id="cat-movies">
+    <h2 class="section-title">Tus Películas</h2>
+    <p class="section-subtitle">Las que has visto, las que adoras, las que quieres descubrir</p>
+
+    <div class="search-box">
+      <div class="search-bar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchMovies" placeholder="Busca una película..."/>
+        <button class="btn small" id="searchMoviesBtn">Buscar</button>
+      </div>
+      <div class="search-results" id="searchMoviesResults"></div>
+    </div>
+
+    <div class="status-tabs" data-cat="movies">
+      <button class="status-tab active" data-status="all">Todas <span class="count" id="movies-count-all">0</span></button>
+      <button class="status-tab" data-status="want">💭 Quiero ver <span class="count" id="movies-count-want">0</span></button>
+      <button class="status-tab" data-status="watched">✨ Vistas <span class="count" id="movies-count-watched">0</span></button>
+      <button class="status-tab" data-status="loved">💖 Favoritas <span class="count" id="movies-count-loved">0</span></button>
+    </div>
+
+    <div class="items-grid" id="moviesList"></div>
+  </section>
+
+  <!-- ===== Música ===== -->
+  <section class="cat-content" id="cat-music">
+    <h2 class="section-title">Tu Música</h2>
+    <p class="section-subtitle">Canciones y álbumes que tocan tu corazón</p>
+
+    <div class="search-box">
+      <div class="search-bar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchMusic" placeholder="Busca una canción o artista..."/>
+        <button class="btn small" id="searchMusicBtn">Buscar</button>
+      </div>
+      <div class="search-results" id="searchMusicResults"></div>
+    </div>
+
+    <div class="status-tabs" data-cat="music">
+      <button class="status-tab active" data-status="all">Todas <span class="count" id="music-count-all">0</span></button>
+      <button class="status-tab" data-status="want">💭 Quiero escuchar <span class="count" id="music-count-want">0</span></button>
+      <button class="status-tab" data-status="watched">✨ Escuchadas <span class="count" id="music-count-watched">0</span></button>
+      <button class="status-tab" data-status="loved">💖 Favoritas <span class="count" id="music-count-loved">0</span></button>
+    </div>
+
+    <div class="items-grid" id="musicList"></div>
+  </section>
+
+  <!-- ===== Libros ===== -->
+  <section class="cat-content" id="cat-books">
+    <h2 class="section-title">Tus Libros</h2>
+    <p class="section-subtitle">Páginas que te han marcado y aventuras por descubrir</p>
+
+    <div class="search-box">
+      <div class="search-bar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="searchBooks" placeholder="Busca un libro o autor..."/>
+        <button class="btn small" id="searchBooksBtn">Buscar</button>
+      </div>
+      <div class="search-results" id="searchBooksResults"></div>
+    </div>
+
+    <div class="status-tabs" data-cat="books">
+      <button class="status-tab active" data-status="all">Todos <span class="count" id="books-count-all">0</span></button>
+      <button class="status-tab" data-status="want">💭 Quiero leer <span class="count" id="books-count-want">0</span></button>
+      <button class="status-tab" data-status="watched">✨ Leídos <span class="count" id="books-count-watched">0</span></button>
+      <button class="status-tab" data-status="loved">💖 Favoritos <span class="count" id="books-count-loved">0</span></button>
+    </div>
+
+    <div class="items-grid" id="booksList"></div>
+  </section>
+
+  <!-- ===== Wishlist ===== -->
+  <section class="cat-content" id="cat-wishlist">
+    <h2 class="section-title">Tu Wishlist</h2>
+    <p class="section-subtitle">Maquillaje, adornos, figuras, ropa... todas tus cositas soñadas</p>
+
+    <div class="search-box" style="text-align:center;background:rgba(255,255,255,0.7);">
+      <p style="color:var(--text-soft);font-style:italic;margin-bottom:10px;">No hay buscador automático aquí — toca el botón <strong>+</strong> de abajo y añade lo que quieras con foto, precio y enlace ✨</p>
+    </div>
+
+    <div class="status-tabs" data-cat="wishlist">
+      <button class="status-tab active" data-status="all">Todos <span class="count" id="wishlist-count-all">0</span></button>
+      <button class="status-tab" data-status="want">💭 Quiero <span class="count" id="wishlist-count-want">0</span></button>
+      <button class="status-tab" data-status="watched">🎁 Lo tengo <span class="count" id="wishlist-count-watched">0</span></button>
+      <button class="status-tab" data-status="loved">💖 Top deseo <span class="count" id="wishlist-count-loved">0</span></button>
+    </div>
+
+    <div class="items-grid" id="wishlistList"></div>
+  </section>
+
+  <footer>
+    Hecho con <span class="heart-tiny">♥</span> para ti
+  </footer>
+</div>
+
+<!-- ===== Modal: añadir / editar item ===== -->
+<div class="modal-bg" id="itemModal" aria-hidden="true">
+  <div class="modal" role="dialog">
+    <button class="modal-close" id="itemModalClose" aria-label="Cerrar">✕</button>
+    <h2 id="modalTitle">Añadir a tu colección</h2>
+
+    <div class="form-row image-picker">
+      <label>Imagen / Portada</label>
+      <div class="image-preview-box">
+        <img id="imgPreview" alt="" style="display:none"/>
+        <span id="imgPlaceholder">🌷</span>
+      </div>
+      <div class="image-controls">
+        <button type="button" class="btn ghost small" id="uploadImgBtn">📷 Subir foto</button>
+        <input type="file" id="uploadImgInput" accept="image/*" style="display:none"/>
+        <button type="button" class="btn ghost small" id="clearImgBtn">Quitar</button>
+        <input type="text" id="imgUrlInput" placeholder="O pega una URL de imagen..."/>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label>Título</label>
+      <input type="text" id="fTitle"/>
+    </div>
+
+    <div class="form-row">
+      <label id="fMetaLabel">Detalles</label>
+      <input type="text" id="fMeta" placeholder="Año, director, autor..."/>
+    </div>
+
+    <div class="form-row wishlist-only">
+      <label>Precio (opcional)</label>
+      <input type="text" id="fPrice" placeholder="$..."/>
+    </div>
+
+    <div class="form-row wishlist-only">
+      <label>Enlace para verlo o comprarlo (opcional)</label>
+      <input type="text" id="fLink" placeholder="https://..."/>
+    </div>
+
+    <div class="form-row">
+      <label>¿En qué estado lo pongo?</label>
+      <div class="pill-group" id="statusPills">
+        <div class="pill active" data-status="want">💭 Quiero verla</div>
+        <div class="pill" data-status="watched">✨ Ya la vi</div>
+        <div class="pill" data-status="loved">💖 Me encantó</div>
+      </div>
+    </div>
+
+    <div class="form-row" id="ratingRow">
+      <label>¿Cuánto te gustó? (corazones)</label>
+      <div class="rating-input" id="ratingInput">
+        <span class="heart" data-r="1">♥</span>
+        <span class="heart" data-r="2">♥</span>
+        <span class="heart" data-r="3">♥</span>
+        <span class="heart" data-r="4">♥</span>
+        <span class="heart" data-r="5">♥</span>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label>Tu notita (lo que sentiste, una frase favorita...)</label>
+      <textarea id="fNote" placeholder="Escribe algo bonito sobre esto..."></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn ghost" id="deleteBtn" style="display:none;margin-right:auto;">Eliminar</button>
+      <button class="btn ghost" id="cancelBtn">Cancelar</button>
+      <button class="btn" id="saveBtn">Guardar ♡</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal: ajustes ===== -->
+<div class="modal-bg" id="settingsModal" aria-hidden="true">
+  <div class="modal" role="dialog">
+    <button class="modal-close" id="settingsClose" aria-label="Cerrar">✕</button>
+    <h2>Ajustes</h2>
+    <div class="form-row">
+      <label>Tu nombre</label>
+      <input type="text" id="setName"/>
+    </div>
+    <div class="form-row">
+      <label>Clave API de TMDB (para buscar películas)</label>
+      <input type="text" id="setTmdb" placeholder="Pégala aquí..."/>
+      <small>Gratis en themoviedb.org. Si no la tienes, puedes seguir agregando películas manualmente con el botón <strong>+</strong>.</small>
+    </div>
+    <div class="form-row">
+      <label>Exportar / Importar mis datos</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">
+        <button class="btn ghost small" id="exportBtn">Exportar</button>
+        <button class="btn ghost small" id="importBtn">Importar</button>
+        <input type="file" id="importFile" accept="application/json" style="display:none"/>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="saveSettings">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Botón flotante "+" ===== -->
+<button id="fabAdd" class="fab" title="Agregar manualmente" aria-label="Agregar">+</button>
+
+<!-- ===== Toast ===== -->
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span class="heart-tiny">♥</span>
+  <span id="toastMsg"></span>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

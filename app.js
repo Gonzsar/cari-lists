@@ -7,7 +7,7 @@ const STORAGE_KEY = 'cariList_v2';
 const SETTINGS_KEY = 'cariList_settings_v2';
 
 const defaultSettings = { name:'', tmdbKey:'' };
-const emptyState = { movies:[], music:[], books:[], wishlist:[] };
+const emptyState = { movies:[], series:[], music:[], books:[], wishlist:[] };
 
 let settings = loadSettings();
 let state = loadState();
@@ -36,6 +36,15 @@ const CAT_CONFIG = {
     sectionTitle:'Tus Películas',
     sectionSubtitle:'Las que has visto, las que adoras, las que quieres descubrir',
     metaLabel:'Año / Director',
+    statusLabels:{ want:'Quiero verla', watched:'Vista', loved:'Favorita' },
+    pillLabels:['💭 Quiero verla','✨ Ya la vi','💖 Me encantó'],
+    countLabels:{ all:'Todas', want:'💭 Quiero ver', watched:'✨ Vistas', loved:'💖 Favoritas' }
+  },
+  series: {
+    icon:'📺',
+    sectionTitle:'Tus Series',
+    sectionSubtitle:'Las que devoraste, las que adoras, las que tenés pendientes',
+    metaLabel:'Año / Temporadas',
     statusLabels:{ want:'Quiero verla', watched:'Vista', loved:'Favorita' },
     pillLabels:['💭 Quiero verla','✨ Ya la vi','💖 Me encantó'],
     countLabels:{ all:'Todas', want:'💭 Quiero ver', watched:'✨ Vistas', loved:'💖 Favoritas' }
@@ -118,18 +127,21 @@ function render(){
 function renderStats(){
   const stats = document.getElementById('stats');
   const totalMovies = state.movies.length;
+  const totalSeries = state.series.length;
   const totalMusic = state.music.length;
   const totalBooks = state.books.length;
   const totalWishlist = state.wishlist.length;
-  const lovedAll = [...state.movies,...state.music,...state.books,...state.wishlist].filter(i=>i.status==='loved').length;
+  const allItems = [...state.movies,...state.series,...state.music,...state.books,...state.wishlist];
+  const lovedAll = allItems.filter(i=>i.status==='loved').length;
   const year = new Date().getFullYear();
-  const thisYear = [...state.movies,...state.music,...state.books,...state.wishlist].filter(i=>{
+  const thisYear = allItems.filter(i=>{
     if(!i.dateAdded) return false;
     return new Date(i.dateAdded).getFullYear()===year;
   }).length;
 
   stats.innerHTML = `
     <div class="stat-card"><div class="stat-num">${totalMovies}</div><div class="stat-label">Películas</div></div>
+    <div class="stat-card"><div class="stat-num">${totalSeries}</div><div class="stat-label">Series</div></div>
     <div class="stat-card"><div class="stat-num">${totalMusic}</div><div class="stat-label">Música</div></div>
     <div class="stat-card"><div class="stat-num">${totalBooks}</div><div class="stat-label">Libros</div></div>
     <div class="stat-card"><div class="stat-num">${totalWishlist}</div><div class="stat-label">Wishlist</div></div>
@@ -560,21 +572,49 @@ async function searchMusic(q){
   } catch(e){ toast('No pude buscar música'); return []; }
 }
 
-async function searchBooks(q){
+async function searchSeries(q){
   if(!q) return [];
-  const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=20&printType=books`;
+  if(!settings.tmdbKey){
+    toast('Configura tu clave de TMDB en ajustes ⚙️');
+    return [];
+  }
+  const url = `https://api.themoviedb.org/3/search/tv?api_key=${encodeURIComponent(settings.tmdbKey)}&query=${encodeURIComponent(q)}&language=es-ES`;
   try{
     const r = await fetch(url);
-    if(!r.ok) throw new Error('Books error');
+    if(!r.ok) throw new Error('TMDB error');
     const d = await r.json();
-    return (d.items||[]).map(b=>{
-      const v = b.volumeInfo || {};
+    return (d.results||[]).slice(0,20).map(s=>({
+      title: s.name,
+      meta: [s.first_air_date?s.first_air_date.slice(0,4):'', s.original_name&&s.original_name!==s.name?`(${s.original_name})`:''].filter(Boolean).join(' '),
+      cover: s.poster_path ? `https://image.tmdb.org/t/p/w342${s.poster_path}` : ''
+    }));
+  } catch(e){
+    toast('No pude buscar series. ¿Clave correcta?');
+    return [];
+  }
+}
+
+async function searchBooks(q){
+  if(!q) return [];
+  // Open Library API: sin clave, abierta, más confiable
+  const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&limit=20`;
+  try{
+    const r = await fetch(url);
+    if(!r.ok) throw new Error('OpenLibrary error');
+    const d = await r.json();
+    return (d.docs||[]).map(b=>{
+      let cover = '';
+      if(b.cover_i){
+        cover = `https://covers.openlibrary.org/b/id/${b.cover_i}-M.jpg`;
+      } else if(b.isbn && b.isbn[0]){
+        cover = `https://covers.openlibrary.org/b/isbn/${b.isbn[0]}-M.jpg`;
+      }
       return {
-        title: v.title || 'Sin título',
-        meta: [(v.authors||[]).join(', '), v.publishedDate?v.publishedDate.slice(0,4):''].filter(Boolean).join(' • '),
-        cover: (v.imageLinks && (v.imageLinks.thumbnail || v.imageLinks.smallThumbnail))?.replace('http:','https:') || ''
+        title: b.title || 'Sin título',
+        meta: [(b.author_name||[]).slice(0,2).join(', '), b.first_publish_year || ''].filter(Boolean).join(' • '),
+        cover
       };
-    });
+    }).filter(x => x.title);
   } catch(e){ toast('No pude buscar libros'); return []; }
 }
 
@@ -617,6 +657,7 @@ function setupSearch(cat,inputId,btnId,resultsId,fn){
 }
 
 setupSearch('movies','searchMovies','searchMoviesBtn','searchMoviesResults',searchMovies);
+setupSearch('series','searchSeries','searchSeriesBtn','searchSeriesResults',searchSeries);
 setupSearch('music','searchMusic','searchMusicBtn','searchMusicResults',searchMusic);
 setupSearch('books','searchBooks','searchBooksBtn','searchBooksResults',searchBooks);
 

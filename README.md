@@ -20,8 +20,9 @@ Todos los datos se guardan en el `localStorage` del navegador de quien la usa (n
 ## Categorías
 
 - 🎬 **Películas** — búsqueda con TMDB
+- 📺 **Series** — búsqueda con TMDB (usa la misma clave)
 - 🎵 **Música** — búsqueda con iTunes Search (sin clave)
-- 📖 **Libros** — búsqueda con Google Books (sin clave)
+- 📖 **Libros** — búsqueda con Open Library (sin clave)
 - 🎁 **Wishlist** — manual, con precio, enlace y foto (URL o subida)
 
 ## Deploy en Vercel

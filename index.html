@@ -347,9 +347,28 @@
       <input type="text" id="setTmdb" placeholder="Pégala aquí..."/>
     </div>
     <div class="form-row">
-      <label>Clave API de Gemini (tu IA personal ✨)</label>
+      <label>Tu IA personal ✨</label>
+      <select id="setAiProvider">
+        <option value="groq">Groq · Llama 3.3 (gratis, súper rápido) 🚀</option>
+        <option value="gemini">Google Gemini (gratis)</option>
+        <option value="openai">ChatGPT / OpenAI (paga, $5 mín)</option>
+      </select>
+      <small>Te recomiendo <strong>Groq</strong>: es gratis, no pide tarjeta y responde en menos de un segundo.</small>
+    </div>
+    <div class="form-row provider-field" data-provider="groq">
+      <label>Clave API de Groq</label>
+      <input type="text" id="setGroq" placeholder="gsk_..."/>
+      <small>Gratis en <strong>console.groq.com/keys</strong>. Sólo cuenta de email, sin tarjeta.</small>
+    </div>
+    <div class="form-row provider-field" data-provider="gemini">
+      <label>Clave API de Gemini</label>
       <input type="text" id="setGemini" placeholder="Pégala aquí..."/>
-      <small>Gratis en <strong>ai.google.dev</strong> → Get API Key. Con esto tu IA conoce tus gustos y te recomienda cosas.</small>
+      <small>Gratis en <strong>ai.google.dev</strong> → Get API Key. Si te da error de cuota, probá con Groq.</small>
+    </div>
+    <div class="form-row provider-field" data-provider="openai">
+      <label>Clave API de OpenAI</label>
+      <input type="text" id="setOpenai" placeholder="sk-..."/>
+      <small>Paga: requiere depositar $5 en <strong>platform.openai.com</strong> → API keys. Usa GPT-4o-mini.</small>
     </div>
     <div class="form-row">
       <label>Exportar / Importar mis datos</label>

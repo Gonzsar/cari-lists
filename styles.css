@@ -594,6 +594,20 @@ footer .heart-tiny{color:var(--pink-500);display:inline-block;animation:beat 1.5
 .cat-content{display:none;}
 .cat-content.active{display:block;animation:fadeIn 0.35s ease;}
 
+/* ===== Selector de proveedor de IA en settings ===== */
+.provider-field{display:none;}
+.provider-field.show{display:block;}
+
+/* Mejor look para el select */
+.form-row select{
+  appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='%23c84068' d='M6 8 0 0h12z'/></svg>");
+  background-repeat:no-repeat;
+  background-position:right 14px center;
+  padding-right:36px;
+  cursor:pointer;
+}
+
 /* ===== Chat con IA ===== */
 .fab-left{
   left:24px;right:auto;

@@ -6,7 +6,7 @@
 const STORAGE_KEY = 'cariList_v2';
 const SETTINGS_KEY = 'cariList_settings_v2';
 
-const defaultSettings = { name:'', tmdbKey:'', geminiKey:'' };
+const defaultSettings = { name:'', tmdbKey:'', geminiKey:'', groqKey:'', openaiKey:'', aiProvider:'groq' };
 const emptyState = { movies:[], series:[], music:[], books:[], wishlist:[] };
 
 let settings = loadSettings();
@@ -507,14 +507,31 @@ document.getElementById('settingsBtn').onclick = ()=>{
   document.getElementById('setName').value = settings.name || '';
   document.getElementById('setTmdb').value = settings.tmdbKey || '';
   document.getElementById('setGemini').value = settings.geminiKey || '';
+  document.getElementById('setGroq').value = settings.groqKey || '';
+  document.getElementById('setOpenai').value = settings.openaiKey || '';
+  document.getElementById('setAiProvider').value = settings.aiProvider || 'groq';
+  updateProviderFields();
   settingsModal.classList.add('show');
 };
+
+function updateProviderFields(){
+  const sel = document.getElementById('setAiProvider').value;
+  document.querySelectorAll('.provider-field').forEach(el=>{
+    el.classList.toggle('show', el.dataset.provider === sel);
+  });
+}
+document.addEventListener('change', (e)=>{
+  if(e.target && e.target.id === 'setAiProvider') updateProviderFields();
+});
 document.getElementById('settingsClose').onclick = ()=>settingsModal.classList.remove('show');
 settingsModal.addEventListener('click',e=>{if(e.target===settingsModal) settingsModal.classList.remove('show');});
 document.getElementById('saveSettings').onclick = ()=>{
   settings.name = document.getElementById('setName').value.trim();
   settings.tmdbKey = document.getElementById('setTmdb').value.trim();
   settings.geminiKey = document.getElementById('setGemini').value.trim();
+  settings.groqKey = document.getElementById('setGroq').value.trim();
+  settings.openaiKey = document.getElementById('setOpenai').value.trim();
+  settings.aiProvider = document.getElementById('setAiProvider').value;
   saveSettings();
   setGreeting();
   settingsModal.classList.remove('show');
@@ -800,10 +817,43 @@ Si no encontrás contexto suficiente, preguntale con dulzura para conocerla mejo
   return context;
 }
 
-async function sendToGemini(messages, systemPrompt){
-  if(!settings.geminiKey) throw new Error('Falta la clave de Gemini en ajustes ⚙️');
-  const model = 'gemini-2.0-flash';
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(settings.geminiKey)}`;
+/* === Proveedores de IA === */
+const AI_PROVIDERS = {
+  gemini: { name:'Google Gemini', keyField:'geminiKey' },
+  groq:   { name:'Groq · Llama',  keyField:'groqKey' },
+  openai: { name:'OpenAI ChatGPT', keyField:'openaiKey' }
+};
+
+function currentProviderKey(){
+  const id = settings.aiProvider || 'groq';
+  return AI_PROVIDERS[id] ? id : 'groq';
+}
+function hasAIKey(){
+  const id = currentProviderKey();
+  return !!settings[AI_PROVIDERS[id].keyField];
+}
+
+async function sendToAI(messages, systemPrompt){
+  const id = currentProviderKey();
+  const provider = AI_PROVIDERS[id];
+  const key = settings[provider.keyField];
+  if(!key) throw new Error(`Falta la clave de ${provider.name} en ajustes ⚙️`);
+
+  if(id === 'gemini') return sendGemini(messages, systemPrompt, key);
+  if(id === 'groq')   return sendOpenAILike(messages, systemPrompt, {
+    url:'https://api.groq.com/openai/v1/chat/completions',
+    key, model:'llama-3.3-70b-versatile', name:'Groq'
+  });
+  if(id === 'openai') return sendOpenAILike(messages, systemPrompt, {
+    url:'https://api.openai.com/v1/chat/completions',
+    key, model:'gpt-4o-mini', name:'OpenAI'
+  });
+}
+
+async function sendGemini(messages, systemPrompt, key){
+  // gemini-1.5-flash es más estable en el tier gratis que 2.0-flash
+  const model = 'gemini-1.5-flash';
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`;
   const body = {
     contents: messages.map(m=>({
       role: m.role === 'user' ? 'user' : 'model',
@@ -819,14 +869,40 @@ async function sendToGemini(messages, systemPrompt){
   });
   if(!r.ok){
     let msg = 'Error de Gemini';
-    try{
-      const err = await r.json();
-      msg = err.error?.message || msg;
-    } catch(_){}
+    try{ const err = await r.json(); msg = err.error?.message || msg; } catch(_){}
     throw new Error(msg);
   }
   const d = await r.json();
   const text = d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  if(!text) throw new Error('La IA no devolvió respuesta');
+  return text.trim();
+}
+
+async function sendOpenAILike(messages, systemPrompt, config){
+  const body = {
+    model: config.model,
+    messages: [
+      { role:'system', content: systemPrompt },
+      ...messages.map(m=>({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content }))
+    ],
+    temperature: 0.9,
+    max_tokens: 800
+  };
+  const r = await fetch(config.url, {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'Authorization': `Bearer ${config.key}`
+    },
+    body: JSON.stringify(body)
+  });
+  if(!r.ok){
+    let msg = `Error de ${config.name}`;
+    try{ const err = await r.json(); msg = err.error?.message || msg; } catch(_){}
+    throw new Error(msg);
+  }
+  const d = await r.json();
+  const text = d.choices?.[0]?.message?.content || '';
   if(!text) throw new Error('La IA no devolvió respuesta');
   return text.trim();
 }
@@ -836,8 +912,8 @@ const chatMessages = document.getElementById('chatMessages');
 const chatInput = document.getElementById('chatInput');
 
 document.getElementById('fabChat').addEventListener('click', async ()=>{
-  if(!settings.geminiKey){
-    const ok = await customConfirm('Necesitás una clave de Gemini (gratis en ai.google.dev). ¿Querés abrir ajustes ahora para configurarla?', {
+  if(!hasAIKey()){
+    const ok = await customConfirm('Necesitás configurar una IA. Te recomiendo Groq (gratis sin tarjeta) o Gemini. ¿Abrimos ajustes ahora?', {
       title: 'IA no configurada 🌸',
       okText: 'Sí, abrir ajustes',
       cancelText: 'Después'
@@ -897,7 +973,7 @@ async function sendChat(){
 
   try{
     const systemPrompt = buildAISystemPrompt();
-    const reply = await sendToGemini(chatHistory, systemPrompt);
+    const reply = await sendToAI(chatHistory, systemPrompt);
     loadingEl.remove();
     chatHistory.push({ role:'model', content: reply });
     saveChat();

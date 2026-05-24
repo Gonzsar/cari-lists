@@ -90,12 +90,12 @@ function spawnPetals(){
 
 /* === Greetings === */
 const quotes = [
-  '"Coleccionando momentos, historias y melodías"',
-  '"Cada historia es un pétalo más en tu jardín"',
-  '"La vida en libros, canciones y películas"',
-  '"Tu universo creativo, en un solo rincón"',
-  '"Lo que amas dice quién eres"',
-  '"Sigue soñando, sigue sintiendo"'
+  '"Hola de nuevo mi vida"',
+  '"Como está yendo tu dia hoy moshito?"',
+  '"Me dijiste ya algo bonito??"',
+  '"Sigue poniendo cosas mi vida"',
+  '"Donde está la bebe mas linda??"',
+  '"Te amo mucho mi niña"'
 ];
 function setGreeting(){
   const h = new Date().getHours();
@@ -153,9 +153,9 @@ function renderCategory(cat){
 
   if(filtered.length===0){
     const emptyMsg = currentStatus==='all'
-      ? `Aún no has añadido nada aquí. ¡Empieza a coleccionar! 🌸`
-      : `Nada en esta lista todavía... ¡pronto la llenarás de cositas lindas!`;
-    grid.innerHTML = `<div class="empty" style="grid-column:1/-1;"><div class="empty-flower">🌷</div><h3>Tu jardín está esperando</h3><p>${emptyMsg}</p></div>`;
+      ? `Aún no has añadido nada aquí. Empezá a coleccionar! 🌸`
+      : `Nada en esta lista todavía... llenala de cosas bonitas!`;
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1;"><div class="empty-flower">🌷</div><h3>Tu colección está esperando</h3><p>${emptyMsg}</p></div>`;
     return;
   }
 

@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Fondo redondo -->
+  <circle cx="32" cy="32" r="32" fill="#ffeef4"/>
+
+  <!-- Orejas largas (estilo My Melody) -->
+  <ellipse cx="20" cy="14" rx="6" ry="13" fill="#f7b3c6"/>
+  <ellipse cx="44" cy="14" rx="6" ry="13" fill="#f7b3c6"/>
+  <!-- Interior de las orejas -->
+  <ellipse cx="20" cy="16" rx="2.5" ry="8" fill="#ffd5e0"/>
+  <ellipse cx="44" cy="16" rx="2.5" ry="8" fill="#ffd5e0"/>
+
+  <!-- Capucha rosada -->
+  <path d="M12 34 Q12 18 32 18 Q52 18 52 34 Q52 52 32 54 Q12 52 12 34 Z" fill="#f7b3c6"/>
+
+  <!-- Carita blanca -->
+  <ellipse cx="32" cy="38" rx="15" ry="13" fill="#ffffff"/>
+
+  <!-- Ojitos -->
+  <ellipse cx="25" cy="36" rx="1.8" ry="2.3" fill="#3a2530"/>
+  <ellipse cx="39" cy="36" rx="1.8" ry="2.3" fill="#3a2530"/>
+  <!-- Brillo de los ojos -->
+  <circle cx="25.5" cy="35.3" r="0.6" fill="#ffffff"/>
+  <circle cx="39.5" cy="35.3" r="0.6" fill="#ffffff"/>
+
+  <!-- Naricita -->
+  <ellipse cx="32" cy="40" rx="1" ry="0.8" fill="#e96a91"/>
+
+  <!-- Boquita -->
+  <path d="M30 42 Q32 44 34 42" stroke="#c84068" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+
+  <!-- Cachetitos -->
+  <circle cx="22" cy="40" r="2" fill="#f291ad" opacity="0.55"/>
+  <circle cx="42" cy="40" r="2" fill="#f291ad" opacity="0.55"/>
+
+  <!-- Florcita amarilla en la capucha -->
+  <g transform="translate(46,26)">
+    <circle cx="0" cy="-3" r="2.4" fill="#fde4c9"/>
+    <circle cx="2.8" cy="-1" r="2.4" fill="#fde4c9"/>
+    <circle cx="-2.8" cy="-1" r="2.4" fill="#fde4c9"/>
+    <circle cx="1.8" cy="2.6" r="2.4" fill="#fde4c9"/>
+    <circle cx="-1.8" cy="2.6" r="2.4" fill="#fde4c9"/>
+    <circle cx="0" cy="0" r="1.4" fill="#d9a86c"/>
+  </g>
+</svg>

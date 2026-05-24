@@ -1,7 +1,4 @@
-# Mi Rincón Rosado ♡
-
-Una web personal y romántica para coleccionar películas, música, libros y wishlist en un solo lugar.
-Diseño rosa pastel con flores, hecha con amor 🌸
+#  ♡
 
 ## Estructura del proyecto
 

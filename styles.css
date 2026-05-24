@@ -594,6 +594,149 @@ footer .heart-tiny{color:var(--pink-500);display:inline-block;animation:beat 1.5
 .cat-content{display:none;}
 .cat-content.active{display:block;animation:fadeIn 0.35s ease;}
 
+/* ===== Chat con IA ===== */
+.fab-left{
+  left:24px;right:auto;
+  background:linear-gradient(135deg,var(--pink-300),var(--pink-500));
+  font-size:1.6rem;
+}
+.fab-left:hover{transform:scale(1.08) rotate(-15deg);}
+
+.modal.modal-chat{
+  max-width:620px;
+  height:min(720px,92vh);
+  display:flex;flex-direction:column;
+  padding:24px 24px 20px;
+}
+.modal.modal-chat h2{margin-bottom:8px;}
+
+.chat-messages{
+  flex:1;
+  overflow-y:auto;
+  background:linear-gradient(180deg,var(--pink-50),#fff);
+  border-radius:18px;
+  padding:16px;
+  margin:8px 0 12px;
+  display:flex;flex-direction:column;gap:10px;
+  min-height:240px;
+  border:1.5px solid var(--pink-100);
+}
+.chat-messages::-webkit-scrollbar{width:8px;}
+.chat-messages::-webkit-scrollbar-thumb{background:var(--pink-200);border-radius:10px;}
+
+.chat-msg{
+  max-width:82%;
+  padding:10px 14px;
+  border-radius:18px;
+  font-size:0.93rem;
+  line-height:1.45;
+  white-space:pre-wrap;
+  word-wrap:break-word;
+  animation:popIn 0.25s ease;
+}
+@keyframes popIn{from{transform:translateY(4px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+.chat-msg.user{
+  align-self:flex-end;
+  background:linear-gradient(135deg,var(--pink-400),var(--pink-500));
+  color:white;
+  border-bottom-right-radius:6px;
+  box-shadow:0 2px 10px rgba(232,106,145,0.25);
+}
+.chat-msg.ai{
+  align-self:flex-start;
+  background:white;
+  color:var(--text);
+  border-bottom-left-radius:6px;
+  border:1.5px solid var(--pink-100);
+  box-shadow:0 2px 8px rgba(232,106,145,0.08);
+}
+.chat-msg.ai.loading{
+  background:var(--pink-50);
+  color:var(--text-soft);
+  font-style:italic;
+  display:inline-flex;align-items:center;gap:8px;
+}
+.chat-msg.ai.loading .loader{
+  width:14px;height:14px;
+  border-width:2px;
+}
+
+.chat-suggestions{
+  display:flex;flex-wrap:wrap;gap:8px;
+  margin-top:6px;align-self:flex-start;
+}
+.chat-sugg{
+  background:white;border:1.5px solid var(--pink-200);
+  padding:6px 14px;border-radius:30px;
+  cursor:pointer;font-family:inherit;font-size:0.82rem;color:var(--text);
+  transition:all 0.2s ease;
+}
+.chat-sugg:hover{
+  background:var(--pink-200);border-color:var(--pink-300);
+  transform:translateY(-1px);
+}
+
+.chat-input-wrap{
+  display:flex;gap:8px;align-items:center;
+  background:white;border:1.5px solid var(--pink-200);
+  border-radius:50px;padding:5px 5px 5px 18px;
+}
+.chat-input-wrap input{
+  flex:1;border:none;outline:none;background:transparent;
+  font-family:inherit;font-size:0.95rem;color:var(--text);padding:8px 0;
+}
+.chat-input-wrap input::placeholder{color:var(--text-soft);font-style:italic;}
+.chat-input-wrap .btn{
+  padding:0;width:40px;height:40px;border-radius:50%;
+  justify-content:center;flex-shrink:0;
+}
+#chatClear{
+  margin:10px auto 0;
+  display:block;
+}
+
+/* En móvil, el chat ocupa más */
+@media (max-width:600px){
+  .modal.modal-chat{
+    height:96vh;
+    max-height:96vh;
+    padding:18px 16px 14px;
+    border-radius:18px;
+  }
+  .chat-msg{max-width:92%;}
+  .fab-left{left:16px;}
+  .fab{right:16px;}
+}
+
+/* ===== Modal de confirmación (popup central bonito) ===== */
+.modal.modal-small{
+  max-width:400px;
+  text-align:center;
+  padding:32px 28px 26px;
+}
+.confirm-icon{
+  font-size:3rem;
+  margin-bottom:8px;
+  animation:beat 1.8s ease infinite;
+}
+.confirm-message{
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;
+  color:var(--text-soft);
+  font-size:1.05rem;
+  margin:-4px 0 18px;
+  line-height:1.4;
+}
+.confirm-actions{
+  justify-content:center;
+  gap:12px;
+}
+.confirm-actions .btn{
+  min-width:130px;
+  justify-content:center;
+}
+
 /* ===== Wishlist-specific (campo precio y enlace solo se ven cuando categoría = wishlist) ===== */
 .wishlist-only{display:none;}
 body[data-cat="wishlist"] .wishlist-only{display:block;}

@@ -154,6 +154,7 @@
     <div class="status-tabs" data-cat="movies">
       <button class="status-tab active" data-status="all">Todas <span class="count" id="movies-count-all">0</span></button>
       <button class="status-tab" data-status="want">💭 Quiero ver <span class="count" id="movies-count-want">0</span></button>
+      <button class="status-tab" data-status="current">🍿 Viéndola <span class="count" id="movies-count-current">0</span></button>
       <button class="status-tab" data-status="watched">✨ Vistas <span class="count" id="movies-count-watched">0</span></button>
       <button class="status-tab" data-status="loved">💖 Favoritas <span class="count" id="movies-count-loved">0</span></button>
     </div>
@@ -178,6 +179,7 @@
     <div class="status-tabs" data-cat="series">
       <button class="status-tab active" data-status="all">Todas <span class="count" id="series-count-all">0</span></button>
       <button class="status-tab" data-status="want">💭 Quiero ver <span class="count" id="series-count-want">0</span></button>
+      <button class="status-tab" data-status="current">📺 Viéndola <span class="count" id="series-count-current">0</span></button>
       <button class="status-tab" data-status="watched">✨ Vistas <span class="count" id="series-count-watched">0</span></button>
       <button class="status-tab" data-status="loved">💖 Favoritas <span class="count" id="series-count-loved">0</span></button>
     </div>
@@ -226,6 +228,7 @@
     <div class="status-tabs" data-cat="books">
       <button class="status-tab active" data-status="all">Todos <span class="count" id="books-count-all">0</span></button>
       <button class="status-tab" data-status="want">💭 Quiero leer <span class="count" id="books-count-want">0</span></button>
+      <button class="status-tab" data-status="current">📖 Leyéndolo <span class="count" id="books-count-current">0</span></button>
       <button class="status-tab" data-status="watched">✨ Leídos <span class="count" id="books-count-watched">0</span></button>
       <button class="status-tab" data-status="loved">💖 Favoritos <span class="count" id="books-count-loved">0</span></button>
     </div>
@@ -340,8 +343,13 @@
       <input type="text" id="setName"/>
     </div>
     <div class="form-row">
-      <label>Clave API de TMDB (para buscar películas)</label>
+      <label>Clave API de TMDB (para buscar películas y series)</label>
       <input type="text" id="setTmdb" placeholder="Pégala aquí..."/>
+    </div>
+    <div class="form-row">
+      <label>Clave API de Gemini (tu IA personal ✨)</label>
+      <input type="text" id="setGemini" placeholder="Pégala aquí..."/>
+      <small>Gratis en <strong>ai.google.dev</strong> → Get API Key. Con esto tu IA conoce tus gustos y te recomienda cosas.</small>
     </div>
     <div class="form-row">
       <label>Exportar / Importar mis datos</label>
@@ -356,6 +364,38 @@
     </div>
   </div>
 </div>
+
+<!-- ===== Modal: confirmación ===== -->
+<div class="modal-bg" id="confirmModal" aria-hidden="true">
+  <div class="modal modal-small" role="dialog">
+    <div class="confirm-icon">🌸</div>
+    <h2 id="confirmTitle">¿Estás segura?</h2>
+    <p class="confirm-message" id="confirmMessage">Esta acción no se puede deshacer.</p>
+    <div class="modal-actions confirm-actions">
+      <button class="btn ghost" id="confirmCancel">No, mantener</button>
+      <button class="btn" id="confirmOk">Sí, eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal del chat con la IA ===== -->
+<div class="modal-bg" id="chatModal" aria-hidden="true">
+  <div class="modal modal-chat" role="dialog">
+    <button class="modal-close" id="chatClose" aria-label="Cerrar">✕</button>
+    <h2>Tu IA Personal ✨</h2>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input-wrap">
+      <input type="text" id="chatInput" placeholder="Preguntale algo..." autocomplete="off"/>
+      <button class="btn" id="chatSend" aria-label="Enviar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+    <button class="btn ghost small" id="chatClear">Borrar conversación</button>
+  </div>
+</div>
+
+<!-- ===== Botón flotante del chat ✨ ===== -->
+<button id="fabChat" class="fab fab-left" title="Hablar con tu IA" aria-label="Chat IA">✨</button>
 
 <!-- ===== Botón flotante "+" ===== -->
 <button id="fabAdd" class="fab" title="Agregar manualmente" aria-label="Agregar">+</button>

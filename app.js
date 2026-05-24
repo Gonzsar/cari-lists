@@ -6,7 +6,7 @@
 const STORAGE_KEY = 'cariList_v2';
 const SETTINGS_KEY = 'cariList_settings_v2';
 
-const defaultSettings = { name:'', tmdbKey:'' };
+const defaultSettings = { name:'', tmdbKey:'', geminiKey:'' };
 const emptyState = { movies:[], series:[], music:[], books:[], wishlist:[] };
 
 let settings = loadSettings();
@@ -36,45 +36,45 @@ const CAT_CONFIG = {
     sectionTitle:'Tus Películas',
     sectionSubtitle:'Las que has visto, las que adoras, las que quieres descubrir',
     metaLabel:'Año / Director',
-    statusLabels:{ want:'Quiero verla', watched:'Vista', loved:'Favorita' },
-    pillLabels:['💭 Quiero verla','✨ Ya la vi','💖 Me encantó'],
-    countLabels:{ all:'Todas', want:'💭 Quiero ver', watched:'✨ Vistas', loved:'💖 Favoritas' }
+    statuses:['want','current','watched','loved'],
+    statusLabels:{ want:'Quiero verla', current:'Viéndola ahora', watched:'Vista', loved:'Favorita' },
+    pillLabels:{ want:'💭 Quiero verla', current:'🍿 Viéndola ahora', watched:'✨ Ya la vi', loved:'💖 Me encantó' }
   },
   series: {
     icon:'📺',
     sectionTitle:'Tus Series',
-    sectionSubtitle:'Las que devoraste, las que adoras, las que tenés pendientes',
+    sectionSubtitle:'Las que devoraste, adoras y tenés pendientes',
     metaLabel:'Año / Temporadas',
-    statusLabels:{ want:'Quiero verla', watched:'Vista', loved:'Favorita' },
-    pillLabels:['💭 Quiero verla','✨ Ya la vi','💖 Me encantó'],
-    countLabels:{ all:'Todas', want:'💭 Quiero ver', watched:'✨ Vistas', loved:'💖 Favoritas' }
+    statuses:['want','current','watched','loved'],
+    statusLabels:{ want:'Quiero verla', current:'Viéndola ahora', watched:'Vista', loved:'Favorita' },
+    pillLabels:{ want:'💭 Quiero verla', current:'📺 Viéndola ahora', watched:'✨ Ya la vi', loved:'💖 Me encantó' }
   },
   music: {
     icon:'🎵',
     sectionTitle:'Tu Música',
     sectionSubtitle:'Canciones y álbumes que tocan tu corazón',
     metaLabel:'Artista / Álbum',
+    statuses:['want','watched','loved'],
     statusLabels:{ want:'Quiero escuchar', watched:'Escuchada', loved:'Favorita' },
-    pillLabels:['💭 Quiero escuchar','✨ Ya la escuché','💖 Me encantó'],
-    countLabels:{ all:'Todas', want:'💭 Quiero escuchar', watched:'✨ Escuchadas', loved:'💖 Favoritas' }
+    pillLabels:{ want:'💭 Quiero escuchar', watched:'✨ Ya la escuché', loved:'💖 Me encantó' }
   },
   books: {
     icon:'📖',
     sectionTitle:'Tus Libros',
     sectionSubtitle:'Páginas que te han marcado y aventuras por descubrir',
     metaLabel:'Autor / Año',
-    statusLabels:{ want:'Quiero leer', watched:'Leído', loved:'Favorito' },
-    pillLabels:['💭 Quiero leerlo','✨ Ya lo leí','💖 Me encantó'],
-    countLabels:{ all:'Todos', want:'💭 Quiero leer', watched:'✨ Leídos', loved:'💖 Favoritos' }
+    statuses:['want','current','watched','loved'],
+    statusLabels:{ want:'Quiero leer', current:'Leyéndolo ahora', watched:'Leído', loved:'Favorito' },
+    pillLabels:{ want:'💭 Quiero leerlo', current:'📖 Leyéndolo ahora', watched:'✨ Ya lo leí', loved:'💖 Me encantó' }
   },
   wishlist: {
     icon:'🎁',
     sectionTitle:'Tu Wishlist',
     sectionSubtitle:'Todas las cositas lindas que sueñas con tener',
     metaLabel:'Categoría / Tienda',
+    statuses:['want','watched','loved'],
     statusLabels:{ want:'Lo quiero', watched:'¡Lo tengo!', loved:'Top deseo' },
-    pillLabels:['💭 Lo quiero','🎁 ¡Lo tengo!','💖 Top deseo'],
-    countLabels:{ all:'Todos', want:'💭 Quiero', watched:'🎁 Lo tengo', loved:'💖 Top deseo' }
+    pillLabels:{ want:'💭 Lo quiero', watched:'🎁 ¡Lo tengo!', loved:'💖 Top deseo' }
   }
 };
 
@@ -155,9 +155,10 @@ function renderCategory(cat){
   if(!list) return;
 
   document.getElementById(`${cat}-count-all`).textContent = list.length;
-  document.getElementById(`${cat}-count-want`).textContent = list.filter(i=>i.status==='want').length;
-  document.getElementById(`${cat}-count-watched`).textContent = list.filter(i=>i.status==='watched').length;
-  document.getElementById(`${cat}-count-loved`).textContent = list.filter(i=>i.status==='loved').length;
+  ['want','current','watched','loved'].forEach(s=>{
+    const el = document.getElementById(`${cat}-count-${s}`);
+    if(el) el.textContent = list.filter(i=>i.status===s).length;
+  });
 
   const grid = document.getElementById(`${cat}List`);
   if(currentCat!==cat){ return; }
@@ -250,8 +251,9 @@ function toggleFav(cat,id){
 function cycleStatus(cat,id){
   const item = state[cat].find(i=>i.id===id);
   if(!item) return;
-  const order = ['want','watched','loved'];
-  item.status = order[(order.indexOf(item.status)+1) % order.length];
+  const order = CAT_CONFIG[cat].statuses;
+  const idx = order.indexOf(item.status);
+  item.status = order[(idx<0?0:(idx+1)) % order.length];
   saveState();
   render();
 }
@@ -277,11 +279,12 @@ document.getElementById('itemModalClose').onclick = closeModal;
 document.getElementById('cancelBtn').onclick = closeModal;
 itemModal.addEventListener('click',e=>{if(e.target===itemModal) closeModal();});
 
-statusPills.querySelectorAll('.pill').forEach(p=>{
-  p.addEventListener('click',()=>{
-    statusPills.querySelectorAll('.pill').forEach(x=>x.classList.remove('active'));
-    p.classList.add('active');
-  });
+// Delegación: maneja clicks en pills generadas dinámicamente
+statusPills.addEventListener('click', (e)=>{
+  const pill = e.target.closest('.pill');
+  if(!pill || !statusPills.contains(pill)) return;
+  statusPills.querySelectorAll('.pill').forEach(x=>x.classList.remove('active'));
+  pill.classList.add('active');
 });
 
 ratingInput.querySelectorAll('.heart').forEach(h=>{
@@ -354,13 +357,12 @@ function resizeImage(file, maxDim=800){
   });
 }
 
-function applyModalLabels(cat){
+function applyModalLabels(cat, activeStatus='want'){
   const conf = CAT_CONFIG[cat];
   document.getElementById('fMetaLabel').textContent = conf.metaLabel;
-  const pills = statusPills.querySelectorAll('.pill');
-  pills[0].textContent = conf.pillLabels[0];
-  pills[1].textContent = conf.pillLabels[1];
-  pills[2].textContent = conf.pillLabels[2];
+  statusPills.innerHTML = conf.statuses.map(s =>
+    `<div class="pill${s===activeStatus?' active':''}" data-status="${s}">${conf.pillLabels[s]}</div>`
+  ).join('');
 }
 
 function openAdd(cat, preset={}){
@@ -374,8 +376,7 @@ function openAdd(cat, preset={}){
   fNote.value = '';
   fPrice.value = '';
   fLink.value = '';
-  statusPills.querySelectorAll('.pill').forEach(p=>p.classList.toggle('active', p.dataset.status===(preset.status||'want')));
-  applyModalLabels(cat);
+  applyModalLabels(cat, preset.status||'want');
   setModalCover(preset.cover||'');
   imgUrlInput.value = (preset.cover && preset.cover.startsWith('http'))?preset.cover:'';
   paintRating(modalContext.rating);
@@ -396,8 +397,7 @@ function openEdit(cat,id){
   fNote.value = item.note||'';
   fPrice.value = item.price||'';
   fLink.value = item.link||'';
-  statusPills.querySelectorAll('.pill').forEach(p=>p.classList.toggle('active', p.dataset.status===item.status));
-  applyModalLabels(cat);
+  applyModalLabels(cat, item.status||'want');
   setModalCover(item.cover||'');
   imgUrlInput.value = (item.cover && item.cover.startsWith('http'))?item.cover:'';
   paintRating(modalContext.rating);
@@ -452,9 +452,48 @@ document.getElementById('saveBtn').addEventListener('click',()=>{
   toast('¡Guardado! ♡');
 });
 
-deleteBtn.addEventListener('click',()=>{
+/* === Popup de confirmación bonito === */
+function customConfirm(message, options={}){
+  return new Promise(resolve=>{
+    const modal = document.getElementById('confirmModal');
+    document.getElementById('confirmTitle').textContent = options.title || '¿Estás segura?';
+    document.getElementById('confirmMessage').textContent = message;
+    const okBtn = document.getElementById('confirmOk');
+    const cancelBtn = document.getElementById('confirmCancel');
+    okBtn.textContent = options.okText || 'Sí, eliminar';
+    cancelBtn.textContent = options.cancelText || 'No, mantener';
+    modal.classList.add('show');
+
+    const cleanup = (result)=>{
+      modal.classList.remove('show');
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      modal.removeEventListener('click', onBg);
+      document.removeEventListener('keydown', onKey);
+      resolve(result);
+    };
+    const onOk = ()=>cleanup(true);
+    const onCancel = ()=>cleanup(false);
+    const onBg = (e)=>{ if(e.target===modal) cleanup(false); };
+    const onKey = (e)=>{
+      if(e.key==='Escape') cleanup(false);
+      else if(e.key==='Enter') cleanup(true);
+    };
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    modal.addEventListener('click', onBg);
+    document.addEventListener('keydown', onKey);
+  });
+}
+
+deleteBtn.addEventListener('click', async ()=>{
   if(!editingId) return;
-  if(!confirm('¿Eliminar este recuerdo? Esta acción no se puede deshacer.')) return;
+  const ok = await customConfirm('Esta acción no se puede deshacer.', {
+    title: '¿Eliminar este recuerdo?',
+    okText: 'Sí, eliminar 🥀',
+    cancelText: 'No, mantener'
+  });
+  if(!ok) return;
   state[modalContext.cat] = state[modalContext.cat].filter(i=>i.id!==editingId);
   saveState();
   render();
@@ -467,6 +506,7 @@ const settingsModal = document.getElementById('settingsModal');
 document.getElementById('settingsBtn').onclick = ()=>{
   document.getElementById('setName').value = settings.name || '';
   document.getElementById('setTmdb').value = settings.tmdbKey || '';
+  document.getElementById('setGemini').value = settings.geminiKey || '';
   settingsModal.classList.add('show');
 };
 document.getElementById('settingsClose').onclick = ()=>settingsModal.classList.remove('show');
@@ -474,6 +514,7 @@ settingsModal.addEventListener('click',e=>{if(e.target===settingsModal) settings
 document.getElementById('saveSettings').onclick = ()=>{
   settings.name = document.getElementById('setName').value.trim();
   settings.tmdbKey = document.getElementById('setTmdb').value.trim();
+  settings.geminiKey = document.getElementById('setGemini').value.trim();
   saveSettings();
   setGreeting();
   settingsModal.classList.remove('show');
@@ -691,6 +732,203 @@ setupBtn.addEventListener('click',()=>{
   toast(`¡Bienvenida, ${n}! 🌸`);
 });
 setupName.addEventListener('keydown',e=>{if(e.key==='Enter') setupBtn.click();});
+
+/* ==========================================================
+   IA personal con Google Gemini
+   ========================================================== */
+const CHAT_STORAGE_KEY = 'cariList_chat_v1';
+let chatHistory = [];
+try{
+  chatHistory = JSON.parse(localStorage.getItem(CHAT_STORAGE_KEY)) || [];
+} catch(e){ chatHistory = []; }
+
+function saveChat(){
+  const trimmed = chatHistory.slice(-30);
+  localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(trimmed));
+}
+
+function buildAISystemPrompt(){
+  const name = settings.name || 'la usuaria';
+  const catNames = { movies:'PELÍCULAS', series:'SERIES', music:'MÚSICA', books:'LIBROS', wishlist:'WISHLIST' };
+  const catIcons = { movies:'🎬', series:'📺', music:'🎵', books:'📖', wishlist:'🎁' };
+
+  let context = `Sos una IA cariñosa y dulce dentro de "Mi Rinconcito ♡", una web personal de ${name}. Su novio se la regaló con mucho amor para que coleccione todo lo que ama.
+
+Personalidad: dulce, cercana, alegre. Usás emojis de flores 🌸💖✨🎀 con moderación. Hablás en español natural y cálido como una amiga íntima. NO seas robótica ni formal. Sé breve (máximo 5-6 oraciones por respuesta) y siempre cariñosa.
+
+Lo que sabés de ${name}:
+`;
+
+  const cats = ['movies','series','music','books','wishlist'];
+  let hasAny = false;
+  for(const cat of cats){
+    const list = state[cat] || [];
+    if(list.length === 0) continue;
+    hasAny = true;
+    context += `\n${catIcons[cat]} ${catNames[cat]} (${list.length}):\n`;
+    const byStatus = {};
+    list.forEach(i=>{
+      const s = i.status||'want';
+      (byStatus[s] = byStatus[s] || []).push(i);
+    });
+    for(const s of Object.keys(byStatus)){
+      const label = CAT_CONFIG[cat].statusLabels[s] || s;
+      const items = byStatus[s].slice(0,30).map(i=>{
+        let line = `"${i.title}"`;
+        if(i.meta) line += ` (${i.meta})`;
+        if(i.rating) line += ` ${'★'.repeat(i.rating)}`;
+        if(i.note) line += ` — nota: "${i.note}"`;
+        if(i.price) line += ` — ${i.price}`;
+        return line;
+      }).join('; ');
+      context += `  · ${label}: ${items}\n`;
+    }
+  }
+  if(!hasAny){
+    context += '\n(Su colección está vacía aún, animala a empezar a agregar cosas)\n';
+  }
+
+  context += `\nPodés:
+- Recomendar pelis, series, libros o música basándote en sus gustos (sé específica con títulos reales)
+- Ayudarla a elegir productos para su wishlist (tablets, maquillaje, figuras, etc.) con sugerencias concretas
+- Charlar sobre sus favoritos
+- Sugerir qué ver o leer hoy según su mood
+- Recordarle lo bonita que es 💖
+
+Si no encontrás contexto suficiente, preguntale con dulzura para conocerla mejor antes de recomendar.`;
+
+  return context;
+}
+
+async function sendToGemini(messages, systemPrompt){
+  if(!settings.geminiKey) throw new Error('Falta la clave de Gemini en ajustes ⚙️');
+  const model = 'gemini-2.0-flash';
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(settings.geminiKey)}`;
+  const body = {
+    contents: messages.map(m=>({
+      role: m.role === 'user' ? 'user' : 'model',
+      parts: [{ text: m.content }]
+    })),
+    systemInstruction: { parts:[{ text: systemPrompt }] },
+    generationConfig: { temperature: 0.9, maxOutputTokens: 800 }
+  };
+  const r = await fetch(url, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+  if(!r.ok){
+    let msg = 'Error de Gemini';
+    try{
+      const err = await r.json();
+      msg = err.error?.message || msg;
+    } catch(_){}
+    throw new Error(msg);
+  }
+  const d = await r.json();
+  const text = d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  if(!text) throw new Error('La IA no devolvió respuesta');
+  return text.trim();
+}
+
+const chatModal = document.getElementById('chatModal');
+const chatMessages = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+
+document.getElementById('fabChat').addEventListener('click', async ()=>{
+  if(!settings.geminiKey){
+    const ok = await customConfirm('Necesitás una clave de Gemini (gratis en ai.google.dev). ¿Querés abrir ajustes ahora para configurarla?', {
+      title: 'IA no configurada 🌸',
+      okText: 'Sí, abrir ajustes',
+      cancelText: 'Después'
+    });
+    if(ok) document.getElementById('settingsBtn').click();
+    return;
+  }
+  chatModal.classList.add('show');
+  renderChat();
+  setTimeout(()=>chatInput.focus(), 120);
+});
+
+document.getElementById('chatClose').onclick = ()=>chatModal.classList.remove('show');
+chatModal.addEventListener('click', e=>{ if(e.target===chatModal) chatModal.classList.remove('show'); });
+
+const CHAT_SUGGESTIONS = [
+  { emoji:'🎬', text:'Una peli', prompt:'Recomendame una película según lo que ya me gustó' },
+  { emoji:'📖', text:'Un libro', prompt:'¿Qué libro me recomendarías ahora?' },
+  { emoji:'📺', text:'Una serie', prompt:'¿Qué serie podría ver ahora?' },
+  { emoji:'🎁', text:'Wishlist', prompt:'Mirá mi wishlist y dame ideas de cositas similares' }
+];
+
+function renderChat(){
+  if(chatHistory.length === 0){
+    const name = settings.name || 'hermosa';
+    const sugg = CHAT_SUGGESTIONS.map(s=>`<button class="chat-sugg" data-prompt="${escAttr(s.prompt)}">${s.emoji} ${s.text}</button>`).join('');
+    chatMessages.innerHTML = `
+      <div class="chat-msg ai">¡Hola ${esc(name)}! 🌸 Soy tu IA personal en este rinconcito. Puedo recomendarte pelis, libros, música o ayudarte con tu wishlist 💖 ¿En qué pensás?</div>
+      <div class="chat-suggestions">${sugg}</div>
+    `;
+    chatMessages.querySelectorAll('.chat-sugg').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        chatInput.value = b.dataset.prompt;
+        sendChat();
+      });
+    });
+    return;
+  }
+  chatMessages.innerHTML = chatHistory.map(m=>
+    `<div class="chat-msg ${m.role==='user'?'user':'ai'}">${esc(m.content)}</div>`
+  ).join('');
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+async function sendChat(){
+  const text = chatInput.value.trim();
+  if(!text) return;
+  chatInput.value = '';
+  chatHistory.push({ role:'user', content:text });
+  renderChat();
+
+  const loadingEl = document.createElement('div');
+  loadingEl.className = 'chat-msg ai loading';
+  loadingEl.innerHTML = '<span class="loader"></span> pensando con flores...';
+  chatMessages.appendChild(loadingEl);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+
+  try{
+    const systemPrompt = buildAISystemPrompt();
+    const reply = await sendToGemini(chatHistory, systemPrompt);
+    loadingEl.remove();
+    chatHistory.push({ role:'model', content: reply });
+    saveChat();
+    renderChat();
+  } catch(err){
+    loadingEl.remove();
+    chatHistory.push({ role:'model', content: `Uy, hubo un problemita: ${err.message} 🥀` });
+    saveChat();
+    renderChat();
+  }
+}
+
+document.getElementById('chatSend').addEventListener('click', sendChat);
+chatInput.addEventListener('keydown', e=>{
+  if(e.key==='Enter' && !e.shiftKey){
+    e.preventDefault();
+    sendChat();
+  }
+});
+
+document.getElementById('chatClear').addEventListener('click', async ()=>{
+  const ok = await customConfirm('¿Borrar toda la conversación con tu IA?', {
+    title:'Borrar chat 🌸',
+    okText:'Sí, borrar',
+    cancelText:'No, mantener'
+  });
+  if(!ok) return;
+  chatHistory = [];
+  saveChat();
+  renderChat();
+});
 
 /* === Init === */
 spawnPetals();

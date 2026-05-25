@@ -12,7 +12,10 @@ const defaultSettings = {
   theme:'melody',
   anniversaryDate:'2023-12-15'
 };
-const emptyState = { movies:[], series:[], music:[], books:[], wishlist:[] };
+const emptyState = {
+  movies:[], series:[], music:[], books:[], wishlist:[],
+  outfits:[], places:[], together:[], dates:[], diary:[]
+};
 
 let settings = loadSettings();
 let state = loadState();
@@ -80,6 +83,51 @@ const CAT_CONFIG = {
     statuses:['want','watched','loved'],
     statusLabels:{ want:'Lo quiero', watched:'¡Lo tengo!', loved:'Top deseo' },
     pillLabels:{ want:'💭 Lo quiero', watched:'🎁 ¡Lo tengo!', loved:'💖 Top deseo' }
+  },
+  outfits: {
+    icon:'👗',
+    sectionTitle:'Tus Outfits',
+    sectionSubtitle:'Looks que te enamoran · sube fotos o pega URLs de Pinterest',
+    metaLabel:'Estilo / Ocasión',
+    statuses:['want','watched','loved'],
+    statusLabels:{ want:'Inspiración', watched:'Lo armé', loved:'Favorito' },
+    pillLabels:{ want:'💭 Me inspira', watched:'👗 Lo armé', loved:'💖 Favorito' }
+  },
+  places: {
+    icon:'🗺️',
+    sectionTitle:'Tus Lugares',
+    sectionSubtitle:'A dónde quieres ir, dónde fuiste, dónde sueñas',
+    metaLabel:'Ciudad / País',
+    statuses:['want','watched','loved'],
+    statusLabels:{ want:'Quiero ir', watched:'Fui', loved:'Favorito' },
+    pillLabels:{ want:'✈️ Quiero ir', watched:'🌍 Ya fui', loved:'💖 Favorito' }
+  },
+  together: {
+    icon:'💑',
+    sectionTitle:'Visto Juntos',
+    sectionSubtitle:'Pelis y series que vieron en pareja, con sus comentarios',
+    metaLabel:'Tipo / Año',
+    statuses:['want','watched','loved'],
+    statusLabels:{ want:'Por ver', watched:'Visto juntos', loved:'Favorita de los dos' },
+    pillLabels:{ want:'💭 Por ver', watched:'💑 Visto juntos', loved:'💖 Favorita de los dos' }
+  },
+  dates: {
+    icon:'💕',
+    sectionTitle:'Date Ideas',
+    sectionSubtitle:'Planes lindos para hacer en pareja',
+    metaLabel:'Tipo / Lugar',
+    statuses:['want','watched','loved'],
+    statusLabels:{ want:'Idea', watched:'¡Hecho!', loved:'Favorito' },
+    pillLabels:{ want:'💡 Idea', watched:'✓ ¡Hecho!', loved:'💖 Favorito' }
+  },
+  diary: {
+    icon:'📔',
+    sectionTitle:'Tu Diario',
+    sectionSubtitle:'Tu rinconcito de pensamientos, sentimientos y memorias',
+    metaLabel:'Lugar / Contexto',
+    statuses:['want','watched','loved'],
+    statusLabels:{ want:'Borrador', watched:'Entrada', loved:'Momento especial' },
+    pillLabels:{ want:'📝 Borrador', watched:'📔 Entrada', loved:'💖 Momento especial' }
   }
 };
 
@@ -162,12 +210,9 @@ function render(){
 
 function renderStats(){
   const stats = document.getElementById('stats');
-  const totalMovies = state.movies.length;
-  const totalSeries = state.series.length;
-  const totalMusic = state.music.length;
-  const totalBooks = state.books.length;
-  const totalWishlist = state.wishlist.length;
-  const allItems = [...state.movies,...state.series,...state.music,...state.books,...state.wishlist];
+  const counts = {};
+  Object.keys(CAT_CONFIG).forEach(cat => counts[cat] = (state[cat]||[]).length);
+  const allItems = Object.keys(CAT_CONFIG).flatMap(cat => state[cat]||[]);
   const lovedAll = allItems.filter(i=>i.status==='loved').length;
   const year = new Date().getFullYear();
   const thisYear = allItems.filter(i=>{
@@ -176,11 +221,16 @@ function renderStats(){
   }).length;
 
   stats.innerHTML = `
-    <div class="stat-card"><div class="stat-num">${totalMovies}</div><div class="stat-label">Películas</div></div>
-    <div class="stat-card"><div class="stat-num">${totalSeries}</div><div class="stat-label">Series</div></div>
-    <div class="stat-card"><div class="stat-num">${totalMusic}</div><div class="stat-label">Música</div></div>
-    <div class="stat-card"><div class="stat-num">${totalBooks}</div><div class="stat-label">Libros</div></div>
-    <div class="stat-card"><div class="stat-num">${totalWishlist}</div><div class="stat-label">Wishlist</div></div>
+    <div class="stat-card"><div class="stat-num">${counts.movies}</div><div class="stat-label">Películas</div></div>
+    <div class="stat-card"><div class="stat-num">${counts.series}</div><div class="stat-label">Series</div></div>
+    <div class="stat-card"><div class="stat-num">${counts.music}</div><div class="stat-label">Música</div></div>
+    <div class="stat-card"><div class="stat-num">${counts.books}</div><div class="stat-label">Libros</div></div>
+    <div class="stat-card"><div class="stat-num">${counts.wishlist}</div><div class="stat-label">Wishlist</div></div>
+    <div class="stat-card"><div class="stat-num">${counts.outfits}</div><div class="stat-label">Outfits</div></div>
+    <div class="stat-card"><div class="stat-num">${counts.places}</div><div class="stat-label">Lugares</div></div>
+    <div class="stat-card"><div class="stat-num">${counts.together}</div><div class="stat-label">💑 Juntos</div></div>
+    <div class="stat-card"><div class="stat-num">${counts.dates}</div><div class="stat-label">💕 Date Ideas</div></div>
+    <div class="stat-card"><div class="stat-num">${counts.diary}</div><div class="stat-label">📔 Diario</div></div>
     <div class="stat-card"><div class="stat-num">${lovedAll}</div><div class="stat-label">💖 Adoradas</div></div>
     <div class="stat-card"><div class="stat-num">${thisYear}</div><div class="stat-label">En ${year}</div></div>
   `;
@@ -231,7 +281,13 @@ function filterByStatus(list,status){
   if(status==='all') return list.slice().sort(byNewest);
   return list.filter(i=>i.status===status).sort(byNewest);
 }
-function byNewest(a,b){ return (b.dateAdded||0) - (a.dateAdded||0); }
+function byNewest(a,b){
+  // Si los dos tienen eventDate, ordenar por eventDate desc
+  if(a.eventDate && b.eventDate) return b.eventDate.localeCompare(a.eventDate);
+  if(a.eventDate && !b.eventDate) return -1;
+  if(!a.eventDate && b.eventDate) return 1;
+  return (b.dateAdded||0) - (a.dateAdded||0);
+}
 
 function cardHTML(cat,item){
   const heartsRow = item.rating ? '♥'.repeat(item.rating)+'<span style="color:var(--pink-200)">'+'♥'.repeat(5-item.rating)+'</span>' : '';
@@ -245,6 +301,13 @@ function cardHTML(cat,item){
     ${item.link?`<a class="item-link" href="${escAttr(item.link)}" target="_blank" rel="noopener">🔗 Ver tienda</a>`:''}
   ` : '';
 
+  // Fecha + comentarios para "Visto juntos", "Date ideas" y "Diario"
+  const dateLabel = { together:'📅 Vista el', dates:'📅 Hecho el', diary:'📅' }[cat];
+  const eventExtras = (cat==='together' || cat==='dates' || cat==='diary') ? `
+    ${item.eventDate?`<div class="item-meta">${dateLabel||'📅'} ${formatPrettyDate(item.eventDate)}</div>`:''}
+    ${item.comments?`<div class="item-note">💬 "${esc(item.comments)}"</div>`:''}
+  ` : '';
+
   return `
     <div class="item-card" data-id="${item.id}">
       <div class="item-badge">${esc(CAT_CONFIG[cat].statusLabels[item.status]||item.status)}</div>
@@ -254,6 +317,7 @@ function cardHTML(cat,item){
         <div class="item-title">${esc(item.title)}</div>
         ${item.meta?`<div class="item-meta">${esc(item.meta)}</div>`:''}
         ${wishlistExtras}
+        ${eventExtras}
         <div class="item-rating">${heartsRow}</div>
         ${item.note?`<div class="item-note">"${esc(item.note)}"</div>`:''}
         <div class="item-actions">
@@ -274,6 +338,14 @@ function cardHTML(cat,item){
 
 function esc(s){return (s+'').replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function escAttr(s){return esc(s);}
+
+function formatPrettyDate(isoStr){
+  if(!isoStr) return '';
+  const d = new Date(isoStr + 'T00:00:00');
+  if(isNaN(d.getTime())) return isoStr;
+  const months = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
 
 /* === Acciones === */
 function toggleFav(cat,id,evt){
@@ -440,6 +512,24 @@ function applyModalLabels(cat, activeStatus='want'){
   statusPills.innerHTML = conf.statuses.map(s =>
     `<div class="pill${s===activeStatus?' active':''}" data-status="${s}">${conf.pillLabels[s]}</div>`
   ).join('');
+
+  // Labels específicos para together/dates/diary
+  const dateLabelEl = document.getElementById('fDateLabel');
+  const commentsLabelEl = document.getElementById('fCommentsLabel');
+  if(dateLabelEl){
+    dateLabelEl.textContent = {
+      together: 'Fecha en que la vieron juntos',
+      dates: 'Fecha en que lo hicieron',
+      diary: 'Fecha de la entrada'
+    }[cat] || 'Fecha';
+  }
+  if(commentsLabelEl){
+    commentsLabelEl.textContent = {
+      together: 'Comentarios de los dos',
+      dates: 'Cómo estuvo',
+      diary: 'Tu entrada (escribe todo lo que quieras)'
+    }[cat] || 'Comentarios';
+  }
 }
 
 function openAdd(cat, preset={}){
@@ -453,6 +543,10 @@ function openAdd(cat, preset={}){
   fNote.value = '';
   fPrice.value = '';
   fLink.value = '';
+  const fDateEl = document.getElementById('fDate');
+  const fCommentsEl = document.getElementById('fComments');
+  if(fDateEl) fDateEl.value = (cat==='diary') ? new Date().toISOString().slice(0,10) : '';
+  if(fCommentsEl) fCommentsEl.value = '';
   applyModalLabels(cat, preset.status||'want');
   setModalCover(preset.cover||'');
   imgUrlInput.value = (preset.cover && preset.cover.startsWith('http'))?preset.cover:'';
@@ -474,6 +568,10 @@ function openEdit(cat,id){
   fNote.value = item.note||'';
   fPrice.value = item.price||'';
   fLink.value = item.link||'';
+  const fDateEl2 = document.getElementById('fDate');
+  const fCommentsEl2 = document.getElementById('fComments');
+  if(fDateEl2) fDateEl2.value = item.eventDate || '';
+  if(fCommentsEl2) fCommentsEl2.value = item.comments || '';
   applyModalLabels(cat, item.status||'want');
   setModalCover(item.cover||'');
   imgUrlInput.value = (item.cover && item.cover.startsWith('http'))?item.cover:'';
@@ -496,6 +594,9 @@ document.getElementById('saveBtn').addEventListener('click',()=>{
   const price = fPrice.value.trim();
   const link = fLink.value.trim();
 
+  const dateField = document.getElementById('fDate')?.value || '';
+  const comments = document.getElementById('fComments')?.value.trim() || '';
+
   try {
     if(editingId){
       const item = state[modalContext.cat].find(i=>i.id===editingId);
@@ -504,6 +605,10 @@ document.getElementById('saveBtn').addEventListener('click',()=>{
         item.status=status; item.rating=rating;
         item.cover = modalContext.cover || '';
         if(modalContext.cat==='wishlist'){ item.price = price; item.link = link; }
+        if(modalContext.cat==='together' || modalContext.cat==='dates' || modalContext.cat==='diary'){
+          item.eventDate = dateField;
+          item.comments = comments;
+        }
       }
     } else {
       const newItem = {
@@ -513,6 +618,10 @@ document.getElementById('saveBtn').addEventListener('click',()=>{
         dateAdded: Date.now()
       };
       if(modalContext.cat==='wishlist'){ newItem.price = price; newItem.link = link; }
+      if(modalContext.cat==='together' || modalContext.cat==='dates' || modalContext.cat==='diary'){
+        newItem.eventDate = dateField;
+        newItem.comments = comments;
+      }
       state[modalContext.cat].push(newItem);
     }
     saveState();
@@ -955,38 +1064,47 @@ function saveChat(){
 
 function buildAISystemPrompt(){
   const name = settings.name || 'amiga';
-  const catNames = { movies:'PELÍCULAS', series:'SERIES', music:'MÚSICA', books:'LIBROS', wishlist:'WISHLIST' };
-  const catIcons = { movies:'🎬', series:'📺', music:'🎵', books:'📖', wishlist:'🎁' };
+  const catNames = {
+    movies:'PELÍCULAS', series:'SERIES', music:'MÚSICA', books:'LIBROS', wishlist:'WISHLIST',
+    outfits:'OUTFITS', places:'LUGARES', together:'VISTO JUNTOS (con su novio)',
+    dates:'DATE IDEAS (planes en pareja)', diary:'DIARIO PERSONAL'
+  };
+  const catIcons = {
+    movies:'🎬', series:'📺', music:'🎵', books:'📖', wishlist:'🎁',
+    outfits:'👗', places:'🗺️', together:'💑', dates:'💕', diary:'📔'
+  };
 
-  let context = `Te llamás My Melody (sí, como la de Sanrio 🎀) y sos la mejor amiga virtual de ${name}. Una BFF de verdad — de esas con las que se habla de TODO: el día, cómo se siente, un chisme, un drama, un meme, la vida, la familia, lo random que se le ocurra. También viven juntas en "Mi Rinconcito ♡", su espacio donde colecciona pelis, series, libros, música y wishlist, pero eso es solo contexto extra, NO el tema obligatorio de toda charla.
+  let context = `Te llamas My Melody (sí, como la de Sanrio 🎀) y eres la mejor amiga virtual de ${name}. Una BFF de verdad — de esas con las que se habla de TODO: el día, cómo se siente, un chisme, un drama, un meme, la vida, la familia, lo random que se le ocurra. También viven juntas en "Mi Rinconcito ♡", su espacio donde colecciona pelis, series, libros, música y wishlist, pero eso es solo contexto extra, NO el tema obligatorio de toda charla.
 
-🎯 REGLA DE ORO — ESCUCHÁ ANTES QUE NADA:
-Tu trabajo principal es ESCUCHAR y RESPONDER a lo que ella dice. Si te cuenta que tuvo un mal día, le respondés sobre eso y le preguntás más. Si te cuenta un chisme, le seguís el chisme. Si está aburrida, charlás de cualquier cosa. Si te pregunta algo random, contestás eso y ya. NO desvíes la charla hacia sus listas a menos que ella te lo pida explícitamente.
+🎯 REGLA DE ORO — ESCUCHA ANTES QUE NADA:
+Tu trabajo principal es ESCUCHAR y RESPONDER a lo que ella dice. Si te cuenta que tuvo un mal día, le respondes sobre eso y le preguntas más. Si te cuenta un chisme, le sigues el chisme. Si está aburrida, charlas de cualquier cosa. Si te pregunta algo random, le contestas eso y ya. NO desvíes la charla hacia sus listas a menos que ella te lo pida directamente.
 
-❌ COSAS QUE NO HACÉS NUNCA (importante):
-- NO redirijas la conversación hacia recomendaciones de cosas si ella no las pidió
+❌ COSAS QUE NUNCA HACES (importante):
+- NO redirijas la conversación hacia recomendaciones si ella no las pidió
 - NO digas frases tipo "y hablando de eso, ¿viste tal peli?" o "esto me recuerda a tu wishlist"
 - NO uses sus colecciones como gancho para cambiar de tema
 - NO le hables romántico ni le digas "hermosa", "princesa", "mi vida", "mi amor", "linda"
 - NO le hagas cumplidos sobre lo físico
-- NO seas empalagosa, formal o robótica
+- NO uses modismos regionales como "che", "boluda", "tipa", "pibe", "guey", "tío", "vale", "pana". Habla en español neutro.
+- NO seas empalagosa, formal ni robótica
 
-✅ LO QUE SÍ HACÉS:
-- Charlás de lo que sea: sentimientos, cosas del día, dramas, chistes, filosofía de las 3am, política liviana, sueños, miedos, cualquier tema
-- Tirás halagos lindos cuando vienen al caso: sobre cómo piensa, su humor, sus ideas, su forma de ver las cosas ("amiga sos un genio", "qué buena la mirada que tenés sobre esto", "te re re escucho", "tenés razón total")
-- Validás lo que siente, le hacés preguntas, mostrás interés genuino
-- Tenés tu propia opinión y la compartís, aunque sea distinta a la suya (con respeto)
-- Reaccionás real: "noooo no me digas", "ay amiga te entiendo", "pará pará pará", "literal", "obvio"
-- Hablás natural: "amiga", "tipa", "che", "obvio", "literal", "tipo", "re"
-- Usás emojis con onda 🎀✨💅🌸💕😭🤭 (pocos, sin saturar)
-- SOLO recomendás pelis/libros/series/música/cosas cuando ella te lo pide directamente. Si te pregunta "¿qué peli puedo ver?" ahí sí usás su colección. Si no, ni la menciones.
-- Sos breve: 3-5 oraciones promedio, podés extenderte hasta 7-8 si el tema lo amerita (algo emocional, una charla profunda)
+✅ LO QUE SÍ HACES:
+- Hablas en español neutro y limpio, como una amiga cercana pero sin modismos de país. Usas "tú" o evitas el pronombre directamente cuando suena más natural.
+- Charlas de lo que sea: sentimientos, cosas del día, dramas, chistes, filosofía de las 3am, sueños, miedos, cualquier tema
+- Le tiras halagos lindos cuando vienen al caso: sobre cómo piensa, su humor, sus ideas, su forma de ver las cosas ("eres un genio", "qué bonita forma de verlo", "te entiendo perfecto", "tienes toda la razón")
+- Validas lo que siente, le haces preguntas, muestras interés genuino
+- Tienes tu propia opinión y la compartes, aunque sea distinta a la suya (con respeto)
+- Reaccionas natural: "ay no, en serio?", "te entiendo mucho", "espera, cuéntame más", "qué fuerte", "literal", "obvio"
+- Usas palabras universales: "amiga", "súper", "literal", "obvio", "qué lindo", "me encanta", "me da risa"
+- Usas emojis con buena vibra 🎀✨💅🌸💕😭🤭 (pocos, sin saturar)
+- SOLO recomiendas pelis/libros/series/música/cosas cuando ella te lo pide directamente. Si te pregunta "¿qué peli puedo ver?" ahí sí usas su colección. Si no, ni la menciones.
+- Eres breve: 3-5 oraciones promedio, puedes extenderte hasta 7-8 si el tema lo amerita (algo emocional, una charla profunda)
 
 ${settings.bio ? `Lo que ella escribió de sí misma en su bio: "${settings.bio}"\n` : ''}
 Lo que sabés de ${name} (esto es contexto extra para cuando ella te pida recomendaciones, NO el tema obligado de toda charla):
 `;
 
-  const cats = ['movies','series','music','books','wishlist'];
+  const cats = ['movies','series','music','books','wishlist','outfits','places','together','dates','diary'];
   let hasAny = false;
   for(const cat of cats){
     const list = state[cat] || [];
@@ -1006,6 +1124,8 @@ Lo que sabés de ${name} (esto es contexto extra para cuando ella te pida recome
         if(i.rating) line += ` ${'★'.repeat(i.rating)}`;
         if(i.note) line += ` — nota: "${i.note}"`;
         if(i.price) line += ` — ${i.price}`;
+        if(i.eventDate) line += ` — ${i.eventDate}`;
+        if(i.comments) line += ` — comentario: "${i.comments}"`;
         return line;
       }).join('; ');
       context += `  · ${label}: ${items}\n`;
@@ -1015,15 +1135,15 @@ Lo que sabés de ${name} (esto es contexto extra para cuando ella te pida recome
     context += '\n(Su colección está vacía todavía. Animala a empezar pero como amiga, no como mami)\n';
   }
 
-  context += `\nQué hacés bien (en este orden de importancia):
-1. ESCUCHARLA y charlar de cualquier cosa que ella quiera: el día, sentimientos, dudas, chismes, random talk
+  context += `\nQué haces bien (en este orden de importancia):
+1. ESCUCHARLA y charlar de cualquier cosa que ella quiera: el día, sentimientos, dudas, chismes, lo que sea
 2. Validarla, hacerle preguntas, mostrar interés en lo que le pasa
 3. Tirarle halagos lindos sobre cómo piensa, su humor, su criterio (no físicos)
-4. Tener charlas profundas si ella las quiere, o livianas si está para distraerse
-5. SOLO si ella te lo pide explícitamente: recomendar pelis/series/libros/música/wishlist (con títulos reales y específicos)
+4. Tener charlas profundas si ella las quiere, o livianas si quiere distraerse
+5. SOLO si ella te lo pide directamente: recomendar pelis/series/libros/música/cosas para su wishlist (con títulos reales y específicos)
 6. Si te pide ayuda para elegir algo (tablet, makeup, figura), ahí sí dale tu opinión con marcas/modelos concretos
 
-Recordá: ella vino a hablar con vos, no a que le promociones su propia colección. Charlá como amiga normal. 💕`;
+Recuerda: ella vino a hablar contigo, no a que le promociones su propia colección. Habla como amiga normal en español neutro. 💕`;
 
   return context;
 }
@@ -1141,10 +1261,10 @@ document.getElementById('chatClose').onclick = ()=>chatModal.classList.remove('s
 chatModal.addEventListener('click', e=>{ if(e.target===chatModal) chatModal.classList.remove('show'); });
 
 const CHAT_SUGGESTIONS = [
-  { emoji:'💬', text:'Charlemos', prompt:'Hola amiga, contame algo, ¿cómo estás vos?' },
+  { emoji:'💬', text:'Charlemos', prompt:'Hola amiga, cuéntame algo, ¿cómo estás tú?' },
   { emoji:'🥺', text:'Necesito desahogarme', prompt:'Necesito hablar de algo que me está pasando' },
-  { emoji:'✨', text:'Algo lindo', prompt:'Decime algo lindo, necesito buena energía hoy' },
-  { emoji:'🎬', text:'Recomendame una peli', prompt:'Recomendame una película según lo que ya me gustó' }
+  { emoji:'✨', text:'Algo lindo', prompt:'Dime algo lindo, necesito buena energía hoy' },
+  { emoji:'🎬', text:'Recomiéndame una peli', prompt:'Recomiéndame una película según lo que ya me gustó' }
 ];
 
 function renderChat(){
@@ -1152,7 +1272,7 @@ function renderChat(){
     const name = settings.name || 'amiga';
     const sugg = CHAT_SUGGESTIONS.map(s=>`<button class="chat-sugg" data-prompt="${escAttr(s.prompt)}">${s.emoji} ${s.text}</button>`).join('');
     chatMessages.innerHTML = `
-      <div class="chat-msg ai">¡Hola ${esc(name)}! 🎀 Soy My Melody, tu amiga acá en este rinconcito. Podemos hablar de lo que vos quieras — cómo te fue, algo que te pasó, lo random que sea. Te escucho ✨ ¿Qué onda?</div>
+      <div class="chat-msg ai">¡Hola ${esc(name)}! 🎀 Soy My Melody, tu amiga aquí en este rinconcito. Podemos hablar de lo que quieras — cómo te fue, algo que te pasó, lo más random. Te escucho ✨ ¿Cómo estás?</div>
       <div class="chat-suggestions">${sugg}</div>
     `;
     chatMessages.querySelectorAll('.chat-sugg').forEach(b=>{

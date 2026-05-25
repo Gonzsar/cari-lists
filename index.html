@@ -147,6 +147,21 @@
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
       Wishlist
     </button>
+    <button class="cat-tab" data-cat="outfits">
+      <span class="emoji-icon">👗</span> Outfits
+    </button>
+    <button class="cat-tab" data-cat="places">
+      <span class="emoji-icon">🗺️</span> Lugares
+    </button>
+    <button class="cat-tab" data-cat="together">
+      <span class="emoji-icon">💑</span> Visto Juntos
+    </button>
+    <button class="cat-tab" data-cat="dates">
+      <span class="emoji-icon">💕</span> Date Ideas
+    </button>
+    <button class="cat-tab" data-cat="diary">
+      <span class="emoji-icon">📔</span> Diario
+    </button>
   </div>
 
   <!-- ===== Películas ===== -->
@@ -267,6 +282,101 @@
     <div class="items-grid" id="wishlistList"></div>
   </section>
 
+  <!-- ===== Outfits / OOTD ===== -->
+  <section class="cat-content" id="cat-outfits">
+    <h2 class="section-title">Tus Outfits</h2>
+    <p class="section-subtitle">Looks que te enamoran · sube fotos o pega URLs de Pinterest 👗</p>
+
+    <div class="search-box" style="text-align:center;background:rgba(255,255,255,0.7);">
+      <p style="color:var(--text-soft);font-style:italic;margin-bottom:10px;">Tocá el botón <strong>+</strong> de abajo para agregar un look. Podés subir foto o pegar la URL desde Pinterest ✨</p>
+    </div>
+
+    <div class="status-tabs" data-cat="outfits">
+      <button class="status-tab active" data-status="all">Todos <span class="count" id="outfits-count-all">0</span></button>
+      <button class="status-tab" data-status="want">💭 Me inspira <span class="count" id="outfits-count-want">0</span></button>
+      <button class="status-tab" data-status="watched">👗 Lo armé <span class="count" id="outfits-count-watched">0</span></button>
+      <button class="status-tab" data-status="loved">💖 Favoritos <span class="count" id="outfits-count-loved">0</span></button>
+    </div>
+
+    <div class="items-grid" id="outfitsList"></div>
+  </section>
+
+  <!-- ===== Lugares ===== -->
+  <section class="cat-content" id="cat-places">
+    <h2 class="section-title">Tus Lugares</h2>
+    <p class="section-subtitle">A dónde quieres ir, dónde fuiste, dónde sueñas 🗺️</p>
+
+    <div class="search-box" style="text-align:center;background:rgba(255,255,255,0.7);">
+      <p style="color:var(--text-soft);font-style:italic;margin-bottom:10px;">Agregá un lugar con el botón <strong>+</strong>. Sumá foto, ciudad y un comentario ✨</p>
+    </div>
+
+    <div class="status-tabs" data-cat="places">
+      <button class="status-tab active" data-status="all">Todos <span class="count" id="places-count-all">0</span></button>
+      <button class="status-tab" data-status="want">✈️ Quiero ir <span class="count" id="places-count-want">0</span></button>
+      <button class="status-tab" data-status="watched">🌍 Ya fui <span class="count" id="places-count-watched">0</span></button>
+      <button class="status-tab" data-status="loved">💖 Favoritos <span class="count" id="places-count-loved">0</span></button>
+    </div>
+
+    <div class="items-grid" id="placesList"></div>
+  </section>
+
+  <!-- ===== Visto Juntos ===== -->
+  <section class="cat-content" id="cat-together">
+    <h2 class="section-title">Visto Juntos 💑</h2>
+    <p class="section-subtitle">Pelis y series que vieron en pareja, con la fecha y sus comentarios</p>
+
+    <div class="search-box" style="text-align:center;background:rgba(255,255,255,0.7);">
+      <p style="color:var(--text-soft);font-style:italic;margin-bottom:10px;">Tocá el botón <strong>+</strong> para agregar lo que vieron juntos. Podés poner la fecha y un comentario 💕</p>
+    </div>
+
+    <div class="status-tabs" data-cat="together">
+      <button class="status-tab active" data-status="all">Todas <span class="count" id="together-count-all">0</span></button>
+      <button class="status-tab" data-status="want">💭 Por ver <span class="count" id="together-count-want">0</span></button>
+      <button class="status-tab" data-status="watched">💑 Vistas <span class="count" id="together-count-watched">0</span></button>
+      <button class="status-tab" data-status="loved">💖 Favoritas <span class="count" id="together-count-loved">0</span></button>
+    </div>
+
+    <div class="items-grid" id="togetherList"></div>
+  </section>
+
+  <!-- ===== Date Ideas ===== -->
+  <section class="cat-content" id="cat-dates">
+    <h2 class="section-title">Date Ideas 💕</h2>
+    <p class="section-subtitle">Planes lindos para hacer en pareja, marcalos cuando los hagan</p>
+
+    <div class="search-box" style="text-align:center;background:rgba(255,255,255,0.7);">
+      <p style="color:var(--text-soft);font-style:italic;margin-bottom:10px;">Agregá ideas con el botón <strong>+</strong>. Cuando lo hagan, marcalo como ¡Hecho! ✨</p>
+    </div>
+
+    <div class="status-tabs" data-cat="dates">
+      <button class="status-tab active" data-status="all">Todos <span class="count" id="dates-count-all">0</span></button>
+      <button class="status-tab" data-status="want">💡 Ideas <span class="count" id="dates-count-want">0</span></button>
+      <button class="status-tab" data-status="watched">✓ ¡Hechos! <span class="count" id="dates-count-watched">0</span></button>
+      <button class="status-tab" data-status="loved">💖 Favoritos <span class="count" id="dates-count-loved">0</span></button>
+    </div>
+
+    <div class="items-grid" id="datesList"></div>
+  </section>
+
+  <!-- ===== Diario ===== -->
+  <section class="cat-content" id="cat-diary">
+    <h2 class="section-title">Tu Diario 📔</h2>
+    <p class="section-subtitle">Tu rinconcito de pensamientos, sentimientos y memorias</p>
+
+    <div class="search-box" style="text-align:center;background:rgba(255,255,255,0.7);">
+      <p style="color:var(--text-soft);font-style:italic;margin-bottom:10px;">Cada entrada lleva fecha. Tocá el botón <strong>+</strong> para escribir algo nuevo 💕</p>
+    </div>
+
+    <div class="status-tabs" data-cat="diary">
+      <button class="status-tab active" data-status="all">Todas <span class="count" id="diary-count-all">0</span></button>
+      <button class="status-tab" data-status="want">📝 Borradores <span class="count" id="diary-count-want">0</span></button>
+      <button class="status-tab" data-status="watched">📔 Entradas <span class="count" id="diary-count-watched">0</span></button>
+      <button class="status-tab" data-status="loved">💖 Momentos especiales <span class="count" id="diary-count-loved">0</span></button>
+    </div>
+
+    <div class="items-grid" id="diaryList"></div>
+  </section>
+
   <footer>
     Hecho con <span class="heart-tiny">♥</span> para ti
   </footer>
@@ -310,6 +420,16 @@
     <div class="form-row wishlist-only">
       <label>Enlace para verlo o comprarlo (opcional)</label>
       <input type="text" id="fLink" placeholder="https://..."/>
+    </div>
+
+    <div class="form-row event-only">
+      <label id="fDateLabel">Fecha</label>
+      <input type="date" id="fDate"/>
+    </div>
+
+    <div class="form-row event-only">
+      <label id="fCommentsLabel">Comentarios</label>
+      <textarea id="fComments" placeholder="Lo que sintieron, opiniones, recuerdos..."></textarea>
     </div>
 
     <div class="form-row">

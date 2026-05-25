@@ -991,12 +991,42 @@ footer .heart-tiny{color:var(--pink-500);display:inline-block;animation:beat 1.5
   justify-content:center;
 }
 
-/* ===== Wishlist-specific (campo precio y enlace solo se ven cuando categoría = wishlist) ===== */
-.wishlist-only{display:none;}
+/* ===== Campos especiales por categoría ===== */
+.wishlist-only, .event-only { display:none; }
 body[data-cat="wishlist"] .wishlist-only{display:block;}
+body[data-cat="together"] .event-only,
+body[data-cat="dates"] .event-only,
+body[data-cat="diary"] .event-only { display:block; }
 
-/* En wishlist, la imagen no es siempre 2:3 (productos suelen ser más cuadrados) */
+/* Aspect ratios por categoría (productos cuadrados, outfits portrait, lugares landscape...) */
 #cat-wishlist .item-cover,
-#cat-wishlist .result-cover{
-  aspect-ratio:1/1;
+#cat-wishlist .result-cover,
+#cat-dates .item-cover { aspect-ratio:1/1; }
+
+#cat-outfits .item-cover { aspect-ratio:3/4; }
+
+#cat-places .item-cover,
+#cat-diary .item-cover { aspect-ratio:4/3; }
+
+#cat-together .item-cover { aspect-ratio:2/3; }
+
+/* Diario: tarjetas más anchas para que se lea el contenido */
+#cat-diary .items-grid {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+#cat-diary .item-note {
+  -webkit-line-clamp: 6;
+  font-size: 0.95rem;
+}
+
+/* Emoji icon en los tabs nuevos */
+.emoji-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+/* Tabs: ya tienen flex-wrap, pero con 10 cats conviene gap menor */
+@media (max-width: 900px){
+  .category-tabs { gap: 6px; }
+  .cat-tab { padding: 10px 16px; font-size: 0.88rem; }
 }

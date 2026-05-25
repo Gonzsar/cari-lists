@@ -794,8 +794,10 @@ h1.title{
   position:fixed;
   right:24px;
   bottom:100px;
-  width:100px;
-  height:108px;
+
+  width:160px;   /* tamaño nuevo */
+  height:173px;  /* mantener proporción aproximada */
+
   z-index:48;
   cursor:pointer;
   user-select:none;

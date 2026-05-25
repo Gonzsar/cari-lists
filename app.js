@@ -383,14 +383,27 @@ function resizeImage(file, maxDim=800){
   });
 }
 
-// Lee la imagen preservando GIFs animados (no los pasa por canvas).
-// Para otros formatos, redimensiona con resizeImage.
+// Detecta formatos animados (GIF, WebP animado, APNG) por mime type o extensión.
+// Algunos navegadores no setean bien file.type, por eso chequeamos también el nombre.
+function isAnimatedFormat(file){
+  const type = (file.type || '').toLowerCase();
+  const name = (file.name || '').toLowerCase();
+  return type === 'image/gif' ||
+         type === 'image/webp' ||
+         type === 'image/apng' ||
+         name.endsWith('.gif') ||
+         name.endsWith('.webp') ||
+         name.endsWith('.apng');
+}
+
+// Lee la imagen preservando animación si es GIF/WebP/APNG (no los pasa por canvas).
+// Para JPG/PNG normales, redimensiona con resizeImage para no llenar el storage.
 function readImageFile(file, maxDim=800){
   return new Promise((resolve, reject)=>{
-    if(file.type === 'image/gif'){
-      // Aviso si el GIF es muy grande (el localStorage tiene ~5MB total)
+    if(isAnimatedFormat(file)){
+      console.log('[readImageFile] formato animado detectado:', file.type, file.name, `${(file.size/1024).toFixed(0)}KB`);
       if(file.size > 3 * 1024 * 1024){
-        toast('GIF grande, puede no caber en el storage 🌸');
+        toast('Archivo grande, puede no caber en el storage 🌸');
       }
       const reader = new FileReader();
       reader.onerror = reject;

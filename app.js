@@ -6,7 +6,10 @@
 const STORAGE_KEY = 'cariList_v2';
 const SETTINGS_KEY = 'cariList_settings_v2';
 
-const defaultSettings = { name:'', tmdbKey:'', geminiKey:'', groqKey:'', openaiKey:'', aiProvider:'groq' };
+const defaultSettings = {
+  name:'', tmdbKey:'', geminiKey:'', groqKey:'', openaiKey:'', aiProvider:'groq',
+  avatar:'', banner:'', bio:''
+};
 const emptyState = { movies:[], series:[], music:[], books:[], wishlist:[] };
 
 let settings = loadSettings();
@@ -116,8 +119,31 @@ function setGreeting(){
   document.getElementById('randomQuote').textContent = quotes[Math.floor(Math.random()*quotes.length)];
 }
 
+/* === Perfil === */
+function renderProfile(){
+  const bannerEl = document.getElementById('profileBanner');
+  const avatarEl = document.getElementById('profileAvatar');
+  const bioEl = document.getElementById('profileBio');
+  if(!bannerEl) return;
+
+  if(settings.banner){
+    bannerEl.style.backgroundImage = `url("${settings.banner.replace(/"/g,'\\"')}")`;
+  } else {
+    bannerEl.style.backgroundImage = '';
+  }
+  if(settings.avatar){
+    avatarEl.style.backgroundImage = `url("${settings.avatar.replace(/"/g,'\\"')}")`;
+    avatarEl.textContent = '';
+  } else {
+    avatarEl.style.backgroundImage = '';
+    avatarEl.textContent = '🌸';
+  }
+  bioEl.textContent = settings.bio || '';
+}
+
 /* === Render principal === */
 function render(){
+  renderProfile();
   setGreeting();
   renderStats();
   document.body.dataset.cat = currentCat;
@@ -564,6 +590,116 @@ document.getElementById('importFile').addEventListener('change',(e)=>{
   reader.readAsText(file);
 });
 
+/* === Modal de perfil === */
+const profileModal = document.getElementById('profileModal');
+const profBannerPreview = document.getElementById('profBannerPreview');
+const profAvatarPreview = document.getElementById('profAvatarPreview');
+const bannerUrlInput = document.getElementById('bannerUrlInput');
+const avatarUrlInput = document.getElementById('avatarUrlInput');
+let profileContext = { avatar:'', banner:'' };
+
+function setProfilePreview(which, src){
+  const el = which === 'avatar' ? profAvatarPreview : profBannerPreview;
+  if(src){
+    el.style.backgroundImage = `url("${src.replace(/"/g,'\\"')}")`;
+    el.textContent = '';
+  } else {
+    el.style.backgroundImage = '';
+    el.textContent = which === 'avatar' ? '🌸' : 'sin banner';
+  }
+  if(which === 'avatar') profileContext.avatar = src;
+  else profileContext.banner = src;
+}
+
+document.getElementById('profileEditBtn').addEventListener('click', ()=>{
+  profileContext = {
+    avatar: settings.avatar || '',
+    banner: settings.banner || ''
+  };
+  document.getElementById('profName').value = settings.name || '';
+  document.getElementById('profBio').value = settings.bio || '';
+  setProfilePreview('avatar', profileContext.avatar);
+  setProfilePreview('banner', profileContext.banner);
+  avatarUrlInput.value = (profileContext.avatar && profileContext.avatar.startsWith('http')) ? profileContext.avatar : '';
+  bannerUrlInput.value = (profileContext.banner && profileContext.banner.startsWith('http')) ? profileContext.banner : '';
+  profileModal.classList.add('show');
+});
+
+document.getElementById('profileClose').onclick = ()=>profileModal.classList.remove('show');
+document.getElementById('profCancel').onclick = ()=>profileModal.classList.remove('show');
+profileModal.addEventListener('click', e=>{ if(e.target===profileModal) profileModal.classList.remove('show'); });
+
+// Avatar
+document.getElementById('uploadAvatarBtn').onclick = ()=>document.getElementById('uploadAvatarInput').click();
+document.getElementById('uploadAvatarInput').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  if(!file.type.startsWith('image/')){ toast('Eso no es una imagen'); return; }
+  try{
+    const dataUrl = await resizeImage(file, 400);
+    setProfilePreview('avatar', dataUrl);
+    avatarUrlInput.value = '';
+  } catch{ toast('No pude leer la imagen'); }
+  e.target.value = '';
+});
+avatarUrlInput.addEventListener('input', ()=>{
+  const v = avatarUrlInput.value.trim();
+  if(v) setProfilePreview('avatar', v);
+});
+document.getElementById('clearAvatarBtn').onclick = ()=>{
+  setProfilePreview('avatar', '');
+  avatarUrlInput.value = '';
+};
+
+// Banner
+document.getElementById('uploadBannerBtn').onclick = ()=>document.getElementById('uploadBannerInput').click();
+document.getElementById('uploadBannerInput').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  if(!file.type.startsWith('image/')){ toast('Eso no es una imagen'); return; }
+  try{
+    const dataUrl = await resizeImage(file, 1200);
+    setProfilePreview('banner', dataUrl);
+    bannerUrlInput.value = '';
+  } catch{ toast('No pude leer la imagen'); }
+  e.target.value = '';
+});
+bannerUrlInput.addEventListener('input', ()=>{
+  const v = bannerUrlInput.value.trim();
+  if(v) setProfilePreview('banner', v);
+});
+document.getElementById('clearBannerBtn').onclick = ()=>{
+  setProfilePreview('banner', '');
+  bannerUrlInput.value = '';
+};
+
+document.getElementById('profSave').onclick = ()=>{
+  const newName = document.getElementById('profName').value.trim();
+  const newBio = document.getElementById('profBio').value.trim();
+  const oldAvatar = settings.avatar;
+  const oldBanner = settings.banner;
+  settings.name = newName || settings.name || 'amiga';
+  settings.bio = newBio;
+  settings.avatar = profileContext.avatar;
+  settings.banner = profileContext.banner;
+  try{
+    saveSettings();
+  } catch(err){
+    settings.avatar = oldAvatar;
+    settings.banner = oldBanner;
+    if(err.name === 'QuotaExceededError'){
+      toast('No hay espacio. Probá con una imagen más chica 🌸');
+    } else {
+      toast('Hubo un problema al guardar');
+    }
+    return;
+  }
+  renderProfile();
+  setGreeting();
+  profileModal.classList.remove('show');
+  toast('¡Perfil actualizado! ✨');
+};
+
 /* === Tabs === */
 document.querySelectorAll('.cat-tab').forEach(t=>{
   t.addEventListener('click',()=>{
@@ -787,6 +923,7 @@ SÍ hacé esto:
 - Reaccioná genuino: "noooo amiga", "ay no sabés", "pará pará pará"
 - Sé breve: 3-5 oraciones, máximo 6
 
+${settings.bio ? `Lo que ella escribió de sí misma en su bio: "${settings.bio}"\n` : ''}
 Lo que sabés de ${name} (su colección actual):
 `;
 

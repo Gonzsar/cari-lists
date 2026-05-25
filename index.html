@@ -101,14 +101,25 @@
 </div>
 
 <div class="container">
-  <header>
-    <button class="settings-btn" id="settingsBtn" title="Ajustes" aria-label="Ajustes">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-    </button>
-    <div class="greeting" id="greetingTime">Buenos días</div>
-    <h1 class="title" id="userName">Mi Rincón</h1>
-    <div class="heart-divider">♡</div>
-    <div class="subtitle" id="randomQuote">"Coleccionando cosas bonitas"</div>
+  <header class="profile-card">
+    <div class="profile-banner" id="profileBanner">
+      <button class="profile-edit-btn" id="profileEditBtn" title="Editar perfil" aria-label="Editar perfil">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      </button>
+      <button class="settings-btn" id="settingsBtn" title="Ajustes" aria-label="Ajustes">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+    <div class="profile-avatar-wrap">
+      <div class="profile-avatar" id="profileAvatar">🌸</div>
+    </div>
+    <div class="profile-info">
+      <div class="greeting" id="greetingTime">Buenos días</div>
+      <h1 class="title" id="userName">Mi Rincón</h1>
+      <div class="profile-bio" id="profileBio"></div>
+      <div class="heart-divider">♡</div>
+      <div class="subtitle" id="randomQuote">"Coleccionando cosas bonitas"</div>
+    </div>
   </header>
 
   <div class="stats" id="stats"></div>
@@ -393,6 +404,52 @@
     <div class="modal-actions confirm-actions">
       <button class="btn ghost" id="confirmCancel">No, mantener</button>
       <button class="btn" id="confirmOk">Sí, eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal: editar perfil ===== -->
+<div class="modal-bg" id="profileModal" aria-hidden="true">
+  <div class="modal" role="dialog">
+    <button class="modal-close" id="profileClose" aria-label="Cerrar">✕</button>
+    <h2>Tu perfil ✨</h2>
+
+    <div class="form-row image-picker">
+      <label>Banner</label>
+      <div class="profile-banner-preview" id="profBannerPreview">sin banner</div>
+      <div class="image-controls">
+        <button type="button" class="btn ghost small" id="uploadBannerBtn">📷 Subir banner</button>
+        <input type="file" id="uploadBannerInput" accept="image/*" style="display:none"/>
+        <button type="button" class="btn ghost small" id="clearBannerBtn">Quitar</button>
+        <input type="text" id="bannerUrlInput" placeholder="O pega una URL de imagen..."/>
+      </div>
+    </div>
+
+    <div class="form-row image-picker">
+      <label>Tu foto de perfil</label>
+      <div class="profile-avatar-preview" id="profAvatarPreview">🌸</div>
+      <div class="image-controls">
+        <button type="button" class="btn ghost small" id="uploadAvatarBtn">📷 Subir foto</button>
+        <input type="file" id="uploadAvatarInput" accept="image/*" style="display:none"/>
+        <button type="button" class="btn ghost small" id="clearAvatarBtn">Quitar</button>
+        <input type="text" id="avatarUrlInput" placeholder="O pega una URL..."/>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label>Tu nombre</label>
+      <input type="text" id="profName" maxlength="40"/>
+    </div>
+
+    <div class="form-row">
+      <label>Bio (algo lindo sobre ti)</label>
+      <textarea id="profBio" maxlength="200" placeholder="Cuéntame quién eres en una o dos frases..."></textarea>
+      <small>Máximo 200 caracteres</small>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn ghost" id="profCancel">Cancelar</button>
+      <button class="btn" id="profSave">Guardar ♡</button>
     </div>
   </div>
 </div>

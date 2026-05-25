@@ -76,12 +76,84 @@ html,body{
   padding:32px 24px 80px;
 }
 
-/* ===== Header ===== */
-header{
-  text-align:center;
-  padding:32px 0 24px;
+/* ===== Tarjeta de perfil ===== */
+header.profile-card{
+  background:white;
+  border-radius:28px;
+  overflow:hidden;
+  margin:16px 0 36px;
+  position:relative;
+  border:1.5px solid rgba(247,179,198,0.4);
+  box-shadow:var(--shadow);
+  padding-bottom:26px;
+}
+.profile-banner{
+  width:100%;
+  height:170px;
+  background-image:linear-gradient(135deg,#fbd0dd 0%,#f7b3c6 50%,#fde4c9 100%);
+  background-size:cover;
+  background-position:center;
   position:relative;
 }
+.profile-banner::after{
+  content:'';
+  position:absolute;inset:0;
+  background:linear-gradient(180deg,transparent 50%,rgba(255,255,255,0.15));
+  pointer-events:none;
+}
+.profile-avatar-wrap{
+  display:flex;justify-content:center;
+  margin-top:-66px;
+  position:relative;z-index:2;
+}
+.profile-avatar{
+  width:130px;height:130px;
+  border-radius:50%;
+  background:white center/cover no-repeat;
+  border:5px solid white;
+  box-shadow:0 8px 24px rgba(232,106,145,0.3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:3.4rem;
+  color:var(--pink-400);
+  overflow:hidden;
+}
+.profile-info{
+  text-align:center;
+  padding:12px 28px 0;
+}
+.profile-bio{
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;
+  color:var(--text-soft);
+  font-size:1.05rem;
+  max-width:520px;
+  margin:6px auto 4px;
+  line-height:1.45;
+  white-space:pre-wrap;
+}
+.profile-bio:empty{display:none;}
+
+/* Botón editar perfil (sobre el banner) */
+.profile-edit-btn{
+  position:absolute;top:18px;left:18px;
+  background:rgba(255,255,255,0.85);
+  backdrop-filter:blur(8px);
+  border:1.5px solid var(--pink-200);
+  width:42px;height:42px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--pink-500);
+  transition:all 0.25s ease;
+  box-shadow:var(--shadow);
+  z-index:3;
+}
+.profile-edit-btn:hover{background:white;transform:scale(1.08);}
+
+/* El gear button cuando está dentro del banner */
+.profile-banner .settings-btn{
+  top:18px;right:18px;
+  background:rgba(255,255,255,0.85);
+}
+
 .greeting{
   font-family:'Cormorant Garamond',serif;
   font-style:italic;
@@ -593,6 +665,34 @@ footer .heart-tiny{color:var(--pink-500);display:inline-block;animation:beat 1.5
 /* ===== Tab content visibility ===== */
 .cat-content{display:none;}
 .cat-content.active{display:block;animation:fadeIn 0.35s ease;}
+
+/* ===== Previews del editor de perfil ===== */
+.profile-banner-preview{
+  width:100%;
+  height:110px;
+  border-radius:14px;
+  background:linear-gradient(135deg,#fbd0dd,#f7b3c6,#fde4c9) center/cover no-repeat;
+  border:1.5px solid var(--pink-200);
+  margin-bottom:12px;
+  display:flex;align-items:center;justify-content:center;
+  color:rgba(255,255,255,0.85);
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;
+  font-size:1rem;
+  text-shadow:0 1px 4px rgba(232,106,145,0.4);
+}
+.profile-avatar-preview{
+  width:100px;height:100px;
+  border-radius:50%;
+  background:white center/cover no-repeat;
+  border:3px solid var(--pink-200);
+  margin:0 auto 12px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--pink-300);
+  font-size:2.4rem;
+  overflow:hidden;
+  box-shadow:0 4px 14px rgba(232,106,145,0.15);
+}
 
 /* ===== Selector de proveedor de IA en settings ===== */
 .provider-field{display:none;}

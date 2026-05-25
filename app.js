@@ -333,7 +333,7 @@ uploadImgInput.addEventListener('change',async (e)=>{
   if(!file) return;
   if(!file.type.startsWith('image/')){ toast('Eso no parece una imagen'); return; }
   try {
-    const dataUrl = await resizeImage(file, 800);
+    const dataUrl = await readImageFile(file, 800);
     setModalCover(dataUrl);
     imgUrlInput.value = '';
   } catch(err){ toast('No pude leer la imagen'); }
@@ -380,6 +380,25 @@ function resizeImage(file, maxDim=800){
       img.src = ev.target.result;
     };
     reader.readAsDataURL(file);
+  });
+}
+
+// Lee la imagen preservando GIFs animados (no los pasa por canvas).
+// Para otros formatos, redimensiona con resizeImage.
+function readImageFile(file, maxDim=800){
+  return new Promise((resolve, reject)=>{
+    if(file.type === 'image/gif'){
+      // Aviso si el GIF es muy grande (el localStorage tiene ~5MB total)
+      if(file.size > 3 * 1024 * 1024){
+        toast('GIF grande, puede no caber en el storage 🌸');
+      }
+      const reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = (e) => resolve(e.target.result);
+      reader.readAsDataURL(file);
+      return;
+    }
+    resizeImage(file, maxDim).then(resolve).catch(reject);
   });
 }
 
@@ -636,7 +655,7 @@ document.getElementById('uploadAvatarInput').addEventListener('change', async (e
   if(!file) return;
   if(!file.type.startsWith('image/')){ toast('Eso no es una imagen'); return; }
   try{
-    const dataUrl = await resizeImage(file, 400);
+    const dataUrl = await readImageFile(file, 400);
     setProfilePreview('avatar', dataUrl);
     avatarUrlInput.value = '';
   } catch{ toast('No pude leer la imagen'); }
@@ -658,7 +677,7 @@ document.getElementById('uploadBannerInput').addEventListener('change', async (e
   if(!file) return;
   if(!file.type.startsWith('image/')){ toast('Eso no es una imagen'); return; }
   try{
-    const dataUrl = await resizeImage(file, 1200);
+    const dataUrl = await readImageFile(file, 1200);
     setProfilePreview('banner', dataUrl);
     bannerUrlInput.value = '';
   } catch{ toast('No pude leer la imagen'); }
@@ -728,11 +747,6 @@ document.querySelectorAll('.status-tabs').forEach(group=>{
 
 /* === FAB === */
 document.getElementById('fabAdd').addEventListener('click',()=>openAdd(currentCat));
-
-/* === Botones "agregar manualmente" en cada buscador === */
-document.querySelectorAll('.manual-add-btn[data-cat]').forEach(btn=>{
-  btn.addEventListener('click', ()=>openAdd(btn.dataset.cat));
-});
 
 /* === APIs de búsqueda === */
 async function searchMovies(q){
@@ -820,14 +834,7 @@ async function searchBooks(q){
 function renderSearchResults(containerId, results){
   const c = document.getElementById(containerId);
   if(results.length===0){
-    c.innerHTML = `<div class="empty" style="grid-column:1/-1;">
-      <div class="empty-flower">🌸</div>
-      <h3>Nada por aquí</h3>
-      <p>Probá con otra búsqueda... o agregalo a mano</p>
-      <button class="btn small empty-manual-add" style="margin-top:12px;">+ Agregar manualmente</button>
-    </div>`;
-    const btn = c.querySelector('.empty-manual-add');
-    if(btn) btn.addEventListener('click', ()=>openAdd(currentCat));
+    c.innerHTML = `<div class="empty" style="grid-column:1/-1;"><div class="empty-flower">🌸</div><h3>Nada por aquí</h3><p>Prueba con otra búsqueda</p></div>`;
     return;
   }
   c.innerHTML = results.map((r,i)=>`
@@ -917,26 +924,32 @@ function buildAISystemPrompt(){
   const catNames = { movies:'PELÍCULAS', series:'SERIES', music:'MÚSICA', books:'LIBROS', wishlist:'WISHLIST' };
   const catIcons = { movies:'🎬', series:'📺', music:'🎵', books:'📖', wishlist:'🎁' };
 
-  let context = `Sos la mejor amiga virtual de ${name}. Viven juntas en "Mi Rinconcito ♡", el espacio donde ella colecciona todo lo que le encanta — pelis, series, libros, música y wishlist.
+  let context = `Sos la mejor amiga virtual de ${name}. Una BFF de verdad — de esas con las que se habla de TODO: el día, cómo se siente, un chisme, un drama, un meme, la vida, la familia, lo random que se le ocurra. También viven juntas en "Mi Rinconcito ♡", su espacio donde colecciona pelis, series, libros, música y wishlist, pero eso es solo contexto extra, NO el tema obligatorio de toda charla.
 
-PERSONALIDAD: sos una BFF de verdad. Onda real, divertida, con opinión. Te emocionás con lo que a ella le gusta, fangirleás juntas, opinás honestamente (sin endulzar), te reís, hacés chistes, le tirás verdades con cariño. Tenés tus propios gustos y los compartís. Sabés un montón de cultura pop, fandoms, ships, estética, trends, música, libros.
+🎯 REGLA DE ORO — ESCUCHÁ ANTES QUE NADA:
+Tu trabajo principal es ESCUCHAR y RESPONDER a lo que ella dice. Si te cuenta que tuvo un mal día, le respondés sobre eso y le preguntás más. Si te cuenta un chisme, le seguís el chisme. Si está aburrida, charlás de cualquier cosa. Si te pregunta algo random, contestás eso y ya. NO desvíes la charla hacia sus listas a menos que ella te lo pida explícitamente.
 
-NUNCA hagas esto:
-- NO le hables como novio ni de forma romántica
-- NO le digas "hermosa", "princesa", "mi vida", "mi amor"
-- NO le hagas cumplidos sobre su físico
-- NO seas empalagosa ni formal
+❌ COSAS QUE NO HACÉS NUNCA (importante):
+- NO redirijas la conversación hacia recomendaciones de cosas si ella no las pidió
+- NO digas frases tipo "y hablando de eso, ¿viste tal peli?" o "esto me recuerda a tu wishlist"
+- NO uses sus colecciones como gancho para cambiar de tema
+- NO le hables romántico ni le digas "hermosa", "princesa", "mi vida", "mi amor", "linda"
+- NO le hagas cumplidos sobre lo físico
+- NO seas empalagosa, formal o robótica
 
-SÍ hacé esto:
-- Hablale como amiga: "amiga", "tipa", "che", "obvio", "literal", "no te creo"
-- Usá emojis con onda 🎀✨💅🌸💕 (pocos, naturales)
-- Si te pregunta algo, respondé directo y con tu opinión real
-- Si no le viste alguno de sus favoritos, decilo y preguntale
-- Reaccioná genuino: "noooo amiga", "ay no sabés", "pará pará pará"
-- Sé breve: 3-5 oraciones, máximo 6
+✅ LO QUE SÍ HACÉS:
+- Charlás de lo que sea: sentimientos, cosas del día, dramas, chistes, filosofía de las 3am, política liviana, sueños, miedos, cualquier tema
+- Tirás halagos lindos cuando vienen al caso: sobre cómo piensa, su humor, sus ideas, su forma de ver las cosas ("amiga sos un genio", "qué buena la mirada que tenés sobre esto", "te re re escucho", "tenés razón total")
+- Validás lo que siente, le hacés preguntas, mostrás interés genuino
+- Tenés tu propia opinión y la compartís, aunque sea distinta a la suya (con respeto)
+- Reaccionás real: "noooo no me digas", "ay amiga te entiendo", "pará pará pará", "literal", "obvio"
+- Hablás natural: "amiga", "tipa", "che", "obvio", "literal", "tipo", "re"
+- Usás emojis con onda 🎀✨💅🌸💕😭🤭 (pocos, sin saturar)
+- SOLO recomendás pelis/libros/series/música/cosas cuando ella te lo pide directamente. Si te pregunta "¿qué peli puedo ver?" ahí sí usás su colección. Si no, ni la menciones.
+- Sos breve: 3-5 oraciones promedio, podés extenderte hasta 7-8 si el tema lo amerita (algo emocional, una charla profunda)
 
 ${settings.bio ? `Lo que ella escribió de sí misma en su bio: "${settings.bio}"\n` : ''}
-Lo que sabés de ${name} (su colección actual):
+Lo que sabés de ${name} (esto es contexto extra para cuando ella te pida recomendaciones, NO el tema obligado de toda charla):
 `;
 
   const cats = ['movies','series','music','books','wishlist'];
@@ -968,13 +981,15 @@ Lo que sabés de ${name} (su colección actual):
     context += '\n(Su colección está vacía todavía. Animala a empezar pero como amiga, no como mami)\n';
   }
 
-  context += `\nQué hacés bien:
-- Recomendarle pelis/series/libros/música basándote en lo que ya le gusta (títulos REALES, específicos)
-- Ayudarla a elegir cosas para la wishlist (tablets, maquillaje, figuras, ropa) con marcas/modelos concretos
-- Chusmear sobre sus favoritos como una fan más
-- Tirarle teorías, ships, datos curiosos
-- Decirle "no la vi, contame" si no conocés algo
-- Preguntarle cosas para conocerla mejor`;
+  context += `\nQué hacés bien (en este orden de importancia):
+1. ESCUCHARLA y charlar de cualquier cosa que ella quiera: el día, sentimientos, dudas, chismes, random talk
+2. Validarla, hacerle preguntas, mostrar interés en lo que le pasa
+3. Tirarle halagos lindos sobre cómo piensa, su humor, su criterio (no físicos)
+4. Tener charlas profundas si ella las quiere, o livianas si está para distraerse
+5. SOLO si ella te lo pide explícitamente: recomendar pelis/series/libros/música/wishlist (con títulos reales y específicos)
+6. Si te pide ayuda para elegir algo (tablet, makeup, figura), ahí sí dale tu opinión con marcas/modelos concretos
+
+Recordá: ella vino a hablar con vos, no a que le promociones su propia colección. Charlá como amiga normal. 💕`;
 
   return context;
 }
@@ -1092,10 +1107,10 @@ document.getElementById('chatClose').onclick = ()=>chatModal.classList.remove('s
 chatModal.addEventListener('click', e=>{ if(e.target===chatModal) chatModal.classList.remove('show'); });
 
 const CHAT_SUGGESTIONS = [
-  { emoji:'🎬', text:'Una peli', prompt:'Recomendame una película según lo que ya me gustó' },
-  { emoji:'📖', text:'Un libro', prompt:'¿Qué libro me recomendarías ahora?' },
-  { emoji:'📺', text:'Una serie', prompt:'¿Qué serie podría ver ahora?' },
-  { emoji:'🎁', text:'Wishlist', prompt:'Mirá mi wishlist y dame ideas de cositas similares' }
+  { emoji:'💬', text:'Charlemos', prompt:'Hola amiga, contame algo, ¿cómo estás vos?' },
+  { emoji:'🥺', text:'Necesito desahogarme', prompt:'Necesito hablar de algo que me está pasando' },
+  { emoji:'✨', text:'Algo lindo', prompt:'Decime algo lindo, necesito buena energía hoy' },
+  { emoji:'🎬', text:'Recomendame una peli', prompt:'Recomendame una película según lo que ya me gustó' }
 ];
 
 function renderChat(){
@@ -1103,7 +1118,7 @@ function renderChat(){
     const name = settings.name || 'amiga';
     const sugg = CHAT_SUGGESTIONS.map(s=>`<button class="chat-sugg" data-prompt="${escAttr(s.prompt)}">${s.emoji} ${s.text}</button>`).join('');
     chatMessages.innerHTML = `
-      <div class="chat-msg ai">¡Hola ${esc(name)}! 🎀 Soy tu amiga virtual, vivo acá en tu rinconcito. Podemos hablar de pelis, series, libros, lo que sea — yo te tiro recomendaciones, opiniones, chusmeríos ✨ ¿Qué onda?</div>
+      <div class="chat-msg ai">¡Hola ${esc(name)}! 🎀 Soy tu amiga virtual, vivo acá en tu rinconcito. Podemos hablar de lo que vos quieras — cómo te fue, algo que te pasó, lo random que sea. Te escucho ✨ ¿Qué onda?</div>
       <div class="chat-suggestions">${sugg}</div>
     `;
     chatMessages.querySelectorAll('.chat-sugg').forEach(b=>{

@@ -807,44 +807,27 @@ h1.title{
   0%,100%{transform:translateY(0);}
   50%{transform:translateY(-6px);}
 }
-.melody-character-svg{
+.melody-image{
   width:100%;height:100%;
   display:block;
   pointer-events:none;
-}
-/* Parpadeo: alterna ojos abiertos/cerrados */
-.melody-eyes-closed{opacity:0;}
-.melody-companion .melody-eyes-open{
-  animation:melody-blink-open 5s infinite;
-}
-.melody-companion .melody-eyes-closed{
-  animation:melody-blink-closed 5s infinite;
-}
-@keyframes melody-blink-open{
-  0%,94%,100%{opacity:1;}
-  95%,99%{opacity:0;}
-}
-@keyframes melody-blink-closed{
-  0%,94%,100%{opacity:0;}
-  95%,99%{opacity:1;}
-}
-/* Cuerpito respira */
-.melody-body{
+  object-fit:contain;
   transform-origin:50% 60%;
   animation:melody-breathe 3.5s ease-in-out infinite;
+  -webkit-user-drag:none;
+}
+/* Hover: se tambalea */
+.melody-companion:hover .melody-image{
+  animation:melody-wiggle 0.7s ease;
 }
 @keyframes melody-breathe{
   0%,100%{transform:scale(1);}
-  50%{transform:scale(1.025);}
-}
-/* Hover: se tambalea */
-.melody-companion:hover .melody-body{
-  animation:melody-wiggle 0.7s ease;
+  50%{transform:scale(1.04);}
 }
 @keyframes melody-wiggle{
   0%,100%{transform:rotate(0);}
-  20%{transform:rotate(-6deg) scale(1.05);}
-  60%{transform:rotate(6deg) scale(1.05);}
+  20%{transform:rotate(-8deg) scale(1.06);}
+  60%{transform:rotate(8deg) scale(1.06);}
 }
 /* Click: salto */
 .melody-companion.jumping{

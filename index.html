@@ -663,60 +663,7 @@
 <div class="modal-bg" id="chatModal" aria-hidden="true">
   <div class="modal modal-chat" role="dialog">
     <button class="modal-close" id="chatClose" aria-label="Cerrar">✕</button>
-    <div class="chat-header">
-      <div class="melody-chat-avatar" id="melodyChatAvatar">
-        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <g class="melody-chat-body">
-            <!-- Orejas largas -->
-            <ellipse cx="28" cy="18" rx="9" ry="20" fill="#f7b3c6"/>
-            <ellipse cx="72" cy="18" rx="9" ry="20" fill="#f7b3c6"/>
-            <ellipse cx="28" cy="20" rx="4" ry="14" fill="#ffd5e0"/>
-            <ellipse cx="72" cy="20" rx="4" ry="14" fill="#ffd5e0"/>
-            <!-- Capucha -->
-            <circle cx="50" cy="50" r="38" fill="#f7b3c6"/>
-            <!-- Carita blanca -->
-            <ellipse cx="50" cy="55" rx="24" ry="22" fill="#ffffff"/>
-            <!-- Ojos abiertos -->
-            <g class="chat-eyes-open">
-              <ellipse cx="40" cy="52" rx="2.6" ry="3.6" fill="#3a2530"/>
-              <ellipse cx="60" cy="52" rx="2.6" ry="3.6" fill="#3a2530"/>
-              <circle cx="40.5" cy="51" r="0.8" fill="#ffffff"/>
-              <circle cx="60.5" cy="51" r="0.8" fill="#ffffff"/>
-            </g>
-            <!-- Ojos cerrados (parpadeo y feliz) -->
-            <g class="chat-eyes-closed">
-              <path d="M37 52 Q40 50 43 52" stroke="#3a2530" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-              <path d="M57 52 Q60 50 63 52" stroke="#3a2530" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-            </g>
-            <!-- Cachetitos -->
-            <circle cx="33" cy="58" r="3.5" fill="#f291ad" opacity="0.55"/>
-            <circle cx="67" cy="58" r="3.5" fill="#f291ad" opacity="0.55"/>
-            <!-- Boquita: sonrisa default -->
-            <path class="chat-mouth-smile" d="M45 60 Q50 64 55 60" stroke="#c84068" stroke-width="1.4" fill="none" stroke-linecap="round"/>
-            <!-- Boquita: sonrisa grande (happy) -->
-            <path class="chat-mouth-big-smile" d="M44 60 Q50 67 56 60" stroke="#c84068" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-            <!-- Boquita: triste (sad) -->
-            <path class="chat-mouth-sad" d="M45 63 Q50 60 55 63" stroke="#c84068" stroke-width="1.4" fill="none" stroke-linecap="round"/>
-            <!-- Florcita -->
-            <g transform="translate(80, 28)">
-              <circle cx="0" cy="-3" r="2.4" fill="#fde4c9"/>
-              <circle cx="2.8" cy="-1" r="2.4" fill="#fde4c9"/>
-              <circle cx="-2.8" cy="-1" r="2.4" fill="#fde4c9"/>
-              <circle cx="1.8" cy="2.6" r="2.4" fill="#fde4c9"/>
-              <circle cx="-1.8" cy="2.6" r="2.4" fill="#fde4c9"/>
-              <circle cx="0" cy="0" r="1.4" fill="#d9a86c"/>
-            </g>
-          </g>
-          <!-- Burbujitas de pensando (puntitos arriba) -->
-          <g class="chat-thinking-dots">
-            <circle cx="78" cy="8" r="2" fill="#c84068"/>
-            <circle cx="86" cy="10" r="2.5" fill="#c84068"/>
-            <circle cx="94" cy="14" r="3" fill="#c84068"/>
-          </g>
-        </svg>
-      </div>
-      <h2>My Melody ♡</h2>
-    </div>
+    <h2>My Melody ♡</h2>
     <div class="chat-messages" id="chatMessages"></div>
     <div class="chat-input-wrap">
       <input type="text" id="chatInput" placeholder="Preguntale algo..." autocomplete="off"/>
@@ -742,49 +689,76 @@
 <!-- ===== My Melody compañera animada ===== -->
 <div class="melody-companion" id="melodyCompanion" role="button" aria-label="My Melody compañera" tabindex="0">
   <div class="melody-bubble" id="melodyBubble"></div>
-  <svg class="melody-character-svg" viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg">
-    <!-- Cuerpito mini -->
-    <ellipse cx="50" cy="95" rx="22" ry="10" fill="#f7b3c6" opacity="0.85"/>
-    <!-- Sombra suave -->
-    <ellipse cx="50" cy="106" rx="28" ry="3" fill="#000" opacity="0.08"/>
+  <svg class="melody-character-svg" viewBox="0 0 140 150" xmlns="http://www.w3.org/2000/svg">
+    <!-- Sombra suave debajo -->
+    <ellipse cx="70" cy="143" rx="38" ry="4" fill="#000" opacity="0.1"/>
+
     <g class="melody-body">
-      <!-- Orejas largas -->
-      <g class="melody-ears">
-        <ellipse cx="28" cy="18" rx="9" ry="20" fill="#f7b3c6"/>
-        <ellipse cx="72" cy="18" rx="9" ry="20" fill="#f7b3c6"/>
-        <ellipse cx="28" cy="20" rx="4" ry="14" fill="#ffd5e0"/>
-        <ellipse cx="72" cy="20" rx="4" ry="14" fill="#ffd5e0"/>
+      <!-- OREJA IZQUIERDA (larga, caída hacia abajo-izquierda) -->
+      <path d="M 42 35 Q 18 30 12 60 Q 12 95 25 115 Q 38 120 46 110 Q 50 75 48 50 Q 47 35 42 35 Z"
+            fill="#f7b3c6" stroke="#a87a48" stroke-width="2.5" stroke-linejoin="round"/>
+      <!-- Interior oreja izquierda -->
+      <path d="M 40 45 Q 26 42 24 65 Q 26 90 32 102 Q 38 98 40 80 Q 43 55 42 47 Z"
+            fill="#ffd5e0"/>
+
+      <!-- OREJA DERECHA (larga, caída hacia abajo-derecha) -->
+      <path d="M 98 35 Q 122 30 128 60 Q 128 95 115 115 Q 102 120 94 110 Q 90 75 92 50 Q 93 35 98 35 Z"
+            fill="#f7b3c6" stroke="#a87a48" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M 100 45 Q 114 42 116 65 Q 114 90 108 102 Q 102 98 100 80 Q 97 55 98 47 Z"
+            fill="#ffd5e0"/>
+
+      <!-- CAPUCHA (cubre la cabeza, con curva natural) -->
+      <path d="M 35 55 Q 40 28 70 26 Q 100 28 105 55 Q 102 82 70 84 Q 38 82 35 55 Z"
+            fill="#f7b3c6" stroke="#a87a48" stroke-width="2.5" stroke-linejoin="round"/>
+
+      <!-- CARITA BLANCA -->
+      <ellipse cx="70" cy="65" rx="28" ry="24" fill="#ffffff" stroke="#a87a48" stroke-width="2"/>
+
+      <!-- MOÑITO grande arriba-derecha con lunares -->
+      <g transform="translate(100, 32)">
+        <!-- Lazo izquierdo -->
+        <path d="M 0 0 Q -16 -10 -20 0 Q -18 12 -3 4 Z"
+              fill="#f7b3c6" stroke="#a87a48" stroke-width="2" stroke-linejoin="round"/>
+        <!-- Lazo derecho -->
+        <path d="M 0 0 Q 16 -10 20 0 Q 18 12 3 4 Z"
+              fill="#f7b3c6" stroke="#a87a48" stroke-width="2" stroke-linejoin="round"/>
+        <!-- Nudo central -->
+        <ellipse cx="0" cy="2" rx="4" ry="5" fill="#f291ad" stroke="#a87a48" stroke-width="1.8"/>
+        <!-- Lunares blancos -->
+        <circle cx="-13" cy="-3" r="1.4" fill="#ffffff"/>
+        <circle cx="-8" cy="2" r="1.4" fill="#ffffff"/>
+        <circle cx="-16" cy="2" r="1.4" fill="#ffffff"/>
+        <circle cx="13" cy="-3" r="1.4" fill="#ffffff"/>
+        <circle cx="8" cy="2" r="1.4" fill="#ffffff"/>
+        <circle cx="16" cy="2" r="1.4" fill="#ffffff"/>
       </g>
-      <!-- Capucha -->
-      <circle cx="50" cy="50" r="38" fill="#f7b3c6"/>
-      <!-- Carita blanca -->
-      <ellipse cx="50" cy="55" rx="24" ry="22" fill="#ffffff"/>
-      <!-- Ojos abiertos -->
+
+      <!-- OJOS ABIERTOS -->
       <g class="melody-eyes-open">
-        <ellipse cx="40" cy="52" rx="2.6" ry="3.6" fill="#3a2530"/>
-        <ellipse cx="60" cy="52" rx="2.6" ry="3.6" fill="#3a2530"/>
-        <circle cx="40.5" cy="51" r="0.8" fill="#ffffff"/>
-        <circle cx="60.5" cy="51" r="0.8" fill="#ffffff"/>
+        <ellipse cx="58" cy="62" rx="2.8" ry="3.5" fill="#3a2530"/>
+        <ellipse cx="82" cy="62" rx="2.8" ry="3.5" fill="#3a2530"/>
+        <circle cx="58.6" cy="61" r="0.9" fill="#ffffff"/>
+        <circle cx="82.6" cy="61" r="0.9" fill="#ffffff"/>
       </g>
-      <!-- Ojos cerrados (parpadeo) -->
+      <!-- OJOS CERRADOS (parpadeo) -->
       <g class="melody-eyes-closed">
-        <path d="M37 52 Q40 50 43 52" stroke="#3a2530" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-        <path d="M57 52 Q60 50 63 52" stroke="#3a2530" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        <path d="M55 62 Q58 60 61 62" stroke="#3a2530" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        <path d="M79 62 Q82 60 85 62" stroke="#3a2530" stroke-width="1.6" fill="none" stroke-linecap="round"/>
       </g>
-      <!-- Cachetitos -->
-      <circle cx="33" cy="58" r="3.5" fill="#f291ad" opacity="0.55"/>
-      <circle cx="67" cy="58" r="3.5" fill="#f291ad" opacity="0.55"/>
-      <!-- Boquita -->
-      <path class="melody-mouth-smile" d="M45 60 Q50 64 55 60" stroke="#c84068" stroke-width="1.4" fill="none" stroke-linecap="round"/>
-      <!-- Florcita -->
-      <g transform="translate(80, 28)">
-        <circle cx="0" cy="-3" r="2.4" fill="#fde4c9"/>
-        <circle cx="2.8" cy="-1" r="2.4" fill="#fde4c9"/>
-        <circle cx="-2.8" cy="-1" r="2.4" fill="#fde4c9"/>
-        <circle cx="1.8" cy="2.6" r="2.4" fill="#fde4c9"/>
-        <circle cx="-1.8" cy="2.6" r="2.4" fill="#fde4c9"/>
-        <circle cx="0" cy="0" r="1.4" fill="#d9a86c"/>
-      </g>
+
+      <!-- NARIZ AMARILLA -->
+      <ellipse cx="70" cy="69" rx="2.5" ry="1.8" fill="#f5d05a" stroke="#a87a48" stroke-width="1"/>
+
+      <!-- CACHETITOS -->
+      <circle cx="50" cy="72" r="4" fill="#f291ad" opacity="0.55"/>
+      <circle cx="90" cy="72" r="4" fill="#f291ad" opacity="0.55"/>
+
+      <!-- BOQUITA pequeña -->
+      <path d="M64 75 Q70 79 76 75" stroke="#a87a48" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+
+      <!-- CUERPITO blanco (peeking abajo de la cabeza) -->
+      <path d="M 52 82 Q 52 105 70 108 Q 88 105 88 82 Z"
+            fill="#ffffff" stroke="#a87a48" stroke-width="2" stroke-linejoin="round"/>
     </g>
   </svg>
 </div>

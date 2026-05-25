@@ -11,7 +11,9 @@ const defaultSettings = {
   avatar:'', banner:'', bio:'',
   theme:'melody',
   anniversaryDate:'2023-12-15',
-  unlockedStickers:[]
+  unlockedStickers:[],
+  musicVolume:0.4,
+  musicPlaying:false
 };
 const emptyState = {
   movies:[], series:[], music:[], books:[], wishlist:[],
@@ -1331,6 +1333,161 @@ function spinRoulette(){
 }
 
 /* ==========================================================
+   Reproductor de música de fondo
+   ========================================================== */
+function initMusicPlayer(){
+  const audio = document.getElementById('bgMusic');
+  const widget = document.getElementById('musicWidget');
+  const toggle = document.getElementById('musicToggle');
+  const volume = document.getElementById('musicVolume');
+  if(!audio || !toggle) return;
+
+  // Volumen inicial desde settings
+  const initialVol = typeof settings.musicVolume === 'number' ? settings.musicVolume : 0.4;
+  audio.volume = initialVol;
+  volume.value = Math.round(initialVol * 100);
+
+  function setPlaying(playing){
+    if(playing){
+      widget.classList.add('playing');
+      toggle.setAttribute('aria-label','Pausar música');
+    } else {
+      widget.classList.remove('playing');
+      toggle.setAttribute('aria-label','Reproducir música');
+    }
+  }
+
+  toggle.addEventListener('click', ()=>{
+    if(audio.paused){
+      audio.play().then(()=>{
+        setPlaying(true);
+        settings.musicPlaying = true;
+        saveSettings();
+      }).catch(err=>{
+        console.warn('No se pudo reproducir:', err);
+        toast('No pude reproducir la música 🌸');
+      });
+    } else {
+      audio.pause();
+      setPlaying(false);
+      settings.musicPlaying = false;
+      saveSettings();
+    }
+  });
+
+  volume.addEventListener('input', ()=>{
+    const v = parseInt(volume.value, 10) / 100;
+    audio.volume = v;
+    settings.musicVolume = v;
+    // Guardar con debounce para no spammear localStorage
+    clearTimeout(volume._saveTimer);
+    volume._saveTimer = setTimeout(()=>saveSettings(), 300);
+  });
+
+  // Si el navegador termina la canción (no debería pasar con loop, pero por las dudas)
+  audio.addEventListener('ended', ()=>{
+    audio.currentTime = 0;
+    audio.play().catch(()=>{});
+  });
+
+  // Browsers bloquean autoplay con sonido. Si estaba sonando antes, intentamos
+  // reanudar tras la primera interacción del usuario.
+  if(settings.musicPlaying){
+    const resume = ()=>{
+      audio.play().then(()=>setPlaying(true)).catch(()=>{});
+    };
+    document.addEventListener('click', resume, { once:true });
+    document.addEventListener('keydown', resume, { once:true });
+    document.addEventListener('touchstart', resume, { once:true });
+  }
+}
+
+/* ==========================================================
+   My Melody compañera animada
+   ========================================================== */
+const MELODY_QUOTES = [
+  "¡Hola! 🌸",
+  "¿Cómo estás hoy?",
+  "Sonríe ♡",
+  "Te quiero mucho 💕",
+  "Eres muy linda",
+  "Hoy es un día bonito ✨",
+  "🎀 ¡Hola!",
+  "Te mando florcitas 🌷",
+  "¡Buen día!",
+  "Estoy contigo siempre",
+  "Acuérdate de tomar agua 💧",
+  "Eres genial, en serio",
+  "Me alegro de verte ♡",
+  "Respira hondo 🌬️",
+  "Hoy vas a brillar ✨",
+  "¿Ya escribiste en tu diario?",
+  "Date un mimo 💖",
+  "Sos preciosa por dentro y por fuera",
+  "Todo va a estar bien",
+  "Mereces todo lo lindo 🎀"
+];
+
+function initMelodyCompanion(){
+  const companion = document.getElementById('melodyCompanion');
+  const bubble = document.getElementById('melodyBubble');
+  if(!companion || !bubble) return;
+
+  let bubbleTimer = null;
+  let usedQuotes = [];
+
+  function pickQuote(){
+    if(usedQuotes.length >= MELODY_QUOTES.length) usedQuotes = [];
+    let q;
+    do{
+      q = MELODY_QUOTES[Math.floor(Math.random() * MELODY_QUOTES.length)];
+    } while(usedQuotes.includes(q));
+    usedQuotes.push(q);
+    // Personalizado si tenemos nombre
+    if(settings.name && q === "¿Cómo estás hoy?") q = `¿Cómo estás, ${settings.name}?`;
+    if(settings.name && q === "Eres muy linda") q = `Eres muy linda, ${settings.name}`;
+    return q;
+  }
+
+  function showBubble(text){
+    bubble.textContent = text;
+    bubble.classList.add('show');
+    clearTimeout(bubbleTimer);
+    bubbleTimer = setTimeout(()=>bubble.classList.remove('show'), 3200);
+  }
+
+  companion.addEventListener('click', ()=>{
+    showBubble(pickQuote());
+    companion.classList.add('jumping');
+    setTimeout(()=>companion.classList.remove('jumping'), 600);
+  });
+
+  companion.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter' || e.key === ' '){
+      e.preventDefault();
+      companion.click();
+    }
+  });
+
+  // Saludo inicial después de 2 segundos
+  setTimeout(()=>{
+    const hour = new Date().getHours();
+    let greeting;
+    if(hour < 12) greeting = `Buenos días${settings.name?', '+settings.name:''} 🌸`;
+    else if(hour < 19) greeting = `Buenas tardes${settings.name?', '+settings.name:''} ✨`;
+    else greeting = `Buenas noches${settings.name?', '+settings.name:''} 🌙`;
+    showBubble(greeting);
+  }, 2000);
+
+  // Frase aleatoria cada 90 segundos (sutil)
+  setInterval(()=>{
+    if(!document.hidden && Math.random() < 0.4){
+      showBubble(pickQuote());
+    }
+  }, 90000);
+}
+
+/* ==========================================================
    Diario · libro con páginas
    ========================================================== */
 let currentDiaryPage = 0;
@@ -1985,6 +2142,8 @@ document.getElementById('rouletteSpin').addEventListener('click', spinRoulette);
 spawnPetals();
 applyTheme(settings.theme || 'melody');
 initDiary();
+initMusicPlayer();
+initMelodyCompanion();
 render();
 maybeShowSetup();
 checkAchievements(true); // chequeo silencioso al cargar (no spammea popups)

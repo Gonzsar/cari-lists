@@ -729,6 +729,11 @@ document.querySelectorAll('.status-tabs').forEach(group=>{
 /* === FAB === */
 document.getElementById('fabAdd').addEventListener('click',()=>openAdd(currentCat));
 
+/* === Botones "agregar manualmente" en cada buscador === */
+document.querySelectorAll('.manual-add-btn[data-cat]').forEach(btn=>{
+  btn.addEventListener('click', ()=>openAdd(btn.dataset.cat));
+});
+
 /* === APIs de búsqueda === */
 async function searchMovies(q){
   if(!q) return [];
@@ -815,7 +820,14 @@ async function searchBooks(q){
 function renderSearchResults(containerId, results){
   const c = document.getElementById(containerId);
   if(results.length===0){
-    c.innerHTML = `<div class="empty" style="grid-column:1/-1;"><div class="empty-flower">🌸</div><h3>Nada por aquí</h3><p>Prueba con otra búsqueda</p></div>`;
+    c.innerHTML = `<div class="empty" style="grid-column:1/-1;">
+      <div class="empty-flower">🌸</div>
+      <h3>Nada por aquí</h3>
+      <p>Probá con otra búsqueda... o agregalo a mano</p>
+      <button class="btn small empty-manual-add" style="margin-top:12px;">+ Agregar manualmente</button>
+    </div>`;
+    const btn = c.querySelector('.empty-manual-add');
+    if(btn) btn.addEventListener('click', ()=>openAdd(currentCat));
     return;
   }
   c.innerHTML = results.map((r,i)=>`

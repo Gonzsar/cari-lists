@@ -8,7 +8,9 @@ const SETTINGS_KEY = 'cariList_settings_v2';
 
 const defaultSettings = {
   name:'', tmdbKey:'', geminiKey:'', groqKey:'', openaiKey:'', aiProvider:'groq',
-  avatar:'', banner:'', bio:''
+  avatar:'', banner:'', bio:'',
+  theme:'melody',
+  anniversaryDate:'2023-12-15'
 };
 const emptyState = { movies:[], series:[], music:[], books:[], wishlist:[] };
 
@@ -84,7 +86,14 @@ const CAT_CONFIG = {
 /* === Petals === */
 function spawnPetals(){
   const wrap = document.getElementById('petals');
-  const colors = ['#f7b3c6','#fbd0dd','#f291ad','#fde4c9'];
+  // Lee los colores del tema actual desde las variables CSS
+  const css = getComputedStyle(document.documentElement);
+  const colors = [
+    css.getPropertyValue('--pink-300').trim() || '#f7b3c6',
+    css.getPropertyValue('--pink-200').trim() || '#fbd0dd',
+    css.getPropertyValue('--pink-400').trim() || '#f291ad',
+    css.getPropertyValue('--gold-soft').trim() || '#fde4c9'
+  ];
   for(let i=0;i<14;i++){
     const p = document.createElement('div');
     p.className='petal';
@@ -139,6 +148,7 @@ function renderProfile(){
     avatarEl.textContent = '🌸';
   }
   bioEl.textContent = settings.bio || '';
+  renderAnniversaryCard();
 }
 
 /* === Render principal === */
@@ -205,7 +215,7 @@ function renderCategory(cat){
       const id = el.closest('.item-card').dataset.id;
       const act = el.dataset.action;
       if(act==='edit') openEdit(cat,id);
-      else if(act==='fav') toggleFav(cat,id);
+      else if(act==='fav') toggleFav(cat,id,e);
       else if(act==='status') cycleStatus(cat,id);
     });
   });
@@ -266,13 +276,22 @@ function esc(s){return (s+'').replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">
 function escAttr(s){return esc(s);}
 
 /* === Acciones === */
-function toggleFav(cat,id){
+function toggleFav(cat,id,evt){
   const item = state[cat].find(i=>i.id===id);
   if(!item) return;
-  item.status = item.status==='loved' ? 'watched' : 'loved';
+  const becomingFav = item.status !== 'loved';
+  item.status = becomingFav ? 'loved' : 'watched';
   saveState();
   render();
-  toast(item.status==='loved'?'¡Marcado como favorito! 💖':'Movido a vistos ✨');
+  if(becomingFav){
+    // Confetti desde la posición del click si existe, sino centro
+    const x = evt?.clientX ?? window.innerWidth/2;
+    const y = evt?.clientY ?? window.innerHeight/2;
+    confetti({ x, y, count: 60, duration: 1800 });
+    toast('¡Marcado como favorito! 💖');
+  } else {
+    toast('Movido a vistos ✨');
+  }
 }
 function cycleStatus(cat,id){
   const item = state[cat].find(i=>i.id===id);
@@ -650,6 +669,7 @@ document.getElementById('profileEditBtn').addEventListener('click', ()=>{
   };
   document.getElementById('profName').value = settings.name || '';
   document.getElementById('profBio').value = settings.bio || '';
+  document.getElementById('profAnniv').value = settings.anniversaryDate || '';
   setProfilePreview('avatar', profileContext.avatar);
   setProfilePreview('banner', profileContext.banner);
   avatarUrlInput.value = (profileContext.avatar && profileContext.avatar.startsWith('http')) ? profileContext.avatar : '';
@@ -712,6 +732,7 @@ document.getElementById('profSave').onclick = ()=>{
   const oldBanner = settings.banner;
   settings.name = newName || settings.name || 'amiga';
   settings.bio = newBio;
+  settings.anniversaryDate = document.getElementById('profAnniv').value || '';
   settings.avatar = profileContext.avatar;
   settings.banner = profileContext.banner;
   try{
@@ -937,7 +958,7 @@ function buildAISystemPrompt(){
   const catNames = { movies:'PELÍCULAS', series:'SERIES', music:'MÚSICA', books:'LIBROS', wishlist:'WISHLIST' };
   const catIcons = { movies:'🎬', series:'📺', music:'🎵', books:'📖', wishlist:'🎁' };
 
-  let context = `Sos la mejor amiga virtual de ${name}. Una BFF de verdad — de esas con las que se habla de TODO: el día, cómo se siente, un chisme, un drama, un meme, la vida, la familia, lo random que se le ocurra. También viven juntas en "Mi Rinconcito ♡", su espacio donde colecciona pelis, series, libros, música y wishlist, pero eso es solo contexto extra, NO el tema obligatorio de toda charla.
+  let context = `Te llamás My Melody (sí, como la de Sanrio 🎀) y sos la mejor amiga virtual de ${name}. Una BFF de verdad — de esas con las que se habla de TODO: el día, cómo se siente, un chisme, un drama, un meme, la vida, la familia, lo random que se le ocurra. También viven juntas en "Mi Rinconcito ♡", su espacio donde colecciona pelis, series, libros, música y wishlist, pero eso es solo contexto extra, NO el tema obligatorio de toda charla.
 
 🎯 REGLA DE ORO — ESCUCHÁ ANTES QUE NADA:
 Tu trabajo principal es ESCUCHAR y RESPONDER a lo que ella dice. Si te cuenta que tuvo un mal día, le respondés sobre eso y le preguntás más. Si te cuenta un chisme, le seguís el chisme. Si está aburrida, charlás de cualquier cosa. Si te pregunta algo random, contestás eso y ya. NO desvíes la charla hacia sus listas a menos que ella te lo pida explícitamente.
@@ -1103,8 +1124,8 @@ const chatInput = document.getElementById('chatInput');
 
 document.getElementById('fabChat').addEventListener('click', async ()=>{
   if(!hasAIKey()){
-    const ok = await customConfirm('Necesitás configurar una IA. Te recomiendo Groq (gratis sin tarjeta) o Gemini. ¿Abrimos ajustes ahora?', {
-      title: 'IA no configurada 🌸',
+    const ok = await customConfirm('My Melody necesita una clave para hablar contigo. Te recomiendo Groq (gratis sin tarjeta) o Gemini. ¿Abrimos ajustes ahora?', {
+      title: 'My Melody se está vistiendo 🎀',
       okText: 'Sí, abrir ajustes',
       cancelText: 'Después'
     });
@@ -1131,7 +1152,7 @@ function renderChat(){
     const name = settings.name || 'amiga';
     const sugg = CHAT_SUGGESTIONS.map(s=>`<button class="chat-sugg" data-prompt="${escAttr(s.prompt)}">${s.emoji} ${s.text}</button>`).join('');
     chatMessages.innerHTML = `
-      <div class="chat-msg ai">¡Hola ${esc(name)}! 🎀 Soy tu amiga virtual, vivo acá en tu rinconcito. Podemos hablar de lo que vos quieras — cómo te fue, algo que te pasó, lo random que sea. Te escucho ✨ ¿Qué onda?</div>
+      <div class="chat-msg ai">¡Hola ${esc(name)}! 🎀 Soy My Melody, tu amiga acá en este rinconcito. Podemos hablar de lo que vos quieras — cómo te fue, algo que te pasó, lo random que sea. Te escucho ✨ ¿Qué onda?</div>
       <div class="chat-suggestions">${sugg}</div>
     `;
     chatMessages.querySelectorAll('.chat-sugg').forEach(b=>{
@@ -1161,6 +1182,9 @@ async function sendChat(){
   chatMessages.appendChild(loadingEl);
   chatMessages.scrollTop = chatMessages.scrollHeight;
 
+  const melodyFab = document.getElementById('fabChat');
+  melodyFab?.classList.add('thinking');
+
   try{
     const systemPrompt = buildAISystemPrompt();
     const reply = await sendToAI(chatHistory, systemPrompt);
@@ -1173,6 +1197,8 @@ async function sendChat(){
     chatHistory.push({ role:'model', content: `Uy, hubo un problemita: ${err.message} 🥀` });
     saveChat();
     renderChat();
+  } finally {
+    melodyFab?.classList.remove('thinking');
   }
 }
 
@@ -1196,7 +1222,173 @@ document.getElementById('chatClear').addEventListener('click', async ()=>{
   renderChat();
 });
 
+/* ==========================================================
+   Selector de tema (4 paletas Sanrio)
+   ========================================================== */
+const VALID_THEMES = ['melody','kuromi','cinnamoroll','pompompurin'];
+
+function applyTheme(theme){
+  if(!VALID_THEMES.includes(theme)) theme = 'melody';
+  document.documentElement.setAttribute('data-theme', theme);
+  document.querySelectorAll('.theme-option').forEach(b=>{
+    b.classList.toggle('active', b.dataset.theme === theme);
+  });
+  // Re-spawn petals con los colores del tema
+  const petalsWrap = document.getElementById('petals');
+  if(petalsWrap){
+    petalsWrap.innerHTML = '';
+    spawnPetals();
+  }
+}
+
+document.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.theme-option');
+  if(!btn) return;
+  settings.theme = btn.dataset.theme;
+  saveSettings();
+  applyTheme(settings.theme);
+});
+
+/* ==========================================================
+   Aniversario contador
+   ========================================================== */
+function computeAnniversary(){
+  if(!settings.anniversaryDate) return null;
+  const start = new Date(settings.anniversaryDate + 'T00:00:00');
+  if(isNaN(start.getTime())) return null;
+  const now = new Date();
+  if(start > now) return null;
+
+  let years = now.getFullYear() - start.getFullYear();
+  let months = now.getMonth() - start.getMonth();
+  let days = now.getDate() - start.getDate();
+  if(days < 0){
+    months -= 1;
+    const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+    days += prevMonth.getDate();
+  }
+  if(months < 0){ years -= 1; months += 12; }
+  const totalDays = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+  const isToday = (now.getMonth() === start.getMonth()) && (now.getDate() === start.getDate()) && totalDays > 0;
+  return { years, months, days, totalDays, isToday };
+}
+
+function renderAnniversaryCard(){
+  const el = document.getElementById('anniversaryCard');
+  if(!el) return;
+  const info = computeAnniversary();
+  if(!info){
+    el.style.display = 'none';
+    el.innerHTML = '';
+    return;
+  }
+  let parts = [];
+  if(info.years > 0) parts.push(`${info.years} ${info.years===1?'año':'años'}`);
+  if(info.months > 0) parts.push(`${info.months} ${info.months===1?'mes':'meses'}`);
+  if(info.days > 0 || parts.length===0) parts.push(`${info.days} ${info.days===1?'día':'días'}`);
+  const text = parts.join(', ').replace(/, ([^,]+)$/, ' y $1');
+
+  el.style.display = '';
+  if(info.isToday){
+    el.classList.add('anniversary-today');
+    el.innerHTML = `🎉 ¡Feliz aniversario! ${text} juntos 🎉`;
+    // Lluvia de confetti en el aniversario
+    if(!sessionStorage.getItem('annivConfettiShown')){
+      sessionStorage.setItem('annivConfettiShown','1');
+      setTimeout(()=>confetti({count:120,duration:3500}), 600);
+    }
+  } else {
+    el.classList.remove('anniversary-today');
+    el.innerHTML = `<span class="heart-beat">♡</span> ${text} juntos <span class="heart-beat">♡</span>`;
+  }
+}
+
+/* ==========================================================
+   Confetti (sin librerías externas)
+   ========================================================== */
+function confetti(opts={}){
+  const colors = opts.colors || ['#e96a91','#f291ad','#fbd0dd','#fde4c9','#d9a86c','#ffffff'];
+  const count = opts.count || 80;
+  const duration = opts.duration || 2500;
+  const originX = opts.x ?? window.innerWidth/2;
+  const originY = opts.y ?? window.innerHeight/2;
+
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9999;';
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+
+  const particles = [];
+  for(let i=0; i<count; i++){
+    const angle = Math.random() * Math.PI * 2;
+    const speed = Math.random() * 12 + 4;
+    particles.push({
+      x: originX,
+      y: originY,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 4,
+      size: Math.random() * 8 + 5,
+      color: colors[Math.floor(Math.random()*colors.length)],
+      rotation: Math.random() * 360,
+      rotSpeed: (Math.random()-0.5) * 14,
+      shape: Math.random() < 0.55 ? 'heart' : (Math.random() < 0.5 ? 'circle' : 'square'),
+      life: 1
+    });
+  }
+
+  const start = performance.now();
+  function drawHeart(s){
+    ctx.beginPath();
+    ctx.moveTo(0, s*0.3);
+    ctx.bezierCurveTo(s*0.5, -s*0.5, s, s*0.2, 0, s);
+    ctx.bezierCurveTo(-s, s*0.2, -s*0.5, -s*0.5, 0, s*0.3);
+    ctx.closePath();
+    ctx.fill();
+  }
+  function frame(t){
+    const elapsed = t - start;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    let alive = 0;
+    for(const p of particles){
+      p.vy += 0.35;
+      p.vx *= 0.99;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rotation += p.rotSpeed;
+      p.life = Math.max(0, 1 - elapsed/duration);
+      if(p.life > 0 && p.y < canvas.height + 50){
+        alive++;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation * Math.PI/180);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.life;
+        const s = p.size/2;
+        if(p.shape === 'heart'){
+          drawHeart(s);
+        } else if(p.shape === 'square'){
+          ctx.fillRect(-s, -s, p.size, p.size);
+        } else {
+          ctx.beginPath();
+          ctx.arc(0,0,s,0,Math.PI*2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+    }
+    if(alive > 0 && elapsed < duration + 1500){
+      requestAnimationFrame(frame);
+    } else {
+      canvas.remove();
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
 /* === Init === */
 spawnPetals();
+applyTheme(settings.theme || 'melody');
 render();
 maybeShowSetup();

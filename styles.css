@@ -5,7 +5,8 @@
         el bloque "SANRIO PLACEHOLDERS" más abajo.
    ========================================================== */
 
-:root{
+:root,
+[data-theme="melody"]{
   --pink-50:#fff5f8;
   --pink-100:#fde7ee;
   --pink-200:#fbd0dd;
@@ -21,6 +22,68 @@
   --text-soft:#8a6878;
   --shadow:0 8px 30px rgba(232,106,145,0.15);
   --shadow-hover:0 12px 40px rgba(232,106,145,0.25);
+}
+
+/* ===== Tema Kuromi (morado/oscuro) ===== */
+[data-theme="kuromi"]{
+  --pink-50:#f8f4fb;
+  --pink-100:#ede4f5;
+  --pink-200:#d9c4e8;
+  --pink-300:#c0a3d8;
+  --pink-400:#a47ec3;
+  --pink-500:#8855a8;
+  --pink-600:#6c3d8e;
+  --rose:#4d2671;
+  --cream:#faf5fd;
+  --gold:#c4a3e0;
+  --gold-soft:#dfc9ee;
+  --text:#3d2547;
+  --text-soft:#6b4a7a;
+  --shadow:0 8px 30px rgba(136,85,168,0.18);
+  --shadow-hover:0 12px 40px rgba(136,85,168,0.3);
+}
+
+/* ===== Tema Cinnamoroll (celeste suave) ===== */
+[data-theme="cinnamoroll"]{
+  --pink-50:#f0f9ff;
+  --pink-100:#dceefb;
+  --pink-200:#b9def7;
+  --pink-300:#8cc8f1;
+  --pink-400:#5eafe7;
+  --pink-500:#3691da;
+  --pink-600:#2076b9;
+  --rose:#155a93;
+  --cream:#f8fbff;
+  --gold:#a8c8e6;
+  --gold-soft:#cee0f0;
+  --text:#2d3e54;
+  --text-soft:#5b7c98;
+  --shadow:0 8px 30px rgba(94,175,231,0.18);
+  --shadow-hover:0 12px 40px rgba(94,175,231,0.3);
+}
+
+/* ===== Tema Pompompurin (crema/mostaza) ===== */
+[data-theme="pompompurin"]{
+  --pink-50:#fffbf2;
+  --pink-100:#fdf2dc;
+  --pink-200:#fadfa4;
+  --pink-300:#f5c769;
+  --pink-400:#efad3a;
+  --pink-500:#e09227;
+  --pink-600:#c0741a;
+  --rose:#95560f;
+  --cream:#fffdf5;
+  --gold:#d4af6e;
+  --gold-soft:#ecd9b3;
+  --text:#4a3a1a;
+  --text-soft:#7a6535;
+  --shadow:0 8px 30px rgba(224,146,39,0.15);
+  --shadow-hover:0 12px 40px rgba(224,146,39,0.28);
+}
+
+/* ===== Cursor con corazoncito ♡ ===== */
+html, body{
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24'><path fill='%23e96a91' stroke='%23ffffff' stroke-width='1.5' stroke-linejoin='round' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/></svg>") 14 14, auto;
 }
 
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -706,6 +769,83 @@ footer .heart-tiny{color:var(--pink-500);display:inline-block;animation:beat 1.5
   background-position:right 14px center;
   padding-right:36px;
   cursor:pointer;
+}
+
+/* ===== Tarjeta de aniversario en el perfil ===== */
+.anniversary-card{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:linear-gradient(135deg,var(--pink-100),var(--pink-50));
+  border:1.5px solid var(--pink-200);
+  border-radius:30px;
+  padding:6px 18px;
+  margin:8px auto 4px;
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;
+  color:var(--rose);
+  font-size:0.95rem;
+  box-shadow:0 4px 12px rgba(232,106,145,0.12);
+}
+.anniversary-card:empty{display:none;}
+.anniversary-card .heart-beat{
+  display:inline-block;
+  animation:beat 1.5s ease infinite;
+}
+.anniversary-card.anniversary-today{
+  background:linear-gradient(135deg,var(--pink-200),var(--gold-soft));
+  font-weight:600;
+  font-style:normal;
+  color:var(--rose);
+  font-size:1rem;
+  animation:beat 2s ease infinite;
+}
+
+/* ===== Selector de tema (4 paletas Sanrio) ===== */
+.theme-picker{
+  display:flex;gap:8px;flex-wrap:wrap;
+}
+.theme-option{
+  display:flex;align-items:center;gap:6px;
+  background:white;
+  border:1.5px solid var(--pink-200);
+  padding:6px 14px;border-radius:30px;
+  cursor:pointer;font-family:inherit;font-size:0.85rem;color:var(--text);
+  transition:all 0.2s ease;
+}
+.theme-option:hover{background:var(--pink-50);}
+.theme-option.active{
+  background:var(--pink-100);border-color:var(--pink-400);
+  font-weight:600;
+}
+.theme-option .theme-dot{
+  width:14px;height:14px;border-radius:50%;
+  background:var(--c);
+  border:2px solid white;
+  box-shadow:0 0 0 1px var(--pink-200);
+}
+
+/* ===== Botón flotante de My Melody (chat) ===== */
+.fab.fab-melody{
+  background:white;
+  padding:5px;
+  overflow:visible;
+  border:2px solid var(--pink-300);
+}
+.fab.fab-melody img{
+  width:100%;height:100%;
+  border-radius:50%;
+  display:block;
+  transition:transform 0.25s ease;
+}
+.fab.fab-melody:hover img{transform:scale(1.1) rotate(-6deg);}
+.fab.fab-melody.thinking img{
+  animation:melody-think 0.8s ease-in-out infinite;
+}
+@keyframes melody-think{
+  0%,100%{transform:scale(1) rotate(0);}
+  25%{transform:scale(0.95) rotate(-6deg);}
+  75%{transform:scale(0.95) rotate(6deg);}
 }
 
 /* ===== Chat con IA ===== */

@@ -117,6 +117,7 @@
       <div class="greeting" id="greetingTime">Buenos días</div>
       <h1 class="title" id="userName">Mi Rincón</h1>
       <div class="profile-bio" id="profileBio"></div>
+      <div class="anniversary-card" id="anniversaryCard"></div>
       <div class="heart-divider">♡</div>
       <div class="subtitle" id="randomQuote">"Coleccionando cosas bonitas"</div>
     </div>
@@ -353,12 +354,24 @@
       <label>Tu nombre</label>
       <input type="text" id="setName"/>
     </div>
+
+    <div class="form-row">
+      <label>Paleta de colores 🎨</label>
+      <div class="theme-picker">
+        <button type="button" class="theme-option" data-theme="melody" style="--c:#f291ad"><span class="theme-dot"></span>My Melody</button>
+        <button type="button" class="theme-option" data-theme="kuromi" style="--c:#8855a8"><span class="theme-dot"></span>Kuromi</button>
+        <button type="button" class="theme-option" data-theme="cinnamoroll" style="--c:#5eafe7"><span class="theme-dot"></span>Cinnamoroll</button>
+        <button type="button" class="theme-option" data-theme="pompompurin" style="--c:#efad3a"><span class="theme-dot"></span>Pompompurin</button>
+      </div>
+      <small>Cambia toda la paleta de la web. ¡Probá las cuatro!</small>
+    </div>
+
     <div class="form-row">
       <label>Clave API de TMDB (para buscar películas y series)</label>
       <input type="text" id="setTmdb" placeholder="Pégala aquí..."/>
     </div>
     <div class="form-row">
-      <label>Tu IA personal ✨</label>
+      <label>Cerebrito de My Melody 🎀</label>
       <select id="setAiProvider">
         <option value="groq">Groq · Llama 3.3 (gratis, súper rápido) 🚀</option>
         <option value="gemini">Google Gemini (gratis)</option>
@@ -447,6 +460,12 @@
       <small>Máximo 200 caracteres</small>
     </div>
 
+    <div class="form-row">
+      <label>Aniversario 💕 (opcional, para contador)</label>
+      <input type="date" id="profAnniv"/>
+      <small>Mostrará un cartelito en tu perfil con cuánto tiempo llevan juntos. El 15 de diciembre habrá confetti 🎉</small>
+    </div>
+
     <div class="modal-actions">
       <button class="btn ghost" id="profCancel">Cancelar</button>
       <button class="btn" id="profSave">Guardar ♡</button>
@@ -458,7 +477,7 @@
 <div class="modal-bg" id="chatModal" aria-hidden="true">
   <div class="modal modal-chat" role="dialog">
     <button class="modal-close" id="chatClose" aria-label="Cerrar">✕</button>
-    <h2>Tu IA Personal ✨</h2>
+    <h2>My Melody ♡</h2>
     <div class="chat-messages" id="chatMessages"></div>
     <div class="chat-input-wrap">
       <input type="text" id="chatInput" placeholder="Preguntale algo..." autocomplete="off"/>
@@ -470,8 +489,10 @@
   </div>
 </div>
 
-<!-- ===== Botón flotante del chat ✨ ===== -->
-<button id="fabChat" class="fab fab-left" title="Hablar con tu IA" aria-label="Chat IA">✨</button>
+<!-- ===== Botón flotante de My Melody (chat) ===== -->
+<button id="fabChat" class="fab fab-left fab-melody" title="Hablar con My Melody" aria-label="Chat My Melody">
+  <img src="favicon.svg" alt="My Melody"/>
+</button>
 
 <!-- ===== Botón flotante "+" ===== -->
 <button id="fabAdd" class="fab" title="Agregar manualmente" aria-label="Agregar">+</button>

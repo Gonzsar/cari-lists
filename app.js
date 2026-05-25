@@ -212,8 +212,8 @@ function renderStats(){
     <div class="stat-card"><div class="stat-num">${counts.wishlist}</div><div class="stat-label">Wishlist</div></div>
     <div class="stat-card"><div class="stat-num">${counts.outfits}</div><div class="stat-label">Outfits</div></div>
     <div class="stat-card"><div class="stat-num">${counts.places}</div><div class="stat-label">Lugares</div></div>
-    <div class="stat-card"><div class="stat-num">${counts.dates}</div><div class="stat-label">💕 Date Ideas</div></div>
-    <div class="stat-card"><div class="stat-num">${counts.diary}</div><div class="stat-label">📔 Diario</div></div>
+    <div class="stat-card"><div class="stat-num">${counts.dates}</div><div class="stat-label">Date Ideas</div></div>
+    <div class="stat-card"><div class="stat-num">${counts.diary}</div><div class="stat-label">Páginas de Diario</div></div>
     <div class="stat-card"><div class="stat-num">${lovedAll}</div><div class="stat-label">💖 Adoradas</div></div>
     <div class="stat-card"><div class="stat-num">${thisYear}</div><div class="stat-label">En ${year}</div></div>
   `;

@@ -120,6 +120,10 @@
       <div class="anniversary-card" id="anniversaryCard"></div>
       <div class="heart-divider">♡</div>
       <div class="subtitle" id="randomQuote">"Coleccionando cosas bonitas"</div>
+      <div class="profile-actions">
+        <button class="btn ghost small" id="openStickersBtn">🎀 Sticker Book <span class="stickers-count-badge" id="stickersCount">0/15</span></button>
+        <button class="btn ghost small" id="openRouletteBtn">🎡 Ruleta de indecisión</button>
+      </div>
     </div>
   </header>
 
@@ -596,6 +600,57 @@
     <div class="modal-actions">
       <button class="btn ghost" id="profCancel">Cancelar</button>
       <button class="btn" id="profSave">Guardar ♡</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal: Sticker Book ===== -->
+<div class="modal-bg" id="stickersModal" aria-hidden="true">
+  <div class="modal modal-stickers" role="dialog">
+    <button class="modal-close" id="stickersClose" aria-label="Cerrar">✕</button>
+    <h2>Tu Sticker Book 🎀</h2>
+    <p class="stickers-progress" id="stickersProgress">0 de 15 stickers conseguidos</p>
+    <div class="stickers-grid" id="stickersGrid"></div>
+  </div>
+</div>
+
+<!-- ===== Modal: Ruleta de indecisión ===== -->
+<div class="modal-bg" id="rouletteModal" aria-hidden="true">
+  <div class="modal modal-roulette" role="dialog">
+    <button class="modal-close" id="rouletteClose" aria-label="Cerrar">✕</button>
+    <h2>Ruleta de indecisión 🎡</h2>
+    <p style="text-align:center;color:var(--text-soft);font-family:'Cormorant Garamond',serif;font-style:italic;margin-bottom:12px;">¿No sabés qué hacer? Que decida el destino ✨</p>
+
+    <div class="roulette-controls">
+      <label>De dónde elegir:</label>
+      <select id="rouletteCat">
+        <option value="movies">🎬 Películas</option>
+        <option value="series">📺 Series</option>
+        <option value="books">📖 Libros</option>
+        <option value="music">🎵 Música</option>
+        <option value="wishlist">🎁 Wishlist</option>
+        <option value="outfits">👗 Outfits</option>
+        <option value="places">🗺️ Lugares</option>
+        <option value="dates">💕 Date Ideas</option>
+      </select>
+      <label>Estado:</label>
+      <select id="rouletteStatus">
+        <option value="want">💭 Solo lo que quiero</option>
+        <option value="all">Todas</option>
+        <option value="watched">✨ Ya vistas/hechas</option>
+        <option value="loved">💖 Solo favoritas</option>
+      </select>
+    </div>
+
+    <div class="roulette-canvas-wrap">
+      <div class="roulette-pointer">▼</div>
+      <canvas id="rouletteCanvas"></canvas>
+    </div>
+
+    <div class="roulette-result" id="rouletteResult"></div>
+
+    <div class="modal-actions" style="justify-content:center;">
+      <button class="btn" id="rouletteSpin">¡Girar! 🎀</button>
     </div>
   </div>
 </div>

@@ -10,7 +10,8 @@ const defaultSettings = {
   name:'', tmdbKey:'', geminiKey:'', groqKey:'', openaiKey:'', aiProvider:'groq',
   avatar:'', banner:'', bio:'',
   theme:'melody',
-  anniversaryDate:'2023-12-15'
+  anniversaryDate:'2023-12-15',
+  unlockedStickers:[]
 };
 const emptyState = {
   movies:[], series:[], music:[], books:[], wishlist:[],
@@ -186,6 +187,7 @@ function render(){
   renderProfile();
   setGreeting();
   renderStats();
+  updateStickersCount();
   document.body.dataset.cat = currentCat;
   Object.keys(CAT_CONFIG).forEach(renderCategory);
   if(currentCat === 'diary') renderDiary();
@@ -250,6 +252,7 @@ function renderCategory(cat){
       if(act==='edit') openEdit(cat,id);
       else if(act==='fav') toggleFav(cat,id,e);
       else if(act==='status') cycleStatus(cat,id);
+      else if(act==='complete') completeItem(cat,id,e);
     });
   });
   grid.querySelectorAll('.item-card').forEach(c=>{
@@ -302,6 +305,9 @@ function cardHTML(cat,item){
         ${eventExtras}
         <div class="item-rating">${heartsRow}</div>
         ${item.note?`<div class="item-note">"${esc(item.note)}"</div>`:''}
+        ${item.status === 'current' ? `
+        <button class="btn small btn-complete" data-action="complete">✓ Lo terminé</button>
+        ` : ''}
         <div class="item-actions">
           <button class="icon-btn ${fav?'fav active':''}" data-action="fav" title="Marcar favorita">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="${fav?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
@@ -343,6 +349,7 @@ function toggleFav(cat,id,evt){
     const y = evt?.clientY ?? window.innerHeight/2;
     confetti({ x, y, count: 60, duration: 1800 });
     toast('¡Marcado como favorito! 💖');
+    checkAchievements();
   } else {
     toast('Movido a vistos ✨');
   }
@@ -355,6 +362,23 @@ function cycleStatus(cat,id){
   item.status = order[(idx<0?0:(idx+1)) % order.length];
   saveState();
   render();
+  checkAchievements();
+}
+
+function completeItem(cat,id,evt){
+  const item = state[cat].find(i=>i.id===id);
+  if(!item) return;
+  item.status = 'watched';
+  item.completedAt = Date.now();
+  saveState();
+  render();
+  const x = evt?.clientX ?? window.innerWidth/2;
+  const y = evt?.clientY ?? window.innerHeight/2;
+  confetti({ x, y, count: 50, duration: 1600, colors:['#e96a91','#f291ad','#fde4c9','#d9a86c','#ffffff'] });
+  const verb = (cat==='books') ? 'lo leíste' : 'lo viste';
+  toast(`¡Genial, ${verb}! ✨`);
+  // Chequear logros con un mini delay para que se vea el confetti primero
+  setTimeout(()=>checkAchievements(), 800);
 }
 
 /* === Modal item === */
@@ -605,6 +629,7 @@ document.getElementById('saveBtn').addEventListener('click',()=>{
   render();
   closeModal();
   toast('¡Guardado! ♡');
+  checkAchievements();
 });
 
 /* === Popup de confirmación bonito === */
@@ -1024,6 +1049,286 @@ setupBtn.addEventListener('click',()=>{
   toast(`¡Bienvenida, ${n}! 🌸`);
 });
 setupName.addEventListener('keydown',e=>{if(e.key==='Enter') setupBtn.click();});
+
+/* ==========================================================
+   Sticker Book · logros con My Melody
+   ========================================================== */
+function stickerSVG(hoodColor, innerEar, emoji){
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="50" cy="50" r="47" fill="${hoodColor}" stroke="white" stroke-width="3"/>
+    <ellipse cx="30" cy="20" rx="8" ry="18" fill="${hoodColor}"/>
+    <ellipse cx="70" cy="20" rx="8" ry="18" fill="${hoodColor}"/>
+    <ellipse cx="30" cy="22" rx="3.5" ry="13" fill="${innerEar}"/>
+    <ellipse cx="70" cy="22" rx="3.5" ry="13" fill="${innerEar}"/>
+    <ellipse cx="50" cy="55" rx="23" ry="20" fill="white"/>
+    <ellipse cx="41" cy="52" rx="2.5" ry="3.5" fill="#3a2530"/>
+    <ellipse cx="59" cy="52" rx="2.5" ry="3.5" fill="#3a2530"/>
+    <circle cx="41.5" cy="51" r="0.8" fill="white"/>
+    <circle cx="59.5" cy="51" r="0.8" fill="white"/>
+    <circle cx="34" cy="58" r="3.2" fill="#f291ad" opacity="0.55"/>
+    <circle cx="66" cy="58" r="3.2" fill="#f291ad" opacity="0.55"/>
+    <path d="M46 60 Q50 63.5 54 60" stroke="#c84068" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+    <ellipse cx="50" cy="41" rx="14" ry="3" fill="white" opacity="0.4"/>
+    <circle cx="78" cy="28" r="14" fill="white" opacity="0.95" stroke="${hoodColor}" stroke-width="1.5"/>
+    <text x="78" y="35" font-size="18" text-anchor="middle">${emoji}</text>
+  </svg>`;
+}
+
+const ACHIEVEMENTS = [
+  { id:'first_movie', name:'Primer paso 🎬', desc:'Agregaste tu primera película',
+    check: s => (s.movies||[]).length >= 1,
+    sticker: () => stickerSVG('#f7b3c6','#ffd5e0','🎬') },
+  { id:'cinefile_10', name:'Cinéfila ⭐', desc:'Viste 10 películas',
+    check: s => (s.movies||[]).filter(m=>m.status==='watched'||m.status==='loved').length >= 10,
+    sticker: () => stickerSVG('#f5c769','#ffe9b3','⭐') },
+  { id:'movie_queen', name:'Reina del cine 👑', desc:'Viste 25 películas',
+    check: s => (s.movies||[]).filter(m=>m.status==='watched'||m.status==='loved').length >= 25,
+    sticker: () => stickerSVG('#e96a91','#ffc0d3','👑') },
+  { id:'first_series', name:'Una más 📺', desc:'Agregaste tu primera serie',
+    check: s => (s.series||[]).length >= 1,
+    sticker: () => stickerSVG('#b89af6','#dfd0fb','📺') },
+  { id:'marathon_queen', name:'Maratoneadora 🏃‍♀️', desc:'Viste 10 series',
+    check: s => (s.series||[]).filter(m=>m.status==='watched'||m.status==='loved').length >= 10,
+    sticker: () => stickerSVG('#f5a058','#fdd3b1','🏃‍♀️') },
+  { id:'reader', name:'Lectora 📖', desc:'Leíste 5 libros',
+    check: s => (s.books||[]).filter(m=>m.status==='watched'||m.status==='loved').length >= 5,
+    sticker: () => stickerSVG('#f5b5a0','#fcdacc','📖') },
+  { id:'bookworm', name:'Devoradora de libros 📚', desc:'Leíste 15 libros',
+    check: s => (s.books||[]).filter(m=>m.status==='watched'||m.status==='loved').length >= 15,
+    sticker: () => stickerSVG('#c8956a','#e6c9a8','📚') },
+  { id:'melomane', name:'Melómana 🎶', desc:'Agregaste 20 canciones',
+    check: s => (s.music||[]).length >= 20,
+    sticker: () => stickerSVG('#8cc8f1','#c4e2f8','🎶') },
+  { id:'traveler', name:'Viajera ✈️', desc:'Anotaste 5 lugares',
+    check: s => (s.places||[]).length >= 5,
+    sticker: () => stickerSVG('#90c8e3','#bbdcec','✈️') },
+  { id:'fashionista', name:'Fashionista 👗', desc:'Guardaste 10 outfits',
+    check: s => (s.outfits||[]).length >= 10,
+    sticker: () => stickerSVG('#d4a4d9','#ecc8ef','👗') },
+  { id:'top_picks', name:'Top picks 💖', desc:'Marcaste 20 favoritos',
+    check: s => Object.values(s).filter(Array.isArray).flat().filter(i=>i?.status==='loved').length >= 20,
+    sticker: () => stickerSVG('#e15a73','#ffb8c5','💖') },
+  { id:'diary_writer', name:'Diarista 📔', desc:'Escribiste 7 páginas de diario',
+    check: s => (s.diary||[]).filter(p=>(p.content||'').trim().length > 30).length >= 7,
+    sticker: () => stickerSVG('#e8d9b3','#f5ebd0','📔') },
+  { id:'collector', name:'Coleccionista 🎀', desc:'Tenés 50 cositas en total',
+    check: s => Object.values(s).filter(Array.isArray).flat().filter(x=>x?.id).length >= 50,
+    sticker: () => stickerSVG('#d9a86c','#ecd1a5','🎀') },
+  { id:'dreamer', name:'Soñadora 🌙', desc:'Tu wishlist tiene 10 deseos',
+    check: s => (s.wishlist||[]).length >= 10,
+    sticker: () => stickerSVG('#a47ec3','#cbb1de','🌙') },
+  { id:'romantic', name:'Romántica 💕', desc:'Anotaste 10 date ideas',
+    check: s => (s.dates||[]).length >= 10,
+    sticker: () => stickerSVG('#f291ad','#ffd0dd','💕') }
+];
+
+function checkAchievements(silent = false){
+  if(!settings.unlockedStickers) settings.unlockedStickers = [];
+  const newlyUnlocked = [];
+  for(const ach of ACHIEVEMENTS){
+    if(settings.unlockedStickers.includes(ach.id)) continue;
+    try {
+      if(ach.check(state)){
+        settings.unlockedStickers.push(ach.id);
+        newlyUnlocked.push(ach);
+      }
+    } catch(e){}
+  }
+  if(newlyUnlocked.length > 0){
+    saveSettings();
+    if(!silent) showStickerUnlocks(newlyUnlocked);
+    updateStickersCount();
+  }
+  return newlyUnlocked;
+}
+
+function showStickerUnlocks(achievements){
+  // Toast + confetti por cada uno (con un delay)
+  achievements.forEach((ach, i)=>{
+    setTimeout(()=>{
+      confetti({ count: 80, duration: 2500, colors:['#e96a91','#f291ad','#fde4c9','#d9a86c','#ffffff','#fbd0dd'] });
+      showStickerPopup(ach);
+    }, i * 1800);
+  });
+}
+
+function showStickerPopup(ach){
+  const popup = document.createElement('div');
+  popup.className = 'sticker-unlock-popup';
+  popup.innerHTML = `
+    <div class="sticker-unlock-card">
+      <div class="sticker-unlock-label">¡Nuevo sticker desbloqueado!</div>
+      <div class="sticker-unlock-svg">${ach.sticker()}</div>
+      <div class="sticker-unlock-name">${esc(ach.name)}</div>
+      <div class="sticker-unlock-desc">${esc(ach.desc)}</div>
+    </div>
+  `;
+  document.body.appendChild(popup);
+  setTimeout(()=>popup.classList.add('show'), 30);
+  setTimeout(()=>{
+    popup.classList.remove('show');
+    setTimeout(()=>popup.remove(), 400);
+  }, 3200);
+}
+
+function openStickerBook(){
+  const modal = document.getElementById('stickersModal');
+  const grid = document.getElementById('stickersGrid');
+  const progress = document.getElementById('stickersProgress');
+  const unlocked = settings.unlockedStickers || [];
+
+  progress.textContent = `${unlocked.length} de ${ACHIEVEMENTS.length} stickers conseguidos`;
+  grid.innerHTML = ACHIEVEMENTS.map(ach => {
+    const isUnlocked = unlocked.includes(ach.id);
+    return `
+      <div class="sticker-card ${isUnlocked?'unlocked':'locked'}" title="${esc(ach.desc)}">
+        <div class="sticker-svg">${isUnlocked ? ach.sticker() : ach.sticker()}</div>
+        <div class="sticker-name">${isUnlocked ? esc(ach.name) : '???'}</div>
+        <div class="sticker-desc">${isUnlocked ? esc(ach.desc) : 'Bloqueado'}</div>
+      </div>
+    `;
+  }).join('');
+  modal.classList.add('show');
+}
+
+/* ==========================================================
+   Ruleta de indecisión
+   ========================================================== */
+let rouletteCtx = { cat:'movies', status:'want' };
+let rouletteSpinning = false;
+
+function openRoulette(){
+  const modal = document.getElementById('rouletteModal');
+  // Resetear UI
+  document.getElementById('rouletteResult').textContent = '';
+  document.getElementById('rouletteResult').className = 'roulette-result';
+  drawRouletteWheel(0);
+  modal.classList.add('show');
+}
+
+function getRouletteItems(){
+  const cat = rouletteCtx.cat;
+  const status = rouletteCtx.status;
+  let list = (state[cat] || []).filter(i => i?.title);
+  if(status !== 'all') list = list.filter(i => i.status === status);
+  return list.slice(0, 20); // máximo 20 para que se vea bien
+}
+
+function drawRouletteWheel(rotation, highlightIdx = -1){
+  const canvas = document.getElementById('rouletteCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const size = 340;
+  canvas.width = size * dpr;
+  canvas.height = size * dpr;
+  canvas.style.width = size + 'px';
+  canvas.style.height = size + 'px';
+  ctx.scale(dpr, dpr);
+
+  const cx = size/2, cy = size/2, r = size/2 - 16;
+  const items = getRouletteItems();
+
+  ctx.clearRect(0, 0, size, size);
+
+  if(items.length === 0){
+    ctx.fillStyle = '#fce4eb';
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#8a6878';
+    ctx.font = 'italic 16px Cormorant Garamond, serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('No hay cositas aquí', cx, cy);
+    return;
+  }
+
+  const sliceAngle = (Math.PI*2) / items.length;
+  const palette = ['#fbd0dd','#f7b3c6','#fde4c9','#f0d4a8','#fce4eb','#f5c8da'];
+
+  for(let i = 0; i < items.length; i++){
+    const start = rotation + i * sliceAngle;
+    const end = start + sliceAngle;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, start, end);
+    ctx.closePath();
+    ctx.fillStyle = (i === highlightIdx) ? '#e96a91' : palette[i % palette.length];
+    ctx.fill();
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // texto
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(start + sliceAngle/2);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = (i === highlightIdx) ? 'white' : '#5a3a48';
+    ctx.font = 'bold 11px Quicksand, sans-serif';
+    const txt = items[i].title.length > 16 ? items[i].title.slice(0,15) + '…' : items[i].title;
+    ctx.fillText(txt, r - 12, 4);
+    ctx.restore();
+  }
+
+  // Círculo central
+  ctx.beginPath();
+  ctx.arc(cx, cy, 32, 0, Math.PI*2);
+  ctx.fillStyle = 'white';
+  ctx.fill();
+  ctx.strokeStyle = '#e96a91';
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
+  ctx.fillStyle = '#e96a91';
+  ctx.font = 'bold 22px Quicksand, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('♡', cx, cy + 7);
+}
+
+function spinRoulette(){
+  if(rouletteSpinning) return;
+  const items = getRouletteItems();
+  if(items.length === 0){
+    toast('No hay cositas para girar 🌸');
+    return;
+  }
+  rouletteSpinning = true;
+  document.getElementById('rouletteResult').textContent = '';
+  document.getElementById('rouletteResult').className = 'roulette-result';
+
+  const sliceAngle = (Math.PI*2) / items.length;
+  const winnerIdx = Math.floor(Math.random() * items.length);
+  // Queremos que el punto del puntero (arriba = -PI/2) caiga en el centro del slice winner
+  const targetSliceCenter = winnerIdx * sliceAngle + sliceAngle/2;
+  // rotation final = -PI/2 - targetSliceCenter, más vueltas completas
+  const fullSpins = 6;
+  const finalRotation = -Math.PI/2 - targetSliceCenter + fullSpins * Math.PI * 2;
+
+  const duration = 4500;
+  const start = performance.now();
+
+  function frame(t){
+    const elapsed = t - start;
+    const progress = Math.min(1, elapsed / duration);
+    const eased = 1 - Math.pow(1 - progress, 4); // ease out cuartic
+    const rotation = finalRotation * eased;
+    drawRouletteWheel(rotation);
+
+    if(progress < 1){
+      requestAnimationFrame(frame);
+    } else {
+      rouletteSpinning = false;
+      drawRouletteWheel(finalRotation, winnerIdx);
+      const winner = items[winnerIdx];
+      const resultEl = document.getElementById('rouletteResult');
+      resultEl.innerHTML = `<div class="roulette-pick">🎯 ${esc(winner.title)}</div>${winner.meta?`<div class="roulette-pick-meta">${esc(winner.meta)}</div>`:''}`;
+      resultEl.classList.add('show');
+      confetti({ count: 70, duration: 2200 });
+    }
+  }
+  requestAnimationFrame(frame);
+}
 
 /* ==========================================================
    Diario · libro con páginas
@@ -1638,9 +1943,48 @@ function confetti(opts={}){
   requestAnimationFrame(frame);
 }
 
+/* === Sticker Book handlers === */
+document.getElementById('openStickersBtn').addEventListener('click', openStickerBook);
+document.getElementById('stickersClose').addEventListener('click', ()=>{
+  document.getElementById('stickersModal').classList.remove('show');
+});
+document.getElementById('stickersModal').addEventListener('click', (e)=>{
+  if(e.target.id === 'stickersModal') document.getElementById('stickersModal').classList.remove('show');
+});
+
+function updateStickersCount(){
+  const el = document.getElementById('stickersCount');
+  if(!el) return;
+  const unlocked = (settings.unlockedStickers || []).length;
+  el.textContent = `${unlocked}/${ACHIEVEMENTS.length}`;
+}
+
+/* === Ruleta handlers === */
+document.getElementById('openRouletteBtn').addEventListener('click', openRoulette);
+document.getElementById('rouletteClose').addEventListener('click', ()=>{
+  document.getElementById('rouletteModal').classList.remove('show');
+});
+document.getElementById('rouletteModal').addEventListener('click', (e)=>{
+  if(e.target.id === 'rouletteModal') document.getElementById('rouletteModal').classList.remove('show');
+});
+document.getElementById('rouletteCat').addEventListener('change', (e)=>{
+  rouletteCtx.cat = e.target.value;
+  document.getElementById('rouletteResult').textContent = '';
+  document.getElementById('rouletteResult').classList.remove('show');
+  drawRouletteWheel(0);
+});
+document.getElementById('rouletteStatus').addEventListener('change', (e)=>{
+  rouletteCtx.status = e.target.value;
+  document.getElementById('rouletteResult').textContent = '';
+  document.getElementById('rouletteResult').classList.remove('show');
+  drawRouletteWheel(0);
+});
+document.getElementById('rouletteSpin').addEventListener('click', spinRoulette);
+
 /* === Init === */
 spawnPetals();
 applyTheme(settings.theme || 'melody');
 initDiary();
 render();
 maybeShowSetup();
+checkAchievements(true); // chequeo silencioso al cargar (no spammea popups)

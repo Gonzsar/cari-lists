@@ -994,39 +994,193 @@ footer .heart-tiny{color:var(--pink-500);display:inline-block;animation:beat 1.5
 /* ===== Campos especiales por categoría ===== */
 .wishlist-only, .event-only { display:none; }
 body[data-cat="wishlist"] .wishlist-only{display:block;}
-body[data-cat="together"] .event-only,
-body[data-cat="dates"] .event-only,
-body[data-cat="diary"] .event-only { display:block; }
+body[data-cat="dates"] .event-only{display:block;}
 
-/* Aspect ratios por categoría (productos cuadrados, outfits portrait, lugares landscape...) */
+/* Aspect ratios por categoría */
 #cat-wishlist .item-cover,
 #cat-wishlist .result-cover,
 #cat-dates .item-cover { aspect-ratio:1/1; }
 
 #cat-outfits .item-cover { aspect-ratio:3/4; }
 
-#cat-places .item-cover,
-#cat-diary .item-cover { aspect-ratio:4/3; }
+#cat-places .item-cover { aspect-ratio:4/3; }
 
-#cat-together .item-cover { aspect-ratio:2/3; }
-
-/* Diario: tarjetas más anchas para que se lea el contenido */
-#cat-diary .items-grid {
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-}
-#cat-diary .item-note {
-  -webkit-line-clamp: 6;
-  font-size: 0.95rem;
-}
-
-/* Emoji icon en los tabs nuevos */
-.emoji-icon {
-  font-size: 1.1rem;
-  line-height: 1;
-}
-
-/* Tabs: ya tienen flex-wrap, pero con 10 cats conviene gap menor */
+/* Tabs: con muchas cats conviene gap menor */
 @media (max-width: 900px){
   .category-tabs { gap: 6px; }
   .cat-tab { padding: 10px 16px; font-size: 0.88rem; }
+}
+
+/* ===== Diario tipo libro ===== */
+.diary-book{
+  background:linear-gradient(180deg, #fffaf3 0%, #fff5e6 100%);
+  border-radius:8px 18px 18px 8px;
+  border:1.5px solid var(--gold-soft);
+  padding:34px 38px 24px 64px;
+  max-width:720px;
+  margin:24px auto 80px;
+  box-shadow:
+    0 18px 40px rgba(232,106,145,0.15),
+    inset 0 0 0 1px rgba(255,255,255,0.5);
+  position:relative;
+  font-family:'Cormorant Garamond',serif;
+  overflow:hidden;
+}
+.diary-book::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:44px;
+  background:linear-gradient(90deg, rgba(232,106,145,0.18), rgba(232,106,145,0.04) 60%, transparent);
+  border-right:1.5px dashed rgba(232,106,145,0.35);
+  pointer-events:none;
+  z-index:0;
+}
+.diary-corner-flower{
+  position:absolute;top:8px;right:14px;
+  width:50px;height:50px;
+  color:var(--pink-400);
+  pointer-events:none;
+  z-index:1;
+}
+.diary-corner-flower svg{width:100%;height:100%;}
+
+.diary-page-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:14px;
+  padding-bottom:12px;
+  border-bottom:1.5px dashed var(--pink-200);
+  position:relative;
+  z-index:2;
+}
+.diary-date-input{
+  background:transparent;
+  border:none;
+  outline:none;
+  font-family:'Dancing Script',cursive;
+  color:var(--rose);
+  font-size:1.5rem;
+  font-weight:700;
+  padding:4px 8px;
+  border-radius:8px;
+  cursor:pointer;
+  width:auto;
+}
+.diary-date-input:hover, .diary-date-input:focus{
+  background:rgba(232,106,145,0.08);
+}
+.diary-actions{
+  display:flex;align-items:center;gap:10px;
+}
+.diary-saving{
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;
+  font-size:0.82rem;
+  color:var(--text-soft);
+  opacity:0;
+  transition:opacity 0.3s ease;
+}
+.diary-saving.visible{opacity:0.8;}
+.diary-saving.saved{
+  opacity:0.85;
+  color:var(--pink-500);
+  font-style:normal;
+}
+.diary-saving.saved::after{content:' ✓';}
+
+.diary-content{
+  width:100%;
+  min-height:480px;
+  border:none;
+  outline:none;
+  background:
+    repeating-linear-gradient(transparent 0, transparent 31px, rgba(247,179,198,0.3) 31px, rgba(247,179,198,0.3) 32px);
+  background-attachment:local;
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;
+  font-size:1.18rem;
+  line-height:32px;
+  color:var(--text);
+  resize:vertical;
+  padding:0;
+  display:block;
+  position:relative;
+  z-index:2;
+}
+.diary-content::placeholder{
+  color:var(--pink-300);
+  font-style:italic;
+}
+
+.diary-footer{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:24px;
+  padding-top:16px;
+  border-top:1.5px dashed var(--pink-200);
+  gap:12px;
+  flex-wrap:wrap;
+  position:relative;
+  z-index:2;
+}
+.diary-nav{
+  background:rgba(255,255,255,0.7);
+  border:1.5px solid var(--pink-200);
+  color:var(--rose);
+  padding:8px 18px;
+  border-radius:30px;
+  cursor:pointer;
+  font-family:inherit;
+  font-size:0.92rem;
+  font-weight:600;
+  transition:all 0.2s ease;
+}
+.diary-nav:hover:not(:disabled){
+  background:var(--pink-100);
+  border-color:var(--pink-300);
+}
+.diary-nav:disabled{
+  opacity:0.35;
+  cursor:not-allowed;
+}
+.diary-page-info{
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;
+  color:var(--text-soft);
+  font-size:0.95rem;
+}
+.diary-page-info span{
+  font-weight:700;
+  color:var(--rose);
+  font-style:normal;
+}
+
+.diary-new-page-btn{
+  display:block;
+  margin:18px auto 0;
+  position:relative;
+  z-index:2;
+}
+
+/* Animación al cambiar de página */
+.diary-book.page-flip .diary-content,
+.diary-book.page-flip .diary-page-header,
+.diary-book.page-flip .diary-footer{
+  animation:page-slide-in 0.32s ease;
+}
+@keyframes page-slide-in{
+  from{ opacity:0; transform:translateX(14px); }
+  to{ opacity:1; transform:translateX(0); }
+}
+
+@media (max-width: 600px){
+  .diary-book{
+    padding:24px 22px 20px 42px;
+    margin:16px auto 60px;
+  }
+  .diary-content{
+    font-size:1.05rem;
+    line-height:28px;
+  }
+  .diary-date-input{font-size:1.25rem;}
 }

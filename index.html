@@ -148,19 +148,20 @@
       Wishlist
     </button>
     <button class="cat-tab" data-cat="outfits">
-      <span class="emoji-icon">👗</span> Outfits
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23Z"/></svg>
+      Outfits
     </button>
     <button class="cat-tab" data-cat="places">
-      <span class="emoji-icon">🗺️</span> Lugares
-    </button>
-    <button class="cat-tab" data-cat="together">
-      <span class="emoji-icon">💑</span> Visto Juntos
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      Lugares
     </button>
     <button class="cat-tab" data-cat="dates">
-      <span class="emoji-icon">💕</span> Date Ideas
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      Date Ideas
     </button>
     <button class="cat-tab" data-cat="diary">
-      <span class="emoji-icon">📔</span> Diario
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="15" y2="11"/><line x1="9" y1="15" x2="13" y2="15"/></svg>
+      Diario
     </button>
   </div>
 
@@ -320,24 +321,6 @@
     <div class="items-grid" id="placesList"></div>
   </section>
 
-  <!-- ===== Visto Juntos ===== -->
-  <section class="cat-content" id="cat-together">
-    <h2 class="section-title">Visto Juntos 💑</h2>
-    <p class="section-subtitle">Pelis y series que vieron en pareja, con la fecha y sus comentarios</p>
-
-    <div class="search-box" style="text-align:center;background:rgba(255,255,255,0.7);">
-      <p style="color:var(--text-soft);font-style:italic;margin-bottom:10px;">Tocá el botón <strong>+</strong> para agregar lo que vieron juntos. Podés poner la fecha y un comentario 💕</p>
-    </div>
-
-    <div class="status-tabs" data-cat="together">
-      <button class="status-tab active" data-status="all">Todas <span class="count" id="together-count-all">0</span></button>
-      <button class="status-tab" data-status="want">💭 Por ver <span class="count" id="together-count-want">0</span></button>
-      <button class="status-tab" data-status="watched">💑 Vistas <span class="count" id="together-count-watched">0</span></button>
-      <button class="status-tab" data-status="loved">💖 Favoritas <span class="count" id="together-count-loved">0</span></button>
-    </div>
-
-    <div class="items-grid" id="togetherList"></div>
-  </section>
 
   <!-- ===== Date Ideas ===== -->
   <section class="cat-content" id="cat-dates">
@@ -358,23 +341,47 @@
     <div class="items-grid" id="datesList"></div>
   </section>
 
-  <!-- ===== Diario ===== -->
+  <!-- ===== Diario (libro con páginas) ===== -->
   <section class="cat-content" id="cat-diary">
-    <h2 class="section-title">Tu Diario 📔</h2>
-    <p class="section-subtitle">Tu rinconcito de pensamientos, sentimientos y memorias</p>
+    <h2 class="section-title">Tu Diario</h2>
+    <p class="section-subtitle">Tu librito de pensamientos · escribe lo que quieras, las páginas se guardan solas ✨</p>
 
-    <div class="search-box" style="text-align:center;background:rgba(255,255,255,0.7);">
-      <p style="color:var(--text-soft);font-style:italic;margin-bottom:10px;">Cada entrada lleva fecha. Tocá el botón <strong>+</strong> para escribir algo nuevo 💕</p>
+    <div class="diary-book" id="diaryBook">
+      <div class="diary-corner-flower">
+        <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <g transform="translate(30,30)">
+            <ellipse cx="0" cy="-10" rx="6" ry="10" fill="currentColor" opacity="0.4"/>
+            <ellipse cx="9" cy="-3" rx="10" ry="6" fill="currentColor" opacity="0.4"/>
+            <ellipse cx="-9" cy="-3" rx="10" ry="6" fill="currentColor" opacity="0.4"/>
+            <ellipse cx="5" cy="8" rx="7" ry="9" fill="currentColor" opacity="0.4" transform="rotate(35 5 8)"/>
+            <ellipse cx="-5" cy="8" rx="7" ry="9" fill="currentColor" opacity="0.4" transform="rotate(-35 -5 8)"/>
+            <circle cx="0" cy="0" r="3.5" fill="currentColor" opacity="0.6"/>
+          </g>
+        </svg>
+      </div>
+
+      <div class="diary-page-header">
+        <input type="date" class="diary-date-input" id="diaryDateInput" title="Fecha de la entrada"/>
+        <div class="diary-actions">
+          <span class="diary-saving" id="diarySaving">guardando...</span>
+          <button class="icon-btn" id="diaryDeletePage" title="Eliminar esta página">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <textarea class="diary-content" id="diaryContent" placeholder="Querido diario..."></textarea>
+
+      <div class="diary-footer">
+        <button class="diary-nav" id="diaryPrev">← Anterior</button>
+        <div class="diary-page-info">
+          Página <span id="diaryPageNum">1</span> de <span id="diaryPageTotal">1</span>
+        </div>
+        <button class="diary-nav" id="diaryNext">Siguiente →</button>
+      </div>
+
+      <button class="btn diary-new-page-btn" id="diaryNewPage">＋ Nueva página</button>
     </div>
-
-    <div class="status-tabs" data-cat="diary">
-      <button class="status-tab active" data-status="all">Todas <span class="count" id="diary-count-all">0</span></button>
-      <button class="status-tab" data-status="want">📝 Borradores <span class="count" id="diary-count-want">0</span></button>
-      <button class="status-tab" data-status="watched">📔 Entradas <span class="count" id="diary-count-watched">0</span></button>
-      <button class="status-tab" data-status="loved">💖 Momentos especiales <span class="count" id="diary-count-loved">0</span></button>
-    </div>
-
-    <div class="items-grid" id="diaryList"></div>
   </section>
 
   <footer>

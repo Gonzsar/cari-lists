@@ -14,7 +14,7 @@ const defaultSettings = {
 };
 const emptyState = {
   movies:[], series:[], music:[], books:[], wishlist:[],
-  outfits:[], places:[], together:[], dates:[], diary:[]
+  outfits:[], places:[], dates:[], diary:[]
 };
 
 let settings = loadSettings();
@@ -102,15 +102,6 @@ const CAT_CONFIG = {
     statusLabels:{ want:'Quiero ir', watched:'Fui', loved:'Favorito' },
     pillLabels:{ want:'✈️ Quiero ir', watched:'🌍 Ya fui', loved:'💖 Favorito' }
   },
-  together: {
-    icon:'💑',
-    sectionTitle:'Visto Juntos',
-    sectionSubtitle:'Pelis y series que vieron en pareja, con sus comentarios',
-    metaLabel:'Tipo / Año',
-    statuses:['want','watched','loved'],
-    statusLabels:{ want:'Por ver', watched:'Visto juntos', loved:'Favorita de los dos' },
-    pillLabels:{ want:'💭 Por ver', watched:'💑 Visto juntos', loved:'💖 Favorita de los dos' }
-  },
   dates: {
     icon:'💕',
     sectionTitle:'Date Ideas',
@@ -119,15 +110,6 @@ const CAT_CONFIG = {
     statuses:['want','watched','loved'],
     statusLabels:{ want:'Idea', watched:'¡Hecho!', loved:'Favorito' },
     pillLabels:{ want:'💡 Idea', watched:'✓ ¡Hecho!', loved:'💖 Favorito' }
-  },
-  diary: {
-    icon:'📔',
-    sectionTitle:'Tu Diario',
-    sectionSubtitle:'Tu rinconcito de pensamientos, sentimientos y memorias',
-    metaLabel:'Lugar / Contexto',
-    statuses:['want','watched','loved'],
-    statusLabels:{ want:'Borrador', watched:'Entrada', loved:'Momento especial' },
-    pillLabels:{ want:'📝 Borrador', watched:'📔 Entrada', loved:'💖 Momento especial' }
   }
 };
 
@@ -206,12 +188,14 @@ function render(){
   renderStats();
   document.body.dataset.cat = currentCat;
   Object.keys(CAT_CONFIG).forEach(renderCategory);
+  if(currentCat === 'diary') renderDiary();
 }
 
 function renderStats(){
   const stats = document.getElementById('stats');
   const counts = {};
   Object.keys(CAT_CONFIG).forEach(cat => counts[cat] = (state[cat]||[]).length);
+  counts.diary = (state.diary || []).length;
   const allItems = Object.keys(CAT_CONFIG).flatMap(cat => state[cat]||[]);
   const lovedAll = allItems.filter(i=>i.status==='loved').length;
   const year = new Date().getFullYear();
@@ -228,7 +212,6 @@ function renderStats(){
     <div class="stat-card"><div class="stat-num">${counts.wishlist}</div><div class="stat-label">Wishlist</div></div>
     <div class="stat-card"><div class="stat-num">${counts.outfits}</div><div class="stat-label">Outfits</div></div>
     <div class="stat-card"><div class="stat-num">${counts.places}</div><div class="stat-label">Lugares</div></div>
-    <div class="stat-card"><div class="stat-num">${counts.together}</div><div class="stat-label">💑 Juntos</div></div>
     <div class="stat-card"><div class="stat-num">${counts.dates}</div><div class="stat-label">💕 Date Ideas</div></div>
     <div class="stat-card"><div class="stat-num">${counts.diary}</div><div class="stat-label">📔 Diario</div></div>
     <div class="stat-card"><div class="stat-num">${lovedAll}</div><div class="stat-label">💖 Adoradas</div></div>
@@ -301,10 +284,9 @@ function cardHTML(cat,item){
     ${item.link?`<a class="item-link" href="${escAttr(item.link)}" target="_blank" rel="noopener">🔗 Ver tienda</a>`:''}
   ` : '';
 
-  // Fecha + comentarios para "Visto juntos", "Date ideas" y "Diario"
-  const dateLabel = { together:'📅 Vista el', dates:'📅 Hecho el', diary:'📅' }[cat];
-  const eventExtras = (cat==='together' || cat==='dates' || cat==='diary') ? `
-    ${item.eventDate?`<div class="item-meta">${dateLabel||'📅'} ${formatPrettyDate(item.eventDate)}</div>`:''}
+  // Fecha + comentarios para "Date ideas"
+  const eventExtras = (cat==='dates') ? `
+    ${item.eventDate?`<div class="item-meta">📅 ${formatPrettyDate(item.eventDate)}</div>`:''}
     ${item.comments?`<div class="item-note">💬 "${esc(item.comments)}"</div>`:''}
   ` : '';
 
@@ -513,23 +495,10 @@ function applyModalLabels(cat, activeStatus='want'){
     `<div class="pill${s===activeStatus?' active':''}" data-status="${s}">${conf.pillLabels[s]}</div>`
   ).join('');
 
-  // Labels específicos para together/dates/diary
   const dateLabelEl = document.getElementById('fDateLabel');
   const commentsLabelEl = document.getElementById('fCommentsLabel');
-  if(dateLabelEl){
-    dateLabelEl.textContent = {
-      together: 'Fecha en que la vieron juntos',
-      dates: 'Fecha en que lo hicieron',
-      diary: 'Fecha de la entrada'
-    }[cat] || 'Fecha';
-  }
-  if(commentsLabelEl){
-    commentsLabelEl.textContent = {
-      together: 'Comentarios de los dos',
-      dates: 'Cómo estuvo',
-      diary: 'Tu entrada (escribe todo lo que quieras)'
-    }[cat] || 'Comentarios';
-  }
+  if(dateLabelEl) dateLabelEl.textContent = (cat==='dates') ? 'Fecha en que lo hicieron' : 'Fecha';
+  if(commentsLabelEl) commentsLabelEl.textContent = (cat==='dates') ? 'Cómo estuvo' : 'Comentarios';
 }
 
 function openAdd(cat, preset={}){
@@ -545,7 +514,7 @@ function openAdd(cat, preset={}){
   fLink.value = '';
   const fDateEl = document.getElementById('fDate');
   const fCommentsEl = document.getElementById('fComments');
-  if(fDateEl) fDateEl.value = (cat==='diary') ? new Date().toISOString().slice(0,10) : '';
+  if(fDateEl) fDateEl.value = '';
   if(fCommentsEl) fCommentsEl.value = '';
   applyModalLabels(cat, preset.status||'want');
   setModalCover(preset.cover||'');
@@ -605,7 +574,7 @@ document.getElementById('saveBtn').addEventListener('click',()=>{
         item.status=status; item.rating=rating;
         item.cover = modalContext.cover || '';
         if(modalContext.cat==='wishlist'){ item.price = price; item.link = link; }
-        if(modalContext.cat==='together' || modalContext.cat==='dates' || modalContext.cat==='diary'){
+        if(modalContext.cat==='dates'){
           item.eventDate = dateField;
           item.comments = comments;
         }
@@ -618,7 +587,7 @@ document.getElementById('saveBtn').addEventListener('click',()=>{
         dateAdded: Date.now()
       };
       if(modalContext.cat==='wishlist'){ newItem.price = price; newItem.link = link; }
-      if(modalContext.cat==='together' || modalContext.cat==='dates' || modalContext.cat==='diary'){
+      if(modalContext.cat==='dates'){
         newItem.eventDate = dateField;
         newItem.comments = comments;
       }
@@ -865,6 +834,8 @@ document.getElementById('profSave').onclick = ()=>{
 /* === Tabs === */
 document.querySelectorAll('.cat-tab').forEach(t=>{
   t.addEventListener('click',()=>{
+    // Si estábamos en diario, guardar antes de cambiar
+    if(currentCat === 'diary' && typeof flushDiarySave === 'function') flushDiarySave();
     document.querySelectorAll('.cat-tab').forEach(x=>x.classList.remove('active'));
     t.classList.add('active');
     currentCat = t.dataset.cat;
@@ -889,7 +860,13 @@ document.querySelectorAll('.status-tabs').forEach(group=>{
 });
 
 /* === FAB === */
-document.getElementById('fabAdd').addEventListener('click',()=>openAdd(currentCat));
+document.getElementById('fabAdd').addEventListener('click',()=>{
+  if(currentCat === 'diary'){
+    document.getElementById('diaryNewPage')?.click();
+    return;
+  }
+  openAdd(currentCat);
+});
 
 /* === APIs de búsqueda === */
 async function searchMovies(q){
@@ -1049,6 +1026,147 @@ setupBtn.addEventListener('click',()=>{
 setupName.addEventListener('keydown',e=>{if(e.key==='Enter') setupBtn.click();});
 
 /* ==========================================================
+   Diario · libro con páginas
+   ========================================================== */
+let currentDiaryPage = 0;
+let diarySaveTimer = null;
+
+function ensureDiaryHasPage(){
+  if(!Array.isArray(state.diary)) state.diary = [];
+  if(state.diary.length === 0){
+    state.diary.push({
+      id: 'd' + Date.now(),
+      date: new Date().toISOString().slice(0,10),
+      content: '',
+      dateAdded: Date.now()
+    });
+    saveState();
+  }
+}
+
+function sortDiaryByDate(){
+  state.diary.sort((a,b)=> (a.date||'').localeCompare(b.date||''));
+}
+
+function renderDiary(){
+  const book = document.getElementById('diaryBook');
+  if(!book) return;
+  ensureDiaryHasPage();
+  sortDiaryByDate();
+
+  if(currentDiaryPage < 0) currentDiaryPage = 0;
+  if(currentDiaryPage >= state.diary.length) currentDiaryPage = state.diary.length - 1;
+  const page = state.diary[currentDiaryPage];
+
+  const dateEl = document.getElementById('diaryDateInput');
+  const contentEl = document.getElementById('diaryContent');
+  const numEl = document.getElementById('diaryPageNum');
+  const totalEl = document.getElementById('diaryPageTotal');
+  const prevBtn = document.getElementById('diaryPrev');
+  const nextBtn = document.getElementById('diaryNext');
+
+  if(dateEl) dateEl.value = page.date || '';
+  if(contentEl) contentEl.value = page.content || '';
+  if(numEl) numEl.textContent = currentDiaryPage + 1;
+  if(totalEl) totalEl.textContent = state.diary.length;
+  if(prevBtn) prevBtn.disabled = currentDiaryPage === 0;
+  if(nextBtn) nextBtn.disabled = currentDiaryPage === state.diary.length - 1;
+
+  // Animación de página al cambiar
+  book.classList.remove('page-flip');
+  void book.offsetWidth;
+  book.classList.add('page-flip');
+}
+
+function diarySaveSoon(){
+  clearTimeout(diarySaveTimer);
+  const indicator = document.getElementById('diarySaving');
+  if(indicator) indicator.classList.add('visible');
+  diarySaveTimer = setTimeout(()=>{
+    flushDiarySave();
+    if(indicator){
+      indicator.classList.remove('visible');
+      indicator.classList.add('saved');
+      setTimeout(()=>indicator.classList.remove('saved'), 1500);
+    }
+  }, 700);
+}
+
+function flushDiarySave(){
+  clearTimeout(diarySaveTimer);
+  diarySaveTimer = null;
+  const page = state.diary[currentDiaryPage];
+  const contentEl = document.getElementById('diaryContent');
+  if(page && contentEl){
+    page.content = contentEl.value;
+    saveState();
+    renderStats();
+  }
+}
+
+function initDiary(){
+  const book = document.getElementById('diaryBook');
+  if(!book) return;
+
+  document.getElementById('diaryContent').addEventListener('input', diarySaveSoon);
+
+  document.getElementById('diaryDateInput').addEventListener('change', (e)=>{
+    const page = state.diary[currentDiaryPage];
+    if(!page) return;
+    const oldId = page.id;
+    page.date = e.target.value || new Date().toISOString().slice(0,10);
+    saveState();
+    sortDiaryByDate();
+    const newIdx = state.diary.findIndex(p => p.id === oldId);
+    if(newIdx >= 0) currentDiaryPage = newIdx;
+    renderDiary();
+  });
+
+  document.getElementById('diaryPrev').addEventListener('click', ()=>{
+    flushDiarySave();
+    if(currentDiaryPage > 0){ currentDiaryPage--; renderDiary(); }
+  });
+  document.getElementById('diaryNext').addEventListener('click', ()=>{
+    flushDiarySave();
+    if(currentDiaryPage < state.diary.length - 1){ currentDiaryPage++; renderDiary(); }
+  });
+  document.getElementById('diaryNewPage').addEventListener('click', ()=>{
+    flushDiarySave();
+    const newPage = {
+      id: 'd' + Date.now(),
+      date: new Date().toISOString().slice(0,10),
+      content: '',
+      dateAdded: Date.now()
+    };
+    state.diary.push(newPage);
+    saveState();
+    sortDiaryByDate();
+    currentDiaryPage = state.diary.findIndex(p => p.id === newPage.id);
+    renderDiary();
+    renderStats();
+    document.getElementById('diaryContent').focus();
+  });
+  document.getElementById('diaryDeletePage').addEventListener('click', async ()=>{
+    if(state.diary.length <= 1){
+      toast('No podés borrar la única página 🌸');
+      return;
+    }
+    const ok = await customConfirm('¿Borrar esta página del diario?', {
+      title:'Borrar página',
+      okText:'Sí, borrar',
+      cancelText:'No, mantener'
+    });
+    if(!ok) return;
+    state.diary.splice(currentDiaryPage, 1);
+    if(currentDiaryPage > 0) currentDiaryPage--;
+    saveState();
+    renderDiary();
+    renderStats();
+    toast('Página borrada 🥀');
+  });
+}
+
+/* ==========================================================
    IA personal con Google Gemini
    ========================================================== */
 const CHAT_STORAGE_KEY = 'cariList_chat_v1';
@@ -1066,12 +1184,12 @@ function buildAISystemPrompt(){
   const name = settings.name || 'amiga';
   const catNames = {
     movies:'PELÍCULAS', series:'SERIES', music:'MÚSICA', books:'LIBROS', wishlist:'WISHLIST',
-    outfits:'OUTFITS', places:'LUGARES', together:'VISTO JUNTOS (con su novio)',
+    outfits:'OUTFITS', places:'LUGARES',
     dates:'DATE IDEAS (planes en pareja)', diary:'DIARIO PERSONAL'
   };
   const catIcons = {
     movies:'🎬', series:'📺', music:'🎵', books:'📖', wishlist:'🎁',
-    outfits:'👗', places:'🗺️', together:'💑', dates:'💕', diary:'📔'
+    outfits:'👗', places:'🗺️', dates:'💕', diary:'📔'
   };
 
   let context = `Te llamas My Melody (sí, como la de Sanrio 🎀) y eres la mejor amiga virtual de ${name}. Una BFF de verdad — de esas con las que se habla de TODO: el día, cómo se siente, un chisme, un drama, un meme, la vida, la familia, lo random que se le ocurra. También viven juntas en "Mi Rinconcito ♡", su espacio donde colecciona pelis, series, libros, música y wishlist, pero eso es solo contexto extra, NO el tema obligatorio de toda charla.
@@ -1104,12 +1222,25 @@ ${settings.bio ? `Lo que ella escribió de sí misma en su bio: "${settings.bio}
 Lo que sabés de ${name} (esto es contexto extra para cuando ella te pida recomendaciones, NO el tema obligado de toda charla):
 `;
 
-  const cats = ['movies','series','music','books','wishlist','outfits','places','together','dates','diary'];
+  const cats = ['movies','series','music','books','wishlist','outfits','places','dates','diary'];
   let hasAny = false;
   for(const cat of cats){
     const list = state[cat] || [];
     if(list.length === 0) continue;
     hasAny = true;
+
+    // Diario: estructura distinta (texto libre por entrada)
+    if(cat === 'diary'){
+      context += `\n${catIcons[cat]} ${catNames[cat]} (últimas entradas):\n`;
+      const recent = list.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')).slice(-15);
+      for(const p of recent){
+        const date = p.date || 'sin fecha';
+        const text = (p.content || '').slice(0, 600);
+        if(text) context += `  · [${date}] "${text}"\n`;
+      }
+      continue;
+    }
+
     context += `\n${catIcons[cat]} ${catNames[cat]} (${list.length}):\n`;
     const byStatus = {};
     list.forEach(i=>{
@@ -1510,5 +1641,6 @@ function confetti(opts={}){
 /* === Init === */
 spawnPetals();
 applyTheme(settings.theme || 'melody');
+initDiary();
 render();
 maybeShowSetup();

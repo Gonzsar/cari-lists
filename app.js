@@ -1896,7 +1896,24 @@ async function sendChat(){
   chatMessages.scrollTop = chatMessages.scrollHeight;
 
   const melodyFab = document.getElementById('fabChat');
+  const melodyAvatar = document.getElementById('melodyChatAvatar');
   melodyFab?.classList.add('thinking');
+  melodyAvatar?.classList.remove('reacting-happy','reacting-sad');
+  melodyAvatar?.classList.add('reacting-think');
+
+  function clearAvatarReaction(){
+    melodyAvatar?.classList.remove('reacting-think','reacting-happy','reacting-sad');
+  }
+  function reactHappy(){
+    melodyAvatar?.classList.remove('reacting-think','reacting-sad');
+    melodyAvatar?.classList.add('reacting-happy');
+    setTimeout(()=>melodyAvatar?.classList.remove('reacting-happy'), 1100);
+  }
+  function reactSad(){
+    melodyAvatar?.classList.remove('reacting-think','reacting-happy');
+    melodyAvatar?.classList.add('reacting-sad');
+    setTimeout(()=>melodyAvatar?.classList.remove('reacting-sad'), 1400);
+  }
 
   try{
     const systemPrompt = buildAISystemPrompt();
@@ -1905,11 +1922,13 @@ async function sendChat(){
     chatHistory.push({ role:'model', content: reply });
     saveChat();
     renderChat();
+    reactHappy();
   } catch(err){
     loadingEl.remove();
     chatHistory.push({ role:'model', content: `Uy, hubo un problemita: ${err.message} 🥀` });
     saveChat();
     renderChat();
+    reactSad();
   } finally {
     melodyFab?.classList.remove('thinking');
   }

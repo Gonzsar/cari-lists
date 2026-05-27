@@ -1827,11 +1827,10 @@ function handleSpotifyStateChange(state){
   const widget = document.getElementById('musicWidget');
   if(widget) widget.classList.toggle('playing', isPlaying);
 
-  // Si cambió la canción: cover, popup, heart
+  // Si cambió la canción: cover, popup
   if(newId && newId !== spotifyCurrentTrackId){
     spotifyCurrentTrackId = newId;
     updateCoverAndPopup(track);
-    updateLikeButton(newId);
   }
 
   // Tracking del progreso para interpolar entre eventos
@@ -1983,30 +1982,6 @@ function initMusicPlayer(){
     });
   }
 
-  // Heart / Me gusta (solo Spotify)
-  const likeBtn = document.getElementById('musicLike');
-  if(likeBtn){
-    likeBtn.addEventListener('click', async (e)=>{
-      e.preventDefault();
-      if(!isSpotifyMode() || !spotifyCurrentTrackId) return;
-      const currentlyLiked = likeBtn.classList.contains('liked');
-      // Optimistic UI
-      likeBtn.classList.toggle('liked', !currentlyLiked);
-      const result = await toggleTrackLike(spotifyCurrentTrackId, currentlyLiked);
-      if(result === null){
-        // Falló, revertir
-        likeBtn.classList.toggle('liked', currentlyLiked);
-        toast('No pude actualizar tu lista 🌸');
-      } else if(result){
-        toast('💖 Agregado a tus favoritas');
-        // Confetti chiquito desde el botón
-        const rect = likeBtn.getBoundingClientRect();
-        confetti({ x: rect.left + rect.width/2, y: rect.top + rect.height/2, count: 30, duration: 1400 });
-      } else {
-        toast('Quitada de tus favoritas 🥀');
-      }
-    });
-  }
 
   // Volumen
   volume.addEventListener('input', ()=>{

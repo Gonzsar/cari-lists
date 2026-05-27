@@ -513,6 +513,16 @@
       <small>Si tu Spotify te dice "redirect_uri: Not matching configuration", es porque la URL del dashboard no coincide. Copiá la de arriba tal cual.</small>
     </div>
     <div class="form-row">
+      <label>Lista de origen para canciones random 🎵</label>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <select id="setSpotifyPlaylist" style="flex:1;">
+          <option value="liked">❤️ Mis canciones que me gustan</option>
+        </select>
+        <button type="button" class="btn ghost small" id="refreshPlaylistsBtn" title="Recargar listas">↻</button>
+      </div>
+      <small>De aquí saca las canciones random. Tocá ↻ para recargar tus playlists.</small>
+    </div>
+    <div class="form-row">
       <label>Cerebrito de My Melody 🎀</label>
       <select id="setAiProvider">
         <option value="groq">Groq · Llama 3.3 (gratis, súper rápido) 🚀</option>
@@ -695,27 +705,57 @@
     <span>Conectar Spotify</span>
   </button>
 
-  <!-- Modo MP3 / Spotify conectado: controles -->
+  <!-- Album cover (gira cuando suena) -->
+  <div class="music-cover" id="musicCover" title="Canción actual">
+    <img id="musicCoverImg" alt=""/>
+    <svg class="music-cover-default" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+  </div>
+
+  <!-- Anterior -->
+  <button class="music-prev" id="musicPrev" aria-label="Anterior" title="Canción anterior">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zM9.5 12l8.5 6V6z"/></svg>
+  </button>
+
+  <!-- Play/Pause -->
   <button class="music-toggle" id="musicToggle" aria-label="Reproducir música">
     <svg class="music-icon-play" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
     <svg class="music-icon-pause" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
   </button>
+
+  <!-- Siguiente (random) -->
   <button class="music-skip" id="musicSkip" aria-label="Siguiente canción" title="Otra canción random">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
   </button>
+
+  <!-- Heart (me gusta) -->
+  <button class="music-like" id="musicLike" aria-label="Me gusta esta canción" title="Agregar a Me gusta">
+    <svg class="heart-outline" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    <svg class="heart-filled" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+  </button>
+
+  <!-- Volumen -->
   <input type="range" class="music-volume" id="musicVolume" min="0" max="100" value="40" aria-label="Volumen"/>
-  <svg class="music-note-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+
+  <!-- Visualizador de barras -->
+  <div class="music-bars" aria-hidden="true">
+    <span></span><span></span><span></span>
+  </div>
+
+  <!-- Barra de progreso -->
+  <div class="music-progress-wrap" id="musicProgressWrap" aria-hidden="true">
+    <div class="music-progress-fill" id="musicProgressFill"></div>
+  </div>
 </div>
 
-<!-- ===== Popup "Reproduciendo ahora" ===== -->
-<div class="now-playing" id="nowPlaying" aria-live="polite">
+<!-- ===== Popup "Reproduciendo ahora" (clickeable → abre en Spotify) ===== -->
+<a class="now-playing" id="nowPlaying" aria-live="polite" target="_blank" rel="noopener" href="#">
   <div class="now-playing-cover"><img id="nowPlayingCover" alt=""/></div>
   <div class="now-playing-info">
     <div class="now-playing-label">♪ Reproduciendo</div>
     <div class="now-playing-title" id="nowPlayingTitle"></div>
     <div class="now-playing-artist" id="nowPlayingArtist"></div>
   </div>
-</div>
+</a>
 
 <!-- ===== My Melody compañera animada =====
      Para cambiar la imagen, simplemente reemplazá "mymelody.png"

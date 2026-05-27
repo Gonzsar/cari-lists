@@ -17,7 +17,8 @@ const defaultSettings = {
   spotifyClientId:'',
   spotifyAccessToken:'',
   spotifyRefreshToken:'',
-  spotifyTokenExpiry:0
+  spotifyTokenExpiry:0,
+  spotifyPlaylistId:'liked'
 };
 const emptyState = {
   movies:[], series:[], music:[], books:[], wishlist:[],
@@ -715,9 +716,40 @@ try {
     if(spotIdEl) spotIdEl.value = settings.spotifyClientId || '';
     const uriDisplay = document.getElementById('redirectUriDisplay');
     if(uriDisplay) uriDisplay.textContent = getSpotifyRedirectUri();
+    // Cargar playlists si estamos conectados a Spotify
+    populatePlaylistSelector();
     updateProviderFields();
     settingsModal.classList.add('show');
   };
+
+  async function populatePlaylistSelector(){
+    const select = document.getElementById('setSpotifyPlaylist');
+    if(!select) return;
+    // Limpiar (mantener "liked" como primera opción)
+    select.innerHTML = '<option value="liked">❤️ Mis canciones que me gustan</option>';
+    if(!settings.spotifyAccessToken) return;
+    const playlists = await fetchUserPlaylists();
+    for(const p of playlists){
+      if(!p?.id) continue;
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = `🎵 ${p.name}`;
+      select.appendChild(opt);
+    }
+    select.value = settings.spotifyPlaylistId || 'liked';
+  }
+
+  const refreshBtn = document.getElementById('refreshPlaylistsBtn');
+  if(refreshBtn){
+    refreshBtn.addEventListener('click', async (e)=>{
+      e.preventDefault();
+      refreshBtn.textContent = '↻';
+      refreshBtn.disabled = true;
+      await populatePlaylistSelector();
+      refreshBtn.disabled = false;
+      toast('Listas actualizadas 🎵');
+    });
+  }
   document.getElementById('settingsClose').onclick = ()=>settingsModal.classList.remove('show');
   settingsModal.addEventListener('click',e=>{if(e.target===settingsModal) settingsModal.classList.remove('show');});
   document.getElementById('saveSettings').onclick = ()=>{
@@ -736,7 +768,15 @@ try {
       settings.spotifyRefreshToken = '';
       settings.spotifyTokenExpiry = 0;
     }
+    // Playlist seleccionada
+    const playlistSel = document.getElementById('setSpotifyPlaylist');
+    const oldPlaylist = settings.spotifyPlaylistId;
+    if(playlistSel) settings.spotifyPlaylistId = playlistSel.value || 'liked';
     saveSettings();
+    // Si cambió de playlist y hay conexión, refrescar el conteo / próxima random
+    if(oldPlaylist !== settings.spotifyPlaylistId && spotifyDeviceId){
+      onSpotifyReady();
+    }
     setGreeting();
     settingsModal.classList.remove('show');
     toast('Ajustes guardados ✨');
@@ -1629,12 +1669,92 @@ async function pickRandomLikedTrack(){
   }
 }
 
+async function pickRandomPlaylistTrack(playlistId){
+  const token = await ensureSpotifyToken();
+  if(!token) return null;
+  try{
+    // Obtener el total
+    const head = await fetch(
+      `https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=1&fields=total`,
+      { headers: {'Authorization': 'Bearer ' + token} }
+    );
+    const headData = await head.json();
+    const total = headData.total || 0;
+    if(total === 0) return null;
+    const offset = Math.floor(Math.random() * total);
+    const r = await fetch(
+      `https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=1&offset=${offset}`,
+      { headers: {'Authorization': 'Bearer ' + token} }
+    );
+    const data = await r.json();
+    return data.items?.[0]?.track || null;
+  } catch(e){
+    console.error('[Spotify] error pick playlist random:', e);
+    return null;
+  }
+}
+
+async function pickRandomTrack(){
+  const pl = settings.spotifyPlaylistId || 'liked';
+  if(pl && pl !== 'liked') return pickRandomPlaylistTrack(pl);
+  return pickRandomLikedTrack();
+}
+
+async function fetchUserPlaylists(){
+  const token = await ensureSpotifyToken();
+  if(!token) return [];
+  const all = [];
+  let url = 'https://api.spotify.com/v1/me/playlists?limit=50';
+  try{
+    while(url && all.length < 300){
+      const r = await fetch(url, { headers: {'Authorization': 'Bearer ' + token} });
+      const data = await r.json();
+      if(data.items) all.push(...data.items);
+      url = data.next;
+    }
+  } catch(e){ console.error('[Spotify] fetch playlists:', e); }
+  return all;
+}
+
+async function checkTrackIsLiked(trackId){
+  if(!trackId) return false;
+  const token = await ensureSpotifyToken();
+  if(!token) return false;
+  try{
+    const r = await fetch(`https://api.spotify.com/v1/me/tracks/contains?ids=${trackId}`, {
+      headers: {'Authorization': 'Bearer ' + token}
+    });
+    const data = await r.json();
+    return Array.isArray(data) && data[0] === true;
+  } catch(e){ return false; }
+}
+
+async function toggleTrackLike(trackId, currentlyLiked){
+  if(!trackId) return null;
+  const token = await ensureSpotifyToken();
+  if(!token) return null;
+  try{
+    const r = await fetch(`https://api.spotify.com/v1/me/tracks?ids=${trackId}`, {
+      method: currentlyLiked ? 'DELETE' : 'PUT',
+      headers: {'Authorization': 'Bearer ' + token}
+    });
+    if(r.ok || r.status === 200 || r.status === 204){
+      // Refrescar total si cambió la lista "liked"
+      if(settings.spotifyPlaylistId === 'liked' || !settings.spotifyPlaylistId){
+        onSpotifyReady();
+      }
+      return !currentlyLiked;
+    }
+  } catch(e){ console.error('[Spotify] toggle like:', e); }
+  return null;
+}
+
 async function playRandomSpotifyTrack(){
   if(!spotifyDeviceId){
     toast('Spotify aún no está listo 🎀');
     return;
   }
-  const track = await pickRandomLikedTrack();
+  const track = await pickRandomTrack();
   if(!track){
     toast('No pude obtener una canción de tu lista 🌸');
     return;
@@ -1656,6 +1776,47 @@ async function playRandomSpotifyTrack(){
   }
 }
 
+/* Variables para tracking del progreso entre state-changes */
+let spotifyLastStateTime = 0;
+let spotifyLastDuration = 0;
+let spotifyProgressInterval = null;
+
+function startProgressInterval(){
+  if(spotifyProgressInterval) return;
+  spotifyProgressInterval = setInterval(()=>{
+    if(!spotifyWasPlaying || !spotifyLastDuration) return;
+    const elapsed = Date.now() - spotifyLastStateTime;
+    const pos = spotifyLastPosition + elapsed;
+    const pct = Math.min(100, (pos / spotifyLastDuration) * 100);
+    const fill = document.getElementById('musicProgressFill');
+    if(fill) fill.style.width = pct + '%';
+  }, 500);
+}
+
+function updateCoverAndPopup(track){
+  // Cover en widget
+  const cover = document.getElementById('musicCover');
+  const coverImg = document.getElementById('musicCoverImg');
+  if(cover && coverImg){
+    const imgUrl = track.album?.images?.[0]?.url || '';
+    if(imgUrl){
+      coverImg.src = imgUrl;
+      cover.classList.add('has-image');
+    } else {
+      cover.classList.remove('has-image');
+    }
+  }
+  // Popup
+  showNowPlayingPopup(track);
+}
+
+async function updateLikeButton(trackId){
+  const likeBtn = document.getElementById('musicLike');
+  if(!likeBtn) return;
+  const isLiked = await checkTrackIsLiked(trackId);
+  likeBtn.classList.toggle('liked', isLiked);
+}
+
 function handleSpotifyStateChange(state){
   const track = state.track_window?.current_track;
   if(!track) return;
@@ -1666,10 +1827,22 @@ function handleSpotifyStateChange(state){
   const widget = document.getElementById('musicWidget');
   if(widget) widget.classList.toggle('playing', isPlaying);
 
-  // Show popup si cambió la canción
+  // Si cambió la canción: cover, popup, heart
   if(newId && newId !== spotifyCurrentTrackId){
     spotifyCurrentTrackId = newId;
-    showNowPlayingPopup(track);
+    updateCoverAndPopup(track);
+    updateLikeButton(newId);
+  }
+
+  // Tracking del progreso para interpolar entre eventos
+  spotifyLastDuration = state.duration || 0;
+  spotifyLastPosition = state.position || 0;
+  spotifyLastStateTime = Date.now();
+  startProgressInterval();
+  // Actualización inmediata del progreso
+  const fill = document.getElementById('musicProgressFill');
+  if(fill && spotifyLastDuration){
+    fill.style.width = ((spotifyLastPosition / spotifyLastDuration) * 100) + '%';
   }
 
   // Detectar fin de canción: estaba sonando, ahora pausada en posición 0
@@ -1677,7 +1850,6 @@ function handleSpotifyStateChange(state){
     setTimeout(()=>playRandomSpotifyTrack(), 400);
   }
   spotifyWasPlaying = isPlaying;
-  spotifyLastPosition = state.position;
 }
 
 function showNowPlayingPopup(track){
@@ -1691,6 +1863,9 @@ function showNowPlayingPopup(track){
   if(cover) cover.src = coverUrl;
   if(title) title.textContent = track.name || '';
   if(artist) artist.textContent = artistNames;
+  // Link a Spotify
+  const spotifyUrl = track.external_urls?.spotify || (track.uri ? `https://open.spotify.com/track/${track.id}` : '#');
+  if(popup.tagName === 'A') popup.href = spotifyUrl;
   popup.classList.add('show');
   clearTimeout(popup._hideTimer);
   popup._hideTimer = setTimeout(()=>popup.classList.remove('show'), 5500);
@@ -1792,6 +1967,44 @@ function initMusicPlayer(){
   if(skip){
     skip.addEventListener('click', ()=>{
       if(isSpotifyMode()) playRandomSpotifyTrack();
+    });
+  }
+
+  // Previous (solo Spotify)
+  const prev = document.getElementById('musicPrev');
+  if(prev){
+    prev.addEventListener('click', ()=>{
+      if(isSpotifyMode() && spotifyPlayer){
+        spotifyPlayer.previousTrack().catch(()=>{
+          // No hay anterior, intentar otra random
+          playRandomSpotifyTrack();
+        });
+      }
+    });
+  }
+
+  // Heart / Me gusta (solo Spotify)
+  const likeBtn = document.getElementById('musicLike');
+  if(likeBtn){
+    likeBtn.addEventListener('click', async (e)=>{
+      e.preventDefault();
+      if(!isSpotifyMode() || !spotifyCurrentTrackId) return;
+      const currentlyLiked = likeBtn.classList.contains('liked');
+      // Optimistic UI
+      likeBtn.classList.toggle('liked', !currentlyLiked);
+      const result = await toggleTrackLike(spotifyCurrentTrackId, currentlyLiked);
+      if(result === null){
+        // Falló, revertir
+        likeBtn.classList.toggle('liked', currentlyLiked);
+        toast('No pude actualizar tu lista 🌸');
+      } else if(result){
+        toast('💖 Agregado a tus favoritas');
+        // Confetti chiquito desde el botón
+        const rect = likeBtn.getBoundingClientRect();
+        confetti({ x: rect.left + rect.width/2, y: rect.top + rect.height/2, count: 30, duration: 1400 });
+      } else {
+        toast('Quitada de tus favoritas 🥀');
+      }
     });
   }
 

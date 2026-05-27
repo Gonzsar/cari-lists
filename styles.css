@@ -763,6 +763,134 @@ h1.title{
 .music-toggle .music-icon-pause{display:none;}
 .music-widget.playing .music-toggle .music-icon-play{display:none;}
 .music-widget.playing .music-toggle .music-icon-pause{display:block;}
+
+/* Botón skip (solo modo Spotify) */
+.music-skip{
+  background:rgba(232,106,145,0.1);
+  border:none;
+  width:30px;height:30px;
+  border-radius:50%;
+  color:var(--rose);
+  cursor:pointer;
+  display:none;
+  align-items:center;justify-content:center;
+  flex-shrink:0;
+  transition:background 0.2s ease;
+}
+.music-skip:hover{background:var(--pink-200);}
+.music-widget.spotify-mode .music-skip{display:flex;}
+
+/* Botón "Conectar Spotify" */
+.spotify-connect-btn{
+  display:none;
+  background:linear-gradient(135deg,#1db954,#1ed760);
+  border:none;
+  color:white;
+  padding:8px 14px;
+  border-radius:30px;
+  font-family:inherit;font-size:0.85rem;font-weight:600;
+  cursor:pointer;
+  align-items:center;gap:8px;
+  transition:transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow:0 2px 8px rgba(29,185,84,0.35);
+}
+.spotify-connect-btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(29,185,84,0.5);}
+.music-widget.spotify-needs-auth .spotify-connect-btn{display:inline-flex;}
+.music-widget.spotify-needs-auth .music-toggle,
+.music-widget.spotify-needs-auth .music-skip,
+.music-widget.spotify-needs-auth .music-volume,
+.music-widget.spotify-needs-auth .music-note-icon{display:none;}
+
+/* Indicador "Conectando..." */
+.music-widget.spotify-connecting .spotify-connect-btn{
+  opacity:0.7;
+  pointer-events:none;
+}
+.music-widget.spotify-connecting .spotify-connect-btn span::after{
+  content:' ...';
+}
+
+/* ===== Popup "Reproduciendo ahora" ===== */
+.now-playing{
+  position:fixed;
+  bottom:24px;
+  left:50%;
+  transform:translateX(-50%) translateY(120px);
+  background:linear-gradient(135deg,rgba(255,255,255,0.97),rgba(253,231,238,0.95));
+  backdrop-filter:blur(10px);
+  border:1.5px solid var(--pink-200);
+  border-radius:60px;
+  padding:10px 22px 10px 10px;
+  box-shadow:0 12px 40px rgba(232,106,145,0.3);
+  display:flex;
+  align-items:center;
+  gap:12px;
+  opacity:0;
+  transition:transform 0.5s cubic-bezier(.5,1.6,.4,1), opacity 0.4s ease;
+  z-index:55;
+  max-width:340px;
+  pointer-events:none;
+}
+.now-playing.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+.now-playing-cover{
+  width:44px;height:44px;
+  border-radius:50%;
+  overflow:hidden;
+  background:var(--pink-100);
+  flex-shrink:0;
+  animation:cover-spin 8s linear infinite;
+  animation-play-state:paused;
+}
+.now-playing.show .now-playing-cover{
+  animation-play-state:running;
+}
+.now-playing-cover img{
+  width:100%;height:100%;object-fit:cover;display:block;
+}
+@keyframes cover-spin{
+  to{transform:rotate(360deg);}
+}
+.now-playing-info{
+  display:flex;flex-direction:column;
+  min-width:0;
+  flex:1;
+}
+.now-playing-label{
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;
+  font-size:0.78rem;
+  color:var(--pink-500);
+  line-height:1;
+}
+.now-playing-title{
+  font-weight:700;
+  color:var(--text);
+  font-size:0.95rem;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  margin-top:2px;
+}
+.now-playing-artist{
+  font-size:0.8rem;
+  color:var(--text-soft);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+@media (max-width:600px){
+  .now-playing{
+    max-width:calc(100vw - 32px);
+    bottom:170px;
+    padding:8px 16px 8px 8px;
+  }
+  .now-playing-cover{width:38px;height:38px;}
+  .spotify-connect-btn{padding:6px 12px;font-size:0.78rem;}
+}
 .music-volume{
   -webkit-appearance:none;
   appearance:none;

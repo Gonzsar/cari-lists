@@ -15,6 +15,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Quicksand:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@1,400;1,600&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="styles.css"/>
+
+<!-- Spotify Web Playback SDK -->
+<script src="https://sdk.scdn.co/spotify-player.js"></script>
 </head>
 <body>
 
@@ -502,6 +505,11 @@
       <input type="text" id="setTmdb" placeholder="Pégala aquí..."/>
     </div>
     <div class="form-row">
+      <label>Spotify Client ID 🎵</label>
+      <input type="text" id="setSpotifyId" placeholder="Pégalo desde developer.spotify.com"/>
+      <small>Para reproducir tus canciones de Spotify. Necesitas Spotify Premium y registrar una app gratis en developer.spotify.com. Como Redirect URI usa la URL de tu Vercel (sin slash final).</small>
+    </div>
+    <div class="form-row">
       <label>Cerebrito de My Melody 🎀</label>
       <select id="setAiProvider">
         <option value="groq">Groq · Llama 3.3 (gratis, súper rápido) 🚀</option>
@@ -675,15 +683,35 @@
   </div>
 </div>
 
-<!-- ===== Reproductor de música de fondo ===== -->
-<audio id="bgMusic" src="bg-music.mp3" loop preload="auto"></audio>
-<div class="music-widget" id="musicWidget" title="Música de fondo">
+<!-- ===== Reproductor de música ===== -->
+<audio id="bgMusic" src="bg-music.mp3" loop preload="none"></audio>
+<div class="music-widget" id="musicWidget" title="Música">
+  <!-- Modo Spotify desconectado: botón conectar -->
+  <button class="spotify-connect-btn" id="spotifyConnectBtn" aria-label="Conectar con Spotify">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.42 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+    <span>Conectar Spotify</span>
+  </button>
+
+  <!-- Modo MP3 / Spotify conectado: controles -->
   <button class="music-toggle" id="musicToggle" aria-label="Reproducir música">
     <svg class="music-icon-play" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
     <svg class="music-icon-pause" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>
   </button>
+  <button class="music-skip" id="musicSkip" aria-label="Siguiente canción" title="Otra canción random">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+  </button>
   <input type="range" class="music-volume" id="musicVolume" min="0" max="100" value="40" aria-label="Volumen"/>
   <svg class="music-note-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+</div>
+
+<!-- ===== Popup "Reproduciendo ahora" ===== -->
+<div class="now-playing" id="nowPlaying" aria-live="polite">
+  <div class="now-playing-cover"><img id="nowPlayingCover" alt=""/></div>
+  <div class="now-playing-info">
+    <div class="now-playing-label">♪ Reproduciendo</div>
+    <div class="now-playing-title" id="nowPlayingTitle"></div>
+    <div class="now-playing-artist" id="nowPlayingArtist"></div>
+  </div>
 </div>
 
 <!-- ===== My Melody compañera animada =====

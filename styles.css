@@ -810,6 +810,21 @@ h1.title{
   content:' ...';
 }
 
+/* ===== Caja con el redirect URI de Spotify ===== */
+.redirect-uri-display{
+  background:var(--pink-50);
+  border:1.5px dashed var(--pink-300);
+  border-radius:10px;
+  padding:8px 12px;
+  font-family:'Courier New', monospace;
+  font-size:0.85rem;
+  color:var(--rose);
+  margin:6px 0;
+  word-break:break-all;
+  user-select:all;
+  cursor:text;
+}
+
 /* ===== Popup "Reproduciendo ahora" ===== */
 .now-playing{
   position:fixed;

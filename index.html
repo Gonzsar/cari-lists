@@ -507,7 +507,10 @@
     <div class="form-row">
       <label>Spotify Client ID 🎵</label>
       <input type="text" id="setSpotifyId" placeholder="Pégalo desde developer.spotify.com"/>
-      <small>Para reproducir tus canciones de Spotify. Necesitas Spotify Premium y registrar una app gratis en developer.spotify.com. Como Redirect URI usa la URL de tu Vercel (sin slash final).</small>
+      <small>Necesitas Spotify Premium y una app registrada en developer.spotify.com.<br>
+      <strong>En "Redirect URIs" del dashboard de Spotify, agregá EXACTAMENTE esta URL:</strong></small>
+      <div class="redirect-uri-display" id="redirectUriDisplay">cargando...</div>
+      <small>Si tu Spotify te dice "redirect_uri: Not matching configuration", es porque la URL del dashboard no coincide. Copiá la de arriba tal cual.</small>
     </div>
     <div class="form-row">
       <label>Cerebrito de My Melody 🎀</label>

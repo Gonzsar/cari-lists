@@ -713,6 +713,8 @@ try {
     document.getElementById('setAiProvider').value = settings.aiProvider || 'groq';
     const spotIdEl = document.getElementById('setSpotifyId');
     if(spotIdEl) spotIdEl.value = settings.spotifyClientId || '';
+    const uriDisplay = document.getElementById('redirectUriDisplay');
+    if(uriDisplay) uriDisplay.textContent = getSpotifyRedirectUri();
     updateProviderFields();
     settingsModal.classList.add('show');
   };
@@ -1380,7 +1382,12 @@ function spinRoulette(){
    ========================================================== */
 const SPOTIFY_SCOPES = 'user-library-read streaming user-read-email user-read-private user-modify-playback-state user-read-playback-state';
 function getSpotifyRedirectUri(){
-  return window.location.origin + window.location.pathname;
+  // Normalizado: sin /index.html, sin trailing slash (excepto si solo es "/")
+  let path = window.location.pathname || '/';
+  if(path.endsWith('/index.html')) path = path.slice(0, -'/index.html'.length);
+  if(path.length > 1 && path.endsWith('/')) path = path.slice(0, -1);
+  if(path === '/' || path === '') return window.location.origin;
+  return window.location.origin + path;
 }
 
 /* --- PKCE helpers --- */
@@ -1413,11 +1420,15 @@ async function startSpotifyAuth(){
   const challenge = spotifyBase64UrlEncode(await spotifySha256(verifier));
   sessionStorage.setItem('spotify_verifier', verifier);
 
+  const redirectUri = getSpotifyRedirectUri();
+  console.log('[Spotify] Redirect URI que enviamos:', redirectUri);
+  console.log('[Spotify] ESTA URL exacta tiene que estar registrada en el dashboard de Spotify');
+
   const params = new URLSearchParams({
     response_type: 'code',
     client_id: settings.spotifyClientId,
     scope: SPOTIFY_SCOPES,
-    redirect_uri: getSpotifyRedirectUri(),
+    redirect_uri: redirectUri,
     code_challenge_method: 'S256',
     code_challenge: challenge
   });

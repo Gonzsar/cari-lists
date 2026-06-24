@@ -22,6 +22,8 @@
   --text-soft:#8a6878;
   --shadow:0 8px 30px rgba(232,106,145,0.15);
   --shadow-hover:0 12px 40px rgba(232,106,145,0.25);
+  --surface:#ffffff;            /* fondo de tarjetas (modo claro) */
+  --surface-2:#fff5fa;          /* segundo tono para gradientes suaves */
 }
 
 /* ===== Tema Kuromi (morado/oscuro) ===== */
@@ -141,7 +143,7 @@ html,body{
 
 /* ===== Tarjeta de perfil ===== */
 header.profile-card{
-  background:white;
+  background:var(--surface);
   border-radius:28px;
   overflow:hidden;
   margin:16px 0 36px;
@@ -172,7 +174,7 @@ header.profile-card{
 .profile-avatar{
   width:130px;height:130px;
   border-radius:50%;
-  background:white center/cover no-repeat;
+  background:var(--surface) center/cover no-repeat;
   border:5px solid white;
   box-shadow:0 8px 24px rgba(232,106,145,0.3);
   display:flex;align-items:center;justify-content:center;
@@ -209,7 +211,7 @@ header.profile-card{
   box-shadow:var(--shadow);
   z-index:3;
 }
-.profile-edit-btn:hover{background:white;transform:scale(1.08);}
+.profile-edit-btn:hover{background:var(--surface);transform:scale(1.08);}
 
 /* El gear button cuando está dentro del banner */
 .profile-banner .settings-btn{
@@ -363,7 +365,7 @@ h1.title{
 }
 .search-bar{
   display:flex;gap:10px;align-items:center;
-  background:white;border:1.5px solid var(--pink-100);
+  background:var(--surface);border:1.5px solid var(--pink-100);
   border-radius:50px;padding:6px 8px 6px 20px;
 }
 .search-bar svg{color:var(--pink-400);flex-shrink:0;}
@@ -405,7 +407,7 @@ h1.title{
 .search-results::-webkit-scrollbar-thumb{background:var(--pink-200);border-radius:10px;}
 
 .result-card{
-  background:white;border-radius:14px;overflow:hidden;
+  background:var(--surface);border-radius:14px;overflow:hidden;
   cursor:pointer;transition:all 0.25s ease;
   border:1.5px solid transparent;
   box-shadow:0 2px 10px rgba(0,0,0,0.05);
@@ -445,7 +447,7 @@ h1.title{
   margin-top:8px;
 }
 .item-card{
-  background:white;border-radius:18px;overflow:hidden;
+  background:var(--surface);border-radius:18px;overflow:hidden;
   box-shadow:var(--shadow);
   transition:all 0.3s ease;
   border:1.5px solid rgba(247,179,198,0.3);
@@ -553,7 +555,7 @@ h1.title{
 .modal-bg.show{display:flex;}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .modal{
-  background:linear-gradient(180deg,#fff,var(--pink-50));
+  background:linear-gradient(180deg,var(--surface),var(--pink-50));
   border-radius:24px;padding:28px;
   max-width:540px;width:100%;max-height:90vh;overflow-y:auto;
   box-shadow:0 20px 60px rgba(232,106,145,0.35);
@@ -587,7 +589,7 @@ h1.title{
   border:1.5px solid var(--pink-200);
   border-radius:12px;
   font-family:inherit;font-size:0.95rem;color:var(--text);
-  background:white;outline:none;
+  background:var(--surface);outline:none;
   transition:border-color 0.2s ease;
 }
 .form-row input:focus, .form-row textarea:focus, .form-row select:focus{
@@ -608,7 +610,7 @@ h1.title{
   width:120px;height:160px;
   margin:0 auto 12px;
   border-radius:12px;
-  background:white;
+  background:var(--surface);
   border:1.5px solid var(--pink-200);
   overflow:hidden;
   display:flex;align-items:center;justify-content:center;
@@ -647,7 +649,7 @@ h1.title{
   display:flex;gap:8px;flex-wrap:wrap;
 }
 .pill{
-  background:white;border:1.5px solid var(--pink-200);
+  background:var(--surface);border:1.5px solid var(--pink-200);
   padding:8px 16px;border-radius:30px;
   cursor:pointer;font-family:inherit;font-size:0.88rem;
   transition:all 0.2s ease;color:var(--text);
@@ -665,7 +667,7 @@ h1.title{
 }
 .setup-screen.show{display:flex;}
 .setup-card{
-  background:white;border-radius:30px;padding:40px 32px;
+  background:var(--surface);border-radius:30px;padding:40px 32px;
   max-width:500px;width:100%;text-align:center;
   box-shadow:0 30px 80px rgba(232,106,145,0.3);
   border:2px solid var(--pink-100);
@@ -689,7 +691,7 @@ h1.title{
 /* ===== Toast ===== */
 .toast{
   position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);
-  background:white;color:var(--text);
+  background:var(--surface);color:var(--text);
   padding:14px 24px;border-radius:50px;
   box-shadow:0 10px 40px rgba(232,106,145,0.3);
   border:1.5px solid var(--pink-200);
@@ -735,7 +737,7 @@ h1.title{
   display:flex;
   align-items:center;
   gap:10px;
-  background:white;
+  background:var(--surface);
   padding:6px 14px 6px 6px;
   border-radius:50px;
   box-shadow:var(--shadow);
@@ -1116,7 +1118,7 @@ h1.title{
   bottom:100%;
   right:0;
   margin-bottom:8px;
-  background:white;
+  background:var(--surface);
   border:2px solid var(--pink-300);
   border-radius:18px 18px 4px 18px;
   padding:10px 18px;
@@ -1256,7 +1258,7 @@ footer .heart-tiny{color:var(--pink-500);display:inline-block;animation:beat 1.5
 .profile-avatar-preview{
   width:100px;height:100px;
   border-radius:50%;
-  background:white center/cover no-repeat;
+  background:var(--surface) center/cover no-repeat;
   border:3px solid var(--pink-200);
   margin:0 auto 12px;
   display:flex;align-items:center;justify-content:center;
@@ -1336,7 +1338,7 @@ footer .heart-tiny{color:var(--pink-500);display:inline-block;animation:beat 1.5
 .stickers-grid::-webkit-scrollbar-thumb{background:var(--pink-200);border-radius:10px;}
 
 .sticker-card{
-  background:white;
+  background:var(--surface);
   border-radius:18px;
   padding:14px 8px 10px;
   text-align:center;
@@ -1402,7 +1404,7 @@ footer .heart-tiny{color:var(--pink-500);display:inline-block;animation:beat 1.5
   transform:translate(-50%,-50%) scale(1);
 }
 .sticker-unlock-card{
-  background:linear-gradient(135deg,#fff,var(--pink-50));
+  background:linear-gradient(135deg,var(--surface),var(--pink-50));
   border:3px solid var(--pink-300);
   border-radius:24px;
   padding:24px 32px;
@@ -1474,7 +1476,7 @@ footer .heart-tiny{color:var(--pink-500);display:inline-block;animation:beat 1.5
   padding:8px 14px;
   border:1.5px solid var(--pink-200);
   border-radius:30px;
-  background:white;
+  background:var(--surface);
   font-family:inherit;
   font-size:0.88rem;
   color:var(--text);
@@ -1568,7 +1570,7 @@ footer .heart-tiny{color:var(--pink-500);display:inline-block;animation:beat 1.5
 }
 .theme-option{
   display:flex;align-items:center;gap:6px;
-  background:white;
+  background:var(--surface);
   border:1.5px solid var(--pink-200);
   padding:6px 14px;border-radius:30px;
   cursor:pointer;font-family:inherit;font-size:0.85rem;color:var(--text);
@@ -1588,7 +1590,7 @@ footer .heart-tiny{color:var(--pink-500);display:inline-block;animation:beat 1.5
 
 /* ===== Botón flotante de My Melody (chat) ===== */
 .fab.fab-melody{
-  background:white;
+  background:var(--surface);
   padding:5px;
   overflow:visible;
   border:2px solid var(--pink-300);
@@ -1628,7 +1630,7 @@ footer .heart-tiny{color:var(--pink-500);display:inline-block;animation:beat 1.5
 .chat-messages{
   flex:1;
   overflow-y:auto;
-  background:linear-gradient(180deg,var(--pink-50),#fff);
+  background:linear-gradient(180deg,var(--pink-50),var(--surface));
   border-radius:18px;
   padding:16px;
   margin:8px 0 12px;
@@ -1660,7 +1662,7 @@ footer .heart-tiny{color:var(--pink-500);display:inline-block;animation:beat 1.5
 }
 .chat-msg.ai{
   align-self:flex-start;
-  background:white;
+  background:var(--surface);
   color:var(--text);
   border-bottom-left-radius:6px;
   border:1.5px solid var(--pink-100);
@@ -1682,7 +1684,7 @@ footer .heart-tiny{color:var(--pink-500);display:inline-block;animation:beat 1.5
   margin-top:6px;align-self:flex-start;
 }
 .chat-sugg{
-  background:white;border:1.5px solid var(--pink-200);
+  background:var(--surface);border:1.5px solid var(--pink-200);
   padding:6px 14px;border-radius:30px;
   cursor:pointer;font-family:inherit;font-size:0.82rem;color:var(--text);
   transition:all 0.2s ease;
@@ -1694,7 +1696,7 @@ footer .heart-tiny{color:var(--pink-500);display:inline-block;animation:beat 1.5
 
 .chat-input-wrap{
   display:flex;gap:8px;align-items:center;
-  background:white;border:1.5px solid var(--pink-200);
+  background:var(--surface);border:1.5px solid var(--pink-200);
   border-radius:50px;padding:5px 5px 5px 18px;
 }
 .chat-input-wrap input{
@@ -1944,4 +1946,136 @@ body[data-cat="dates"] .event-only{display:block;}
     line-height:28px;
   }
   .diary-date-input{font-size:1.25rem;}
+}
+
+/* ==========================================================
+   🌙 MODO OSCURO
+   Se activa con html[data-dark="true"].
+   Redefine las variables base + ajusta las superficies translúcidas.
+   ========================================================== */
+html[data-dark="true"]{
+  --pink-50:#2c1d28;     /* antes era el fondo más clarito → ahora superficie oscura */
+  --pink-100:#382433;    /* hover / fills suaves */
+  --cream:#241620;
+  --text:#f4e6ee;        /* texto principal claro */
+  --text-soft:#caa6bb;   /* texto secundario apagado */
+  --surface:#2a1b27;     /* tarjetas */
+  --surface-2:#33212e;
+  --shadow:0 8px 30px rgba(0,0,0,0.45);
+  --shadow-hover:0 12px 40px rgba(0,0,0,0.55);
+  color-scheme:dark;
+}
+
+/* Fondo de la página */
+html[data-dark="true"] body{
+  background:
+    radial-gradient(1100px 600px at 80% -10%, #3a1f33 0%, transparent 60%),
+    radial-gradient(900px 500px at 0% 0%, #2a1b3a 0%, transparent 55%),
+    linear-gradient(180deg, #1b0f18, #190d16 60%, #150b13);
+}
+
+/* Superficies con gradiente (tarjetas de stats, popup, etc.) */
+html[data-dark="true"] .stat-card{
+  background:linear-gradient(135deg, rgba(58,40,53,0.95), rgba(42,27,39,0.9));
+  border-color:rgba(247,179,198,0.25);
+}
+html[data-dark="true"] .now-playing{
+  background:linear-gradient(135deg, rgba(45,28,40,0.97), rgba(36,22,32,0.95));
+}
+html[data-dark="true"] .diary-book{
+  background:linear-gradient(180deg, #2a1b27 0%, #241620 100%);
+  border-color:#4a3242;
+}
+
+/* Superficies translúcidas (glass) → versión oscura */
+html[data-dark="true"] .settings-btn,
+html[data-dark="true"] .profile-edit-btn,
+html[data-dark="true"] .profile-banner .settings-btn{
+  background:rgba(42,27,39,0.75);
+}
+html[data-dark="true"] .settings-btn:hover,
+html[data-dark="true"] .profile-edit-btn:hover{
+  background:rgba(56,36,51,0.95);
+}
+html[data-dark="true"] .category-tabs{
+  background:rgba(42,27,39,0.55);
+}
+html[data-dark="true"] .status-tab{
+  background:rgba(42,27,39,0.7);
+}
+html[data-dark="true"] .status-tab .count{
+  background:rgba(255,255,255,0.12);
+}
+html[data-dark="true"] .search-box{
+  background:rgba(42,27,39,0.85);
+}
+html[data-dark="true"] .item-badge{
+  background:rgba(20,11,18,0.9);
+  color:var(--pink-300);
+}
+html[data-dark="true"] .music-widget{
+  background:#2a1b27;
+}
+
+/* Flores y pétalos un toque más suaves para no encandilar */
+html[data-dark="true"] .corner-flower{opacity:0.32;}
+html[data-dark="true"] .petals{opacity:0.7;}
+
+/* Burbuja de My Melody */
+html[data-dark="true"] .melody-bubble{
+  background:#2a1b27;
+}
+
+/* Inputs y selects bien legibles */
+html[data-dark="true"] .form-row input,
+html[data-dark="true"] .form-row textarea,
+html[data-dark="true"] .form-row select,
+html[data-dark="true"] .search-bar,
+html[data-dark="true"] .roulette-row select,
+html[data-dark="true"] .setup-card input{
+  background:#33212e;
+  color:var(--text);
+}
+
+/* Mensajes del chat de My Melody */
+html[data-dark="true"] .chat-msg.ai{
+  background:#33212e;
+  color:var(--text);
+}
+
+/* Caja del redirect URI (Spotify) */
+html[data-dark="true"] .redirect-uri-display{
+  background:#33212e;
+}
+
+/* Pantalla de bienvenida */
+html[data-dark="true"] .setup-screen{
+  background:linear-gradient(135deg,#231522,#2a1830);
+}
+
+/* ===== Botón de modo oscuro (flotante) ===== */
+.darkmode-toggle{
+  position:fixed;
+  top:18px;
+  left:18px;
+  z-index:47;
+  width:44px;height:44px;
+  border-radius:50%;
+  border:2px solid rgba(255,255,255,0.6);
+  background:linear-gradient(135deg,var(--pink-400),var(--pink-500));
+  color:#fff;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 18px rgba(232,106,145,0.4);
+  transition:transform 0.25s ease, box-shadow 0.25s ease;
+}
+.darkmode-toggle:hover{transform:translateY(-2px) scale(1.06);box-shadow:0 10px 24px rgba(232,106,145,0.55);}
+.darkmode-toggle .dm-sun{display:none;}
+html[data-dark="true"] .darkmode-toggle .dm-moon{display:none;}
+html[data-dark="true"] .darkmode-toggle .dm-sun{display:block;}
+html[data-dark="true"] .darkmode-toggle{
+  background:linear-gradient(135deg,#5a4668,#7d5a8e);
+}
+@media (max-width:600px){
+  .darkmode-toggle{top:12px;left:12px;width:38px;height:38px;}
 }

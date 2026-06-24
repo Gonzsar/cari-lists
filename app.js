@@ -12,6 +12,7 @@ const defaultSettings = {
   theme:'melody',
   anniversaryDate:'2023-12-15',
   unlockedStickers:[],
+  darkMode:false,
   musicVolume:0.4,
   musicPlaying:false,
   spotifyClientId:'',
@@ -2762,6 +2763,24 @@ safeOn('rouletteStatus', 'change', (e)=>{
 });
 safeOn('rouletteSpin', 'click', spinRoulette);
 
+/* ==========================================================
+   Modo oscuro 🌙
+   ========================================================== */
+function applyDarkMode(on){
+  document.documentElement.setAttribute('data-dark', on ? 'true' : 'false');
+}
+function initDarkMode(){
+  applyDarkMode(!!settings.darkMode);
+  const btn = document.getElementById('darkToggle');
+  if(btn){
+    btn.addEventListener('click', ()=>{
+      settings.darkMode = !settings.darkMode;
+      applyDarkMode(settings.darkMode);
+      saveSettings();
+    });
+  }
+}
+
 /* === Init === */
 function safeRun(label, fn){
   try { fn(); }
@@ -2769,6 +2788,7 @@ function safeRun(label, fn){
 }
 safeRun('spawnPetals', spawnPetals);
 safeRun('applyTheme', ()=>applyTheme(settings.theme || 'melody'));
+safeRun('initDarkMode', initDarkMode);
 safeRun('initDiary', initDiary);
 safeRun('initMusicPlayer', initMusicPlayer);
 safeRun('initMelodyCompanion', initMelodyCompanion);

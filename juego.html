@@ -176,6 +176,66 @@
     }
     body.editing #charEditor{transform:translateY(0);}
   }
+
+  /* ===== Modo construcción ===== */
+  #buildBtn{top:114px;left:14px;position:fixed;}
+  #buildPanel{
+    position:fixed;top:0;right:0;bottom:0;z-index:39;
+    width:min(300px,90vw);
+    background:rgba(255,255,255,.94);backdrop-filter:blur(12px);
+    border-left:2px solid #f7b3c6;
+    padding:16px 14px 20px;
+    overflow-y:auto;
+    transform:translateX(105%);
+    transition:transform .35s cubic-bezier(.5,1.4,.4,1);
+    font-size:.9rem;color:#5a3a48;
+  }
+  body.building #buildPanel{transform:translateX(0);}
+  #buildPanel h2{
+    font-family:'Dancing Script',cursive;color:#c84068;
+    font-size:1.7rem;text-align:center;margin-bottom:10px;
+  }
+  .bp-items{display:flex;flex-wrap:wrap;gap:7px;}
+  .bp-item{
+    border:1.5px solid #fbd0dd;background:#fff;border-radius:14px;
+    padding:8px 10px;font-family:inherit;font-weight:600;font-size:.78rem;
+    color:#5a3a48;cursor:pointer;
+  }
+  .bp-item.active{background:#f7b3c6;border-color:#e96a91;color:#fff;}
+  .bp-hint{
+    margin-top:14px;font-size:.75rem;color:#8a6878;text-align:center;line-height:1.7;
+  }
+  .bp-hint b{color:#e96a91;}
+  #reticle{
+    position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+    color:#e96a91;font-size:1.5rem;font-weight:700;
+    text-shadow:0 1px 6px rgba(255,255,255,.9);
+    pointer-events:none;z-index:18;display:none;
+  }
+  body.building.touch-aim #reticle{display:block;}
+  #buildMobileBtns{
+    position:fixed;right:24px;bottom:130px;z-index:23;
+    display:none;flex-direction:column;gap:10px;
+  }
+  body.building.touch-aim #buildMobileBtns{display:flex;}
+  #buildMobileBtns button{
+    width:56px;height:56px;border-radius:50%;
+    border:2px solid #fff;font-size:1.3rem;font-family:inherit;
+    background:rgba(233,106,145,.9);color:#fff;
+    box-shadow:0 5px 14px rgba(200,64,104,.4);
+  }
+  #bmDelete{background:rgba(120,80,100,.85) !important;}
+  body.editing #buildBtn{display:none !important;}
+  body.building #charBtn, body.building #helpPanel{display:none !important;}
+  @media (max-width:640px){
+    #buildPanel{
+      top:auto;left:0;right:0;width:100%;max-height:44vh;
+      border-left:none;border-top:2px solid #f7b3c6;
+      border-radius:22px 22px 0 0;
+      transform:translateY(110%);
+    }
+    body.building #buildPanel{transform:translateY(0);}
+  }
 </style>
 <script>
   /* nombre desde la web principal */
@@ -221,12 +281,28 @@
   <b>Espacio</b> → saltar<br>
   <b>Arrastrar mouse</b> → mirar<br>
   <b>Rueda</b> → zoom<br>
-  <span style="font-size:.78rem;color:#8a6878;">En celu: joystick + botón de salto ♡</span>
+  <b>B</b> → modo construcción<br>
+  <span style="font-size:.78rem;color:#8a6878;">Construyendo: <b>click</b> coloca, <b>R</b> rota, <b>X</b> borra ♡</span>
 </div>
 
 <div id="joystick"><div id="joyKnob"></div></div>
 <button id="jumpBtn">↑</button>
 <div id="clock">☀️ Día</div>
+
+<!-- ===== Modo construcción ===== -->
+<button id="buildBtn" class="hud-btn">🔨 Construir</button>
+<div id="buildPanel">
+  <h2>Construcción 🔨</h2>
+  <div class="ce-tabs" id="bpTabs"></div>
+  <div class="bp-items" id="bpItems"></div>
+  <div class="bp-hint" id="bpHint">Click: colocar · <b>R</b> rotar · <b>X</b> borrar · <b>B</b> cerrar</div>
+</div>
+<div id="reticle">＋</div>
+<div id="buildMobileBtns">
+  <button id="bmPlace">✔</button>
+  <button id="bmRotate">↻</button>
+  <button id="bmDelete">🗑</button>
+</div>
 
 <canvas id="game-canvas"></canvas>
 
@@ -591,12 +667,14 @@ function buildCharacter(cfg){
   g.add(mesh(new THREE.SphereGeometry(.5,14,14), skinM, 0,1.95,0));
 
   /* --- pelo --- */
+  /* casco corrido hacia atrás para no tapar la cara + flequillo aparte */
   const hs = cfg.hairStyle;
-  if(hs === 'corto'){
-    g.add(mesh(new THREE.SphereGeometry(.55,14,14,0,Math.PI*2,0,Math.PI/1.55), hairM, 0,2.02,0));
-  } else {
-    g.add(mesh(new THREE.SphereGeometry(.53,14,14,0,Math.PI*2,0,Math.PI/1.75), hairM, 0,2.02,0));
-  }
+  const cap = mesh(new THREE.SphereGeometry(hs==='corto' ? .56 : .54, 14, 14, 0, Math.PI*2, 0, Math.PI/2.05), hairM, 0, 2.06, -.06);
+  g.add(cap);
+  /* flequillo: montoncito sobre la frente, arriba de los ojos */
+  const fringe = mesh(new THREE.SphereGeometry(.3,10,8), hairM, 0, 2.26, .3);
+  fringe.scale.set(1.5,.5,.62);
+  g.add(fringe);
   if(hs === 'coletas'){
     g.add(mesh(new THREE.SphereGeometry(.2,8,8), hairM, -.58,1.85,-.05));
     g.add(mesh(new THREE.SphereGeometry(.2,8,8), hairM, .58,1.85,-.05));
@@ -966,8 +1044,446 @@ function tick(){
   updateClouds(dt);
   updatePetals(dt);
 
+  /* --- construcción: puntería, fantasma y cultivos --- */
+  updateBuild(dt);
+
   renderer.render(scene, camera);
 }
+
+/* ==========================================================
+   FASE 3 · Modo construcción (Minecraft + Heartopia vibes)
+   ========================================================== */
+const GROW_TIME = 90;   /* segundos para que crezca un cultivo */
+
+/* --- helpers de construcción de piezas --- */
+function bx(w,h,d,c,x=0,y=0,z=0){ return mesh(new THREE.BoxGeometry(w,h,d), mat(c), x,y,z); }
+function cyl(rt,rb,h,c,x=0,y=0,z=0,seg=8){ return mesh(new THREE.CylinderGeometry(rt,rb,h,seg), mat(c), x,y,z); }
+function sph(r,c,x=0,y=0,z=0,seg=8){ return mesh(new THREE.SphereGeometry(r,seg,seg), mat(c), x,y,z); }
+function grp(...children){ const g=new THREE.Group(); children.forEach(c=>g.add(c)); return g; }
+const glassM = ()=> new THREE.MeshStandardMaterial({color:0xbfe8ff, transparent:true, opacity:.45, roughness:.3});
+
+/* --- catálogo --- */
+const BUILD_CATS = [
+  ['bloques','🧱 Bloques'], ['muebles','🪑 Muebles'], ['natura','🌿 Naturaleza'],
+  ['cultivos','🥕 Cultivos'], ['estructuras','🏰 Estructuras']
+];
+const BI = {};
+function defItem(id,name,cat,build,opts={}){
+  BI[id] = {name, cat, build, snap:opts.snap??.5, rotStep:opts.rotStep??Math.PI/4, obR:opts.obR??0, stack:opts.stack??false};
+}
+function defBlock(id,name,build){
+  BI[id] = {name, cat:'bloques', build, snap:1, rotStep:Math.PI/2, obR:.55, stack:true};
+}
+
+/* BLOQUES */
+defBlock('b_madera','🪵 Madera', ()=>grp(bx(1,1,1,0xd8a47c,0,.5,0)));
+defBlock('b_piedra','🪨 Piedra', ()=>grp(bx(1,1,1,0xb8b2bd,0,.5,0)));
+defBlock('b_rosa','🌸 Rosa', ()=>grp(bx(1,1,1,0xf7b3c6,0,.5,0)));
+defBlock('b_ladrillo','🧱 Ladrillo', ()=>grp(bx(1,1,1,0xe8a0a8,0,.5,0)));
+defBlock('b_pasto','🌱 Pasto', ()=>grp(bx(1,.85,1,0x9a6b4f,0,.425,0), bx(1,.15,1,0x8fce8a,0,.925,0)));
+defBlock('b_ventana','🪟 Ventana', ()=>{
+  const m = new THREE.Mesh(new THREE.BoxGeometry(1,1,1), glassM());
+  m.position.y=.5; m.castShadow=false; m.receiveShadow=true;
+  return grp(m);
+});
+defBlock('b_techo','🔺 Techito', ()=>{
+  const r = mesh(new THREE.ConeGeometry(.78,1,4), mat(0xe96a91), 0,.5,0);
+  r.rotation.y = Math.PI/4;
+  return grp(r);
+});
+defItem('tablon','🪵 Tablón','bloques', ()=>grp(bx(2,.2,1,0xd8a47c,0,.1,0)), {rotStep:Math.PI/2});
+defItem('vallita','🚧 Vallita','bloques', ()=>{
+  const g=new THREE.Group();
+  [-1,0,1].forEach(x=>g.add(cyl(.08,.08,1,0xd8a47c,x,.5,0,6)));
+  g.add(bx(2.2,.1,.08,0xd8a47c,0,.7,0));
+  g.add(bx(2.2,.1,.08,0xd8a47c,0,.38,0));
+  return g;
+}, {rotStep:Math.PI/2, obR:.9});
+
+/* MUEBLES */
+defItem('mesa','🪑 Mesa','muebles', ()=>{
+  const g=grp(bx(1.2,.08,.8,0xd8a47c,0,.72,0));
+  [[-.5,-.3],[.5,-.3],[-.5,.3],[.5,.3]].forEach(([x,z])=>g.add(cyl(.05,.05,.7,0x9a6b4f,x,.35,z,6)));
+  return g;
+}, {obR:.7});
+defItem('silla','💺 Silla','muebles', ()=>{
+  const g=grp(bx(.5,.06,.5,0xd8a47c,0,.45,0), bx(.5,.55,.06,0xd8a47c,0,.75,-.22));
+  [[-.2,-.2],[.2,-.2],[-.2,.2],[.2,.2]].forEach(([x,z])=>g.add(cyl(.04,.04,.45,0x9a6b4f,x,.22,z,6)));
+  return g;
+}, {obR:.4});
+defItem('cama','🛏️ Cama','muebles', ()=>grp(
+  bx(1.1,.25,2,0xd8a47c,0,.2,0),
+  bx(1,.15,1.9,0xffffff,0,.4,0),
+  bx(1.02,.08,1.2,0xf291ad,0,.47,-.3),
+  bx(.7,.14,.4,0xfde4c9,0,.49,.65)
+), {obR:.9});
+defItem('lampara','💡 Lámpara','muebles', ()=>grp(
+  cyl(.05,.09,1.5,0x5a4a52,0,.75,0,8),
+  mesh(new THREE.SphereGeometry(.22,10,10), mat(0xffe08a,{emissive:0xffd166, emissiveIntensity:.9}), 0,1.62,0)
+), {obR:.3});
+defItem('maceta','🪴 Maceta','muebles', ()=>grp(
+  cyl(.22,.16,.35,0xc87d5a,0,.18,0),
+  cyl(.03,.03,.4,0x7fbf72,0,.5,0,5),
+  sph(.13,0xff8fb3,0,.72,0)
+), {obR:.25});
+defItem('banquito','🪵 Banquito','muebles', ()=>grp(cyl(.28,.32,.4,0xd8a47c,0,.2,0,10)), {obR:.35});
+defItem('alfombra','🧶 Alfombra','muebles', ()=>grp(cyl(1.1,1.1,.04,0xf7b3c6,0,.02,0,16)));
+defItem('estanteria','📚 Estantería','muebles', ()=>{
+  const g=grp(bx(1,1.7,.06,0x9a6b4f,0,.85,-.15));
+  [.3,.85,1.4].forEach(y=>g.add(bx(1,.06,.36,0xd8a47c,0,y,0)));
+  g.add(bx(.06,1.7,.36,0x9a6b4f,-.47,.85,0));
+  g.add(bx(.06,1.7,.36,0x9a6b4f,.47,.85,0));
+  return g;
+}, {obR:.55});
+
+/* NATURALEZA */
+defItem('sakurita','🌸 Sakurita','natura', ()=>grp(
+  cyl(.15,.2,1.1,0x9a6b4f,0,.55,0),
+  sph(.55,0xf9b9d4,0,1.35,0,10), sph(.4,0xfcc8dd,.4,1.15,.15,8), sph(.38,0xf5a8c8,-.38,1.2,-.1,8)
+), {obR:.5});
+defItem('pinito','🌲 Pinito','natura', ()=>grp(
+  cyl(.12,.18,.7,0x9a6b4f,0,.35,0),
+  mesh(new THREE.ConeGeometry(.7,1.1,8), mat(0x8fce8a), 0,1.1,0),
+  mesh(new THREE.ConeGeometry(.5,.9,8), mat(0x8fce8a), 0,1.7,0)
+), {obR:.45});
+defItem('arbusto','🌳 Arbusto','natura', ()=>grp(mesh(new THREE.IcosahedronGeometry(.5,1), mat(0x8fce8a), 0,.45,0)), {obR:.5});
+defItem('flor_gig','🌻 Flor gigante','natura', ()=>{
+  const g=grp(cyl(.05,.05,1.2,0x7fbf72,0,.6,0,6));
+  for(let i=0;i<6;i++){
+    const a=i/6*Math.PI*2;
+    g.add(sph(.17,0xff8fb3, Math.cos(a)*.26, 1.28, Math.sin(a)*.26));
+  }
+  g.add(sph(.15,0xffe08a,0,1.28,0));
+  return g;
+}, {obR:.2});
+defItem('honguito','🍄 Honguito','natura', ()=>grp(
+  cyl(.14,.18,.45,0xfff4ec,0,.22,0),
+  mesh(new THREE.SphereGeometry(.38,10,8,0,Math.PI*2,0,Math.PI/2), mat(0xf291ad), 0,.45,0)
+), {obR:.35});
+defItem('roquita','🪨 Roquita','natura', ()=>{
+  const r=mesh(new THREE.IcosahedronGeometry(.45,0), mat(0xcfc8d4), 0,.2,0);
+  r.scale.y=.6;
+  return grp(r);
+}, {obR:.45});
+defItem('laguito','💧 Laguito','natura', ()=>{
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,.06,20), new THREE.MeshStandardMaterial({color:0x8cc8f1, transparent:true, opacity:.8, roughness:.2}));
+  m.position.y=.03; m.receiveShadow=true;
+  return grp(m);
+});
+
+/* CULTIVOS (crecen con el tiempo real) */
+function cropItem(id, name, grownBuilder){
+  BI[id] = {name, cat:'cultivos', snap:.5, rotStep:Math.PI/2, obR:0, stack:false, build(){
+    const g=new THREE.Group();
+    g.add(bx(1.3,.12,1.3,0x8a5a3c,0,.06,0));
+    const sprout = mesh(new THREE.ConeGeometry(.09,.28,6), mat(0x7fbf72), 0,.32,0);
+    g.add(sprout);
+    const grown = new THREE.Group();
+    grownBuilder(grown);
+    grown.visible = false;
+    g.add(grown);
+    g.userData.sprout = sprout;
+    g.userData.grown = grown;
+    return g;
+  }};
+}
+defItem('parcela','🟫 Parcela','cultivos', ()=>grp(bx(1.3,.12,1.3,0x8a5a3c,0,.06,0)));
+cropItem('zanahoria','🥕 Zanahorias', g=>{
+  [[-.3,-.3],[.3,-.3],[-.3,.3],[.3,.3]].forEach(([x,z])=>{
+    g.add(mesh(new THREE.ConeGeometry(.11,.22,6), mat(0xef8f3a), x,.2,z));
+    g.add(mesh(new THREE.ConeGeometry(.09,.3,5), mat(0x7fbf72), x,.42,z));
+  });
+});
+cropItem('tomate','🍅 Tomates', g=>{
+  g.add(cyl(.04,.04,1,0x9a6b4f,0,.55,0,6));
+  g.add(sph(.34,0x5f9e58,0,.8,0,9));
+  [[.25,.75,.15],[-.22,.85,.1],[.05,.68,.28],[-.15,.72,-.22]].forEach(([x,y,z])=>g.add(sph(.1,0xe94f4f,x,y,z)));
+});
+cropItem('girasol','🌻 Girasol', g=>{
+  g.add(cyl(.05,.05,1.3,0x5f9e58,0,.7,0,6));
+  for(let i=0;i<8;i++){
+    const a=i/8*Math.PI*2;
+    g.add(sph(.1,0xffd166, Math.cos(a)*.26, 1.42, .06+Math.sin(a)*.26));
+  }
+  g.add(sph(.16,0x8a5a3c,0,1.42,.1));
+});
+cropItem('fresa','🍓 Fresitas', g=>{
+  const bush=sph(.32,0x5f9e58,0,.3,0,9); bush.scale.y=.7; g.add(bush);
+  [[.2,.2,.2],[-.25,.18,.1],[.05,.15,.3],[-.1,.2,-.25],[.28,.16,-.1]].forEach(([x,y,z])=>g.add(sph(.07,0xe94f6d,x,y,z)));
+});
+cropItem('calabaza','🎃 Calabaza', g=>{
+  const p=sph(.38,0xef8f3a,0,.3,0,10); p.scale.y=.72; g.add(p);
+  g.add(cyl(.05,.06,.16,0x5f9e58,0,.62,0,6));
+});
+
+/* ESTRUCTURAS (blueprints prearmados) */
+defItem('casita','🏡 Casita','estructuras', ()=>{
+  const g=grp(bx(4.8,2.7,4,0xfff4e6,0,1.35,0));
+  const roof=mesh(new THREE.ConeGeometry(3.9,2.2,4), mat(0xf291ad), 0,3.8,0);
+  roof.rotation.y=Math.PI/4; g.add(roof);
+  g.add(bx(1,1.7,.12,0xb9825f,0,.85,2.03));
+  g.add(sph(.06,0xffe08a,.35,.85,2.1,6));
+  const winM=glassM();
+  [[-1.5,1.6,2.03],[1.5,1.6,2.03]].forEach(([x,y,z])=>{
+    const w=new THREE.Mesh(new THREE.BoxGeometry(.9,.9,.1), winM.clone());
+    w.position.set(x,y,z); g.add(w);
+  });
+  g.add(bx(.7,1.1,.7,0xe8b4a0,1.5,4.1,.9));
+  return g;
+}, {obR:3.4, rotStep:Math.PI/2});
+defItem('puente','🌉 Puente','estructuras', ()=>{
+  const g=new THREE.Group();
+  for(let i=0;i<=8;i++){
+    const x=-2+i*.5, y=.12+Math.sin((i/8)*Math.PI)*.42;
+    g.add(bx(.48,.07,1.5,0xd8a47c,x,y,0));
+  }
+  [[-2,-.65],[2,-.65],[-2,.65],[2,.65],[0,-.65],[0,.65]].forEach(([x,z])=>{
+    const y=.12+Math.sin(((x+2)/4)*Math.PI)*.42;
+    g.add(cyl(.06,.06,.85,0x9a6b4f,x,y+.42,z,6));
+  });
+  [-.65,.65].forEach(z=>g.add(bx(4.3,.08,.08,0xd8a47c,0,.98,z)));
+  return g;
+}, {rotStep:Math.PI/2});
+defItem('arco','🌸 Arco de flores','estructuras', ()=>{
+  const g=grp(cyl(.09,.09,2.2,0xd8a47c,-1.1,1.1,0,6), cyl(.09,.09,2.2,0xd8a47c,1.1,1.1,0,6));
+  g.add(mesh(new THREE.TorusGeometry(1.1,.08,8,18,Math.PI), mat(0x8fce8a), 0,2.2,0, false));
+  for(let i=0;i<7;i++){
+    const a=(i/6)*Math.PI;
+    g.add(sph(.11, flowerColors[i%flowerColors.length], Math.cos(a)*1.1, 2.2+Math.sin(a)*1.1, 0));
+  }
+  return g;
+}, {rotStep:Math.PI/4});
+defItem('fogata','🔥 Fogata','estructuras', ()=>{
+  const g=new THREE.Group();
+  for(let i=0;i<6;i++){
+    const a=i/6*Math.PI*2;
+    g.add(sph(.16,0xb8b2bd, Math.cos(a)*.55, .12, Math.sin(a)*.55));
+  }
+  for(let i=0;i<3;i++){
+    const log=cyl(.09,.09,.9,0x9a6b4f,0,.16,0,6);
+    log.rotation.z=Math.PI/2; log.rotation.y=i*2.09;
+    g.add(log);
+  }
+  g.add(mesh(new THREE.ConeGeometry(.28,.6,8), mat(0xff8f3a,{emissive:0xff6b2a, emissiveIntensity:1}), 0,.5,0, false));
+  g.add(mesh(new THREE.ConeGeometry(.14,.38,8), mat(0xffd166,{emissive:0xffc94a, emissiveIntensity:1}), 0,.45,0, false));
+  return g;
+}, {obR:.8});
+defItem('glorieta','⛩️ Glorieta','estructuras', ()=>{
+  const g=grp(cyl(1.7,1.8,.18,0xe8d9c0,0,.09,0,12));
+  for(let i=0;i<4;i++){
+    const a=Math.PI/4+i*Math.PI/2;
+    g.add(cyl(.09,.09,2.3,0xfff4e6, Math.cos(a)*1.35, 1.25, Math.sin(a)*1.35, 8));
+  }
+  g.add(mesh(new THREE.ConeGeometry(2.1,1,8), mat(0xf291ad), 0,2.9,0));
+  return g;
+});
+defItem('huerta','🥬 Huertita','estructuras', ()=>{
+  const g=new THREE.Group();
+  [[-.8,-.8],[.8,-.8],[-.8,.8],[.8,.8]].forEach(([x,z])=>g.add(bx(1.3,.12,1.3,0x8a5a3c,x,.06,z)));
+  [[-1.6,-1.6],[1.6,-1.6],[-1.6,1.6],[1.6,1.6]].forEach(([x,z])=>g.add(cyl(.06,.06,.5,0xd8a47c,x,.25,z,6)));
+  return g;
+});
+
+/* --- estado del modo construcción --- */
+const placedRoot = new THREE.Group();
+scene.add(placedRoot);
+let placedItems = [];
+const placedMeshes = new Map();
+let buildMode=false, selectedItem=null, buildRot=0, ghost=null, aimValid=false;
+let hoveredPlaced=null;
+const aimPos = new THREE.Vector3();
+const raycaster = new THREE.Raycaster();
+const mouseNDC = {x:0, y:0};
+let placeSeq = Date.now()%1000000;
+let refreshBuildUI = ()=>{};
+
+function disposeGroup(g){
+  g.traverse(o=>{
+    if(o.geometry) o.geometry.dispose();
+    if(o.material && o.material.dispose) o.material.dispose();
+  });
+}
+
+function saveBuild(){
+  try{ localStorage.setItem('mundito_build_v1', JSON.stringify(placedItems)); }catch(e){}
+}
+function spawnPlaced(d){
+  const def = BI[d.t];
+  if(!def) return;
+  const g = def.build();
+  g.position.set(d.x, d.y, d.z);
+  g.rotation.y = d.r || 0;
+  g.userData.placedId = d.id;
+  g.userData.ts = d.ts;
+  placedRoot.add(g);
+  placedMeshes.set(d.id, g);
+  if(def.obR > 0 && d.y < .6) obstacles.push({x:d.x, z:d.z, r:def.obR, _pid:d.id});
+}
+function loadBuild(){
+  try{
+    placedItems = JSON.parse(localStorage.getItem('mundito_build_v1')||'[]');
+    placedItems.forEach(spawnPlaced);
+  }catch(e){ placedItems=[]; }
+}
+function removePlaced(id){
+  const g = placedMeshes.get(id);
+  if(!g) return;
+  placedRoot.remove(g);
+  disposeGroup(g);
+  placedMeshes.delete(id);
+  placedItems = placedItems.filter(i=>i.id!==id);
+  for(let i=obstacles.length-1;i>=0;i--) if(obstacles[i]._pid===id) obstacles.splice(i,1);
+  saveBuild();
+}
+function setSelected(t){
+  selectedItem = t;
+  if(ghost){ scene.remove(ghost); disposeGroup(ghost); ghost=null; }
+  if(t){
+    ghost = BI[t].build();
+    ghost.traverse(o=>{
+      if(o.material){
+        o.material = o.material.clone();
+        o.material.transparent = true;
+        o.material.opacity = .5;
+        o.material.depthWrite = false;
+      }
+      o.castShadow = false; o.receiveShadow = false;
+    });
+    ghost.visible = false;
+    scene.add(ghost);
+  }
+  refreshBuildUI();
+}
+function placeSelected(){
+  if(!buildMode || !selectedItem || !aimValid) return;
+  if(placedItems.length >= 900) return;
+  const d = {id:'p'+(placeSeq++), t:selectedItem, x:aimPos.x, y:aimPos.y, z:aimPos.z, r:buildRot, ts:Date.now()};
+  placedItems.push(d);
+  spawnPlaced(d);
+  saveBuild();
+}
+function deleteHovered(){
+  if(hoveredPlaced) removePlaced(hoveredPlaced.userData.placedId);
+}
+function toggleBuild(force){
+  buildMode = (force !== undefined) ? force : !buildMode;
+  document.body.classList.toggle('building', buildMode);
+  if(buildMode && typeof closeEditor === 'function' && document.body.classList.contains('editing')) closeEditor();
+  if(!buildMode && ghost) ghost.visible = false;
+}
+
+/* --- update por frame: cultivos + puntería --- */
+function updateBuild(dt){
+  /* crecimiento de cultivos (corre siempre) */
+  const now = Date.now();
+  for(const g of placedMeshes.values()){
+    const u = g.userData;
+    if(u.sprout){
+      const grownNow = ((now - (u.ts||now))/1000) >= GROW_TIME;
+      if(u.grown.visible !== grownNow){
+        u.grown.visible = grownNow;
+        u.sprout.visible = !grownNow;
+      }
+    }
+  }
+  if(!buildMode){ if(ghost) ghost.visible=false; hoveredPlaced=null; return; }
+
+  const ndc = isTouch ? {x:0,y:0} : mouseNDC;
+  raycaster.setFromCamera(ndc, camera);
+  const hits = raycaster.intersectObjects([ground, ...placedRoot.children], true);
+  hoveredPlaced = null; aimValid = false;
+  if(hits.length){
+    const h = hits[0];
+    let o = h.object;
+    while(o && o.parent !== placedRoot && o !== ground) o = o.parent;
+    if(o && o !== ground && o.parent === placedRoot) hoveredPlaced = o;
+
+    if(selectedItem && ghost){
+      const def = BI[selectedItem];
+      const p = h.point.clone();
+      if(def.stack){
+        if(h.face && hoveredPlaced){
+          p.add(h.face.normal.clone().transformDirection(h.object.matrixWorld).multiplyScalar(.5));
+        }
+        p.x = Math.round(p.x);
+        p.z = Math.round(p.z);
+        p.y = Math.max(.5, Math.round(p.y - .5) + .5);
+      } else {
+        p.x = Math.round(p.x/def.snap)*def.snap;
+        p.z = Math.round(p.z/def.snap)*def.snap;
+        p.y = 0;
+      }
+      const nearPlayer = Math.hypot(p.x-P.pos.x, p.z-P.pos.z) < 30;
+      if(Math.hypot(p.x,p.z) < WORLD_RADIUS-1 && nearPlayer){
+        aimValid = true;
+        aimPos.copy(p);
+        ghost.visible = true;
+        ghost.position.copy(p);
+        ghost.rotation.y = buildRot;
+      } else {
+        ghost.visible = false;
+      }
+    }
+  } else if(ghost){
+    ghost.visible = false;
+  }
+}
+
+/* --- input construcción --- */
+addEventListener('pointermove', e=>{
+  mouseNDC.x = (e.clientX/innerWidth)*2 - 1;
+  mouseNDC.y = -(e.clientY/innerHeight)*2 + 1;
+});
+let bpdX=0, bpdY=0;
+canvas.addEventListener('pointerdown', e=>{ bpdX=e.clientX; bpdY=e.clientY; });
+canvas.addEventListener('pointerup', e=>{
+  if(!buildMode || e.pointerType==='touch') return;
+  if(Math.hypot(e.clientX-bpdX, e.clientY-bpdY) < 6) placeSelected();
+});
+addEventListener('keydown', e=>{
+  if(e.code==='KeyB' && !editorOpenNow()) toggleBuild();
+  if(!buildMode) return;
+  if(e.code==='KeyR') buildRot += (BI[selectedItem]?.rotStep) || Math.PI/4;
+  if(e.code==='KeyX') deleteHovered();
+});
+function editorOpenNow(){ return document.body.classList.contains('editing'); }
+
+document.getElementById('buildBtn').addEventListener('click', ()=>toggleBuild());
+document.getElementById('bmPlace').addEventListener('touchstart', e=>{ e.preventDefault(); placeSelected(); });
+document.getElementById('bmRotate').addEventListener('touchstart', e=>{ e.preventDefault(); buildRot += (BI[selectedItem]?.rotStep) || Math.PI/4; });
+document.getElementById('bmDelete').addEventListener('touchstart', e=>{ e.preventDefault(); deleteHovered(); });
+if(isTouch) document.body.classList.add('touch-aim');
+
+/* --- panel de catálogo --- */
+(function buildBuildUI(){
+  const tabsEl = document.getElementById('bpTabs');
+  const itemsEl = document.getElementById('bpItems');
+  let activeCat = BUILD_CATS[0][0];
+  function renderItems(){
+    itemsEl.innerHTML = '';
+    Object.entries(BI).filter(([,d])=>d.cat===activeCat).forEach(([t,d])=>{
+      const b = document.createElement('button');
+      b.className = 'bp-item' + (selectedItem===t ? ' active' : '');
+      b.textContent = d.name;
+      b.addEventListener('click', ()=>setSelected(selectedItem===t ? null : t));
+      itemsEl.appendChild(b);
+    });
+  }
+  refreshBuildUI = renderItems;
+  BUILD_CATS.forEach(([id,label], i)=>{
+    const tb = document.createElement('button');
+    tb.className = 'ce-tab' + (i===0 ? ' active' : '');
+    tb.textContent = label;
+    tb.addEventListener('click', ()=>{
+      activeCat = id;
+      tabsEl.querySelectorAll('.ce-tab').forEach(x=>x.classList.toggle('active', x===tb));
+      renderItems();
+    });
+    tabsEl.appendChild(tb);
+  });
+  renderItems();
+})();
+loadBuild();
 
 /* ---------- UI ---------- */
 document.getElementById('helpBtn').addEventListener('click', ()=>{
@@ -980,6 +1496,7 @@ document.getElementById('helpBtn').addEventListener('click', ()=>{
 let editorMode = false, prevCamDist = 9;
 
 function openEditor(){
+  toggleBuild(false);          /* cerrar construcción si estaba abierta */
   editorMode = true;
   prevCamDist = cam.dist;
   document.body.classList.add('editing');

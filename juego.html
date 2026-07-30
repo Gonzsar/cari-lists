@@ -108,6 +108,74 @@
     #worldTitle{font-size:1.3rem;top:60px;}
     #clock{display:none;}
   }
+
+  /* ===== Editor de personaje ===== */
+  #charBtn{top:64px;left:14px;position:fixed;}
+  #charEditor{
+    position:fixed;top:0;right:0;bottom:0;z-index:40;
+    width:min(340px,94vw);
+    background:rgba(255,255,255,.94);backdrop-filter:blur(12px);
+    border-left:2px solid #f7b3c6;
+    padding:18px 16px 26px;
+    overflow-y:auto;
+    transform:translateX(105%);
+    transition:transform .35s cubic-bezier(.5,1.4,.4,1);
+    font-size:.9rem;color:#5a3a48;
+  }
+  body.editing #charEditor{transform:translateX(0);}
+  #charEditor h2{
+    font-family:'Dancing Script',cursive;color:#c84068;
+    font-size:1.9rem;text-align:center;margin-bottom:10px;
+  }
+  .ce-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;justify-content:center;}
+  .ce-tab{
+    border:1.5px solid #f7b3c6;background:#fff;border-radius:30px;
+    padding:6px 12px;font-family:inherit;font-weight:700;font-size:.78rem;
+    color:#c84068;cursor:pointer;
+  }
+  .ce-tab.active{background:#e96a91;color:#fff;border-color:#e96a91;}
+  .ce-section{display:none;}
+  .ce-section.active{display:block;}
+  .ce-label{
+    font-weight:700;color:#e96a91;font-size:.8rem;
+    margin:12px 0 6px;text-transform:uppercase;letter-spacing:.5px;
+  }
+  .ce-swatches{display:flex;flex-wrap:wrap;gap:8px;}
+  .ce-sw{
+    width:30px;height:30px;border-radius:50%;
+    border:2px solid #fff;box-shadow:0 0 0 1.5px #fbd0dd;cursor:pointer;
+  }
+  .ce-sw.active{outline:2.5px solid #c84068;outline-offset:2px;}
+  .ce-styles{display:flex;flex-wrap:wrap;gap:7px;}
+  .ce-style{
+    border:1.5px solid #fbd0dd;background:#fff;border-radius:14px;
+    padding:8px 12px;font-family:inherit;font-weight:600;font-size:.8rem;
+    color:#5a3a48;cursor:pointer;
+  }
+  .ce-style.active{background:#f7b3c6;border-color:#e96a91;color:#fff;}
+  #ceSize{width:100%;accent-color:#e96a91;}
+  .ce-actions{display:flex;gap:8px;margin-top:18px;}
+  .ce-actions button{
+    flex:1;border:none;border-radius:30px;padding:12px;
+    font-family:inherit;font-weight:800;font-size:.95rem;cursor:pointer;
+  }
+  #ceRandom{background:#fde4c9;color:#95560f;}
+  #ceDone{
+    background:linear-gradient(135deg,#f291ad,#e96a91);color:#fff;
+    box-shadow:0 6px 16px rgba(232,106,145,.4);
+  }
+  body.editing #joystick, body.editing #jumpBtn, body.editing #helpBtn,
+  body.editing #clock, body.editing #helpPanel, body.editing #charBtn,
+  body.editing #backBtn, body.editing #worldTitle{display:none !important;}
+  @media (max-width:640px){
+    #charEditor{
+      top:auto;left:0;right:0;width:100%;max-height:54vh;
+      border-left:none;border-top:2px solid #f7b3c6;
+      border-radius:22px 22px 0 0;
+      transform:translateY(110%);
+    }
+    body.editing #charEditor{transform:translateY(0);}
+  }
 </style>
 <script>
   /* nombre desde la web principal */
@@ -131,7 +199,19 @@
 </div>
 
 <a id="backBtn" class="hud-btn" href="index.html">← Mi rinconcito</a>
-<button id="helpBtn" class="hud-btn">🎀 Controles</button>
+<button id="charBtn" class="hud-btn">🎀 Personaje</button>
+<button id="helpBtn" class="hud-btn">✨ Controles</button>
+
+<!-- ===== Editor de personaje ===== -->
+<div id="charEditor">
+  <h2>Tu personaje ♡</h2>
+  <div class="ce-tabs" id="ceTabs"></div>
+  <div id="ceSections"></div>
+  <div class="ce-actions">
+    <button id="ceRandom">🎲 Sorpresa</button>
+    <button id="ceDone">¡Lista! ♡</button>
+  </div>
+</div>
 <div id="worldTitle"></div>
 
 <div id="helpPanel">
@@ -160,13 +240,38 @@ import * as THREE from 'three';
 
 const WORLD_RADIUS = 230;
 
-/* --- personalización básica (Fase 2 la hará editable) --- */
-const CHAR = {
-  skin:  0xffe0cf,
-  hair:  0x6b4a3a,
-  dress: 0xf291ad,
-  shoes: 0xc84068
+/* ==========================================================
+   FASE 2 · Personaje personalizable
+   ========================================================== */
+const CHAR_DEFAULT = {
+  skin:'#ffe0cf', hair:'#6b4a3a', hairStyle:'coletas',
+  eyes:'#3a2530', eyeStyle:'normal', mouthStyle:'sonrisa', blush:'1',
+  outfit:'vestido', dress:'#f291ad', shoes:'#c84068',
+  accessory:'nada', acc:'#ffd166', size:1
 };
+const PALETTES = {
+  skin: ['#ffe0cf','#ffd0b8','#f2b894','#d99e6f','#b97a4e','#8e5a35','#5f3a22','#ffc9de'],
+  hair: ['#6b4a3a','#2e2024','#0f0d0e','#e8c07d','#c05e2a','#f291ad','#c79bff','#8cc8f1','#ffffff','#d44a76'],
+  eyes: ['#3a2530','#111827','#2f6f4f','#3b82c4','#8b5cf6','#e96a91','#c98a2c','#64748b'],
+  dress:['#f291ad','#e96a91','#c79bff','#8cc8f1','#8fce8a','#ffd166','#ff9e7d','#ffffff','#3a2530','#d44a76'],
+  shoes:['#c84068','#3a2530','#ffffff','#8b5cf6','#3b82c4','#d9a86c','#ff9e7d','#8fce8a'],
+  acc:  ['#ffd166','#f291ad','#c79bff','#ff6b9d','#8cc8f1','#ffffff','#c84068','#3a2530']
+};
+const STYLE_OPTS = {
+  hairStyle: [['coletas','Coletas'],['bob','Bob'],['largo','Largo suelto'],['rodetes','Rodetes'],['cola','Cola alta'],['corto','Cortito'],['trenzas','Trenzas']],
+  eyeStyle:  [['normal','Normales'],['grandes','Grandotes'],['felices','Felices'],['estrellas','Estrellitas']],
+  mouthStyle:[['sonrisa','Sonrisa'],['grande','Sonrisota'],['gatito','Gatito'],['neutral','Seria'],['owo','Sorpresa']],
+  blush:     [['0','Sin cachetes'],['1','Suaves'],['2','Marcados']],
+  outfit:    [['vestido','Vestidito'],['princesa','Princesa'],['falda','Falda y top'],['enterito','Enterito']],
+  accessory: [['nada','Nada'],['mono','Moño'],['conejita','Orejas de conejita'],['gatito','Orejitas de gato'],['coronita','Coronita'],['flores','Corona de flores']]
+};
+let charCfg = (()=>{
+  try{ return Object.assign({}, CHAR_DEFAULT, JSON.parse(localStorage.getItem('mundito_char_v1')||'{}')); }
+  catch(e){ return {...CHAR_DEFAULT}; }
+})();
+function saveChar(){
+  try{ localStorage.setItem('mundito_char_v1', JSON.stringify(charCfg)); }catch(e){}
+}
 
 /* ---------- renderer / escena ---------- */
 const canvas = document.getElementById('game-canvas');
@@ -440,51 +545,203 @@ function updatePetals(dt){
   petalIM.instanceMatrix.needsUpdate = true;
 }
 
-/* ---------- personaje ---------- */
-function buildCharacter(){
+/* ---------- personaje (construido desde charCfg) ---------- */
+function buildCharacter(cfg){
   const g = new THREE.Group();
+  const skinM  = mat(cfg.skin);
+  const hairM  = mat(cfg.hair);
+  const dressM = mat(cfg.dress);
+  const shoeM  = mat(cfg.shoes);
+  const accM   = mat(cfg.acc);
 
-  /* vestidito (cono) */
-  const dress = mesh(new THREE.ConeGeometry(.55,.95,10), mat(CHAR.dress), 0,.85,0);
-  g.add(dress);
-  /* torso */
-  g.add(mesh(new THREE.SphereGeometry(.34,10,10), mat(CHAR.dress), 0,1.28,0));
-  /* cabeza */
-  g.add(mesh(new THREE.SphereGeometry(.5,14,14), mat(CHAR.skin), 0,1.95,0));
-  /* pelo: casco + coletas */
-  const hairM = mat(CHAR.hair);
-  const hair = mesh(new THREE.SphereGeometry(.53,14,14,0,Math.PI*2,0,Math.PI/1.75), hairM, 0,2.02,0);
-  g.add(hair);
-  const c1 = mesh(new THREE.SphereGeometry(.2,8,8), hairM, -.58,1.85,-.05);
-  const c2 = mesh(new THREE.SphereGeometry(.2,8,8), hairM, .58,1.85,-.05);
-  g.add(c1); g.add(c2);
-  /* moñitos en las coletas */
-  g.add(mesh(new THREE.SphereGeometry(.09,6,6), mat(0xffd166), -.58,2.02,-.05, false));
-  g.add(mesh(new THREE.SphereGeometry(.09,6,6), mat(0xffd166), .58,2.02,-.05, false));
-  /* ojitos */
-  g.add(mesh(new THREE.SphereGeometry(.06,6,6), mat(0x3a2530), -.17,1.98,.45, false));
-  g.add(mesh(new THREE.SphereGeometry(.06,6,6), mat(0x3a2530), .17,1.98,.45, false));
-  /* cachetes */
-  const blushM = new THREE.MeshBasicMaterial({color:0xff9db8, transparent:true, opacity:.7});
-  g.add(mesh(new THREE.SphereGeometry(.055,6,6), blushM, -.3,1.86,.4, false));
-  g.add(mesh(new THREE.SphereGeometry(.055,6,6), blushM, .3,1.86,.4, false));
-  /* bracitos */
-  const armM = mat(CHAR.skin);
-  const armL = mesh(new THREE.CapsuleGeometry(.09,.4,4,6), armM, -.44,1.15,0);
-  const armR = mesh(new THREE.CapsuleGeometry(.09,.4,4,6), armM, .44,1.15,0);
-  armL.rotation.z = .35; armR.rotation.z = -.35;
-  g.add(armL); g.add(armR);
-  /* piecitos */
-  const shoeM = mat(CHAR.shoes);
+  /* --- piecitos --- */
   const legL = mesh(new THREE.CapsuleGeometry(.1,.25,4,6), shoeM, -.18,.25,0);
   const legR = mesh(new THREE.CapsuleGeometry(.1,.25,4,6), shoeM, .18,.25,0);
   g.add(legL); g.add(legR);
 
-  g.userData = {armL, armR, legL, legR, dress};
+  /* --- outfit --- */
+  let dressRef = null;
+  if(cfg.outfit === 'princesa'){
+    dressRef = mesh(new THREE.ConeGeometry(.72,1.1,12), dressM, 0,.78,0);
+    g.add(dressRef);
+    g.add(mesh(new THREE.ConeGeometry(.5,.6,12), dressM, 0,1.05,0));
+    g.add(mesh(new THREE.SphereGeometry(.32,10,10), dressM, 0,1.3,0));
+    g.add(mesh(new THREE.TorusGeometry(.34,.035,6,14).rotateX(Math.PI/2), accM, 0,1.18,0, false));
+  } else if(cfg.outfit === 'falda'){
+    g.add(mesh(new THREE.SphereGeometry(.34,10,10), mat('#ffffff'), 0,1.28,0));
+    dressRef = mesh(new THREE.ConeGeometry(.52,.5,10), dressM, 0,.78,0);
+    g.add(dressRef);
+    g.add(mesh(new THREE.CylinderGeometry(.22,.26,.45,8), skinM, 0,.55,0));
+  } else if(cfg.outfit === 'enterito'){
+    dressRef = mesh(new THREE.CapsuleGeometry(.34,.65,4,10), dressM, 0,1.0,0);
+    g.add(dressRef);
+  } else { /* vestido */
+    dressRef = mesh(new THREE.ConeGeometry(.55,.95,10), dressM, 0,.85,0);
+    g.add(dressRef);
+    g.add(mesh(new THREE.SphereGeometry(.34,10,10), dressM, 0,1.28,0));
+  }
+
+  /* --- bracitos --- */
+  const armL = mesh(new THREE.CapsuleGeometry(.09,.4,4,6), skinM, -.44,1.15,0);
+  const armR = mesh(new THREE.CapsuleGeometry(.09,.4,4,6), skinM, .44,1.15,0);
+  armL.rotation.z = .35; armR.rotation.z = -.35;
+  g.add(armL); g.add(armR);
+
+  /* --- cabeza --- */
+  g.add(mesh(new THREE.SphereGeometry(.5,14,14), skinM, 0,1.95,0));
+
+  /* --- pelo --- */
+  const hs = cfg.hairStyle;
+  if(hs === 'corto'){
+    g.add(mesh(new THREE.SphereGeometry(.55,14,14,0,Math.PI*2,0,Math.PI/1.55), hairM, 0,2.02,0));
+  } else {
+    g.add(mesh(new THREE.SphereGeometry(.53,14,14,0,Math.PI*2,0,Math.PI/1.75), hairM, 0,2.02,0));
+  }
+  if(hs === 'coletas'){
+    g.add(mesh(new THREE.SphereGeometry(.2,8,8), hairM, -.58,1.85,-.05));
+    g.add(mesh(new THREE.SphereGeometry(.2,8,8), hairM, .58,1.85,-.05));
+  } else if(hs === 'bob'){
+    const s1 = mesh(new THREE.SphereGeometry(.3,10,10), hairM, -.42,1.75,-.05); s1.scale.set(.75,1.15,.85);
+    const s2 = mesh(new THREE.SphereGeometry(.3,10,10), hairM, .42,1.75,-.05); s2.scale.set(.75,1.15,.85);
+    g.add(s1); g.add(s2);
+  } else if(hs === 'largo'){
+    const back = mesh(new THREE.SphereGeometry(.42,12,12), hairM, 0,1.45,-.3);
+    back.scale.set(1,1.7,.7);
+    g.add(back);
+  } else if(hs === 'rodetes'){
+    g.add(mesh(new THREE.SphereGeometry(.22,8,8), hairM, -.35,2.45,-.05));
+    g.add(mesh(new THREE.SphereGeometry(.22,8,8), hairM, .35,2.45,-.05));
+  } else if(hs === 'cola'){
+    g.add(mesh(new THREE.SphereGeometry(.2,8,8), hairM, 0,2.4,-.28));
+    const tail = mesh(new THREE.CapsuleGeometry(.13,.55,4,8), hairM, 0,1.85,-.52);
+    tail.rotation.x = .35;
+    g.add(tail);
+  } else if(hs === 'trenzas'){
+    [-.52,.52].forEach(x=>{
+      g.add(mesh(new THREE.SphereGeometry(.14,8,8), hairM, x,1.75,.02));
+      g.add(mesh(new THREE.SphereGeometry(.12,8,8), hairM, x,1.52,.05));
+      g.add(mesh(new THREE.SphereGeometry(.1,8,8),  hairM, x,1.32,.08));
+    });
+  }
+
+  /* --- ojitos --- */
+  const eyeM = mat(cfg.eyes);
+  const ex=.17, ey=1.98, ez=.45;
+  if(cfg.eyeStyle === 'felices'){
+    [-ex,ex].forEach(x=>{
+      g.add(mesh(new THREE.TorusGeometry(.07,.018,6,10,Math.PI), eyeM, x,ey-.02,ez, false));
+    });
+  } else if(cfg.eyeStyle === 'estrellas'){
+    [-ex,ex].forEach(x=>{
+      const st = mesh(new THREE.OctahedronGeometry(.08), eyeM, x,ey,ez, false);
+      st.scale.z = .4;
+      g.add(st);
+    });
+  } else {
+    const r = cfg.eyeStyle === 'grandes' ? .085 : .06;
+    [-ex,ex].forEach(x=>{
+      g.add(mesh(new THREE.SphereGeometry(r,8,8), eyeM, x,ey,ez, false));
+      g.add(mesh(new THREE.SphereGeometry(r*.3,6,6), mat('#ffffff'), x+.02,ey+.02,ez+r*.8, false));
+    });
+  }
+
+  /* --- cachetitos --- */
+  if(String(cfg.blush) !== '0'){
+    const bm = new THREE.MeshBasicMaterial({color:0xff9db8, transparent:true, opacity: String(cfg.blush)==='2' ? .85 : .5});
+    g.add(mesh(new THREE.SphereGeometry(.055,6,6), bm, -.3,1.86,.4, false));
+    g.add(mesh(new THREE.SphereGeometry(.055,6,6), bm, .3,1.86,.4, false));
+  }
+
+  /* --- boquita --- */
+  const mouthM = mat('#c84068');
+  const my=1.82, mz=.46;
+  if(cfg.mouthStyle === 'grande'){
+    const m = mesh(new THREE.TorusGeometry(.13,.02,6,12,Math.PI), mouthM, 0,my+.06,mz, false);
+    m.rotation.z = Math.PI;
+    g.add(m);
+  } else if(cfg.mouthStyle === 'gatito'){
+    [-.05,.05].forEach(x=>{
+      const m = mesh(new THREE.TorusGeometry(.05,.015,6,10,Math.PI), mouthM, x,my+.02,mz, false);
+      m.rotation.z = Math.PI;
+      g.add(m);
+    });
+  } else if(cfg.mouthStyle === 'owo'){
+    g.add(mesh(new THREE.TorusGeometry(.045,.016,6,12), mouthM, 0,my,mz, false));
+  } else if(cfg.mouthStyle === 'neutral'){
+    g.add(mesh(new THREE.BoxGeometry(.14,.025,.02), mouthM, 0,my,mz, false));
+  } else { /* sonrisa */
+    const m = mesh(new THREE.TorusGeometry(.09,.016,6,12,Math.PI), mouthM, 0,my+.04,mz, false);
+    m.rotation.z = Math.PI;
+    g.add(m);
+  }
+
+  /* --- accesorio --- */
+  const acc = cfg.accessory;
+  if(acc === 'mono'){
+    const bow = new THREE.Group();
+    const l = mesh(new THREE.SphereGeometry(.13,8,8), accM, -.13,0,0); l.scale.set(1.2,.75,.6);
+    const r = mesh(new THREE.SphereGeometry(.13,8,8), accM, .13,0,0);  r.scale.set(1.2,.75,.6);
+    bow.add(l); bow.add(r);
+    bow.add(mesh(new THREE.SphereGeometry(.07,8,8), accM, 0,0,0));
+    bow.position.set(.34,2.42,.12);
+    bow.rotation.z = -.3;
+    g.add(bow);
+  } else if(acc === 'conejita'){
+    [-.22,.22].forEach((x,i)=>{
+      const ear = mesh(new THREE.SphereGeometry(.16,8,10), mat('#ffffff'), x,2.8,0);
+      ear.scale.set(.55,1.9,.45);
+      ear.rotation.z = i===0 ? .16 : -.16;
+      g.add(ear);
+      const inner = mesh(new THREE.SphereGeometry(.09,6,8), mat('#ffd5e0'), x*1.02,2.82,.06, false);
+      inner.scale.set(.45,1.5,.3);
+      inner.rotation.z = i===0 ? .16 : -.16;
+      g.add(inner);
+    });
+  } else if(acc === 'gatito'){
+    [-.3,.3].forEach((x,i)=>{
+      const ear = mesh(new THREE.ConeGeometry(.15,.3,6), hairM, x,2.52,0);
+      ear.rotation.z = i===0 ? .25 : -.25;
+      g.add(ear);
+      g.add(mesh(new THREE.ConeGeometry(.08,.16,6), mat('#ffd5e0'), x*.98,2.5,.03, false));
+    });
+  } else if(acc === 'coronita'){
+    g.add(mesh(new THREE.TorusGeometry(.3,.045,6,16).rotateX(Math.PI/2), accM, 0,2.52,0));
+    for(let i=0;i<4;i++){
+      const a = i/4*Math.PI*2;
+      g.add(mesh(new THREE.SphereGeometry(.05,6,6), accM, Math.cos(a)*.3,2.62,Math.sin(a)*.3, false));
+    }
+  } else if(acc === 'flores'){
+    for(let i=0;i<7;i++){
+      const a = i/7*Math.PI*2;
+      g.add(mesh(new THREE.SphereGeometry(.07,6,6), mat(flowerColors[i%flowerColors.length]), Math.cos(a)*.48,2.3,Math.sin(a)*.48, false));
+    }
+  }
+
+  g.scale.setScalar(cfg.size || 1);
+  g.userData = {armL, armR, legL, legR, dress: dressRef};
   return g;
 }
-const player = buildCharacter();
+
+let player = buildCharacter(charCfg);
 scene.add(player);
+
+function applyCharacter(){
+  const old = player;
+  const rotY = old ? old.rotation.y : 0;
+  if(old){
+    scene.remove(old);
+    old.traverse(o=>{
+      if(o.geometry) o.geometry.dispose();
+      if(o.material && o.material.dispose) o.material.dispose();
+    });
+  }
+  player = buildCharacter(charCfg);
+  player.rotation.y = rotY;
+  player.position.copy(P.pos);
+  scene.add(player);
+  if(window.WORLD) window.WORLD.player = player;
+  saveChar();
+}
 
 /* ---------- estado del jugador ---------- */
 const P = {
@@ -568,7 +825,7 @@ addEventListener('touchend', e=>{
 });
 document.getElementById('jumpBtn').addEventListener('touchstart', e=>{
   e.preventDefault();
-  if(P.onGround){ P.vy = 10; P.onGround=false; }
+  if(!editorMode && P.onGround){ P.vy = 10; P.onGround=false; }
 });
 
 /* ---------- ciclo día / noche ---------- */
@@ -619,13 +876,15 @@ function tick(){
   );
   sun.target.position.copy(P.pos);
 
-  /* --- input de movimiento --- */
+  /* --- input de movimiento (bloqueado en el editor) --- */
   let ix=0, iz=0;
-  if(keys['KeyW']||keys['ArrowUp'])    iz += 1;
-  if(keys['KeyS']||keys['ArrowDown'])  iz -= 1;
-  if(keys['KeyA']||keys['ArrowLeft'])  ix += 1;
-  if(keys['KeyD']||keys['ArrowRight']) ix -= 1;
-  if(joy.active){ ix -= joy.dx; iz -= joy.dy; }
+  if(!editorMode){
+    if(keys['KeyW']||keys['ArrowUp'])    iz += 1;
+    if(keys['KeyS']||keys['ArrowDown'])  iz -= 1;
+    if(keys['KeyA']||keys['ArrowLeft'])  ix += 1;
+    if(keys['KeyD']||keys['ArrowRight']) ix -= 1;
+    if(joy.active){ ix -= joy.dx; iz -= joy.dy; }
+  }
 
   const run = keys['ShiftLeft']||keys['ShiftRight'];
   const speed = run ? 11 : 6;
@@ -640,7 +899,7 @@ function tick(){
     P.vel.x *= .8; P.vel.z *= .8;
   }
 
-  if((keys['Space']) && P.onGround){ P.vy = 10; P.onGround=false; }
+  if(!editorMode && keys['Space'] && P.onGround){ P.vy = 10; P.onGround=false; }
 
   /* --- física --- */
   P.vy -= 28*dt;
@@ -667,11 +926,16 @@ function tick(){
 
   /* --- animación del personaje --- */
   player.position.copy(P.pos);
-  /* giro suave */
-  let dy = P.yaw - player.rotation.y;
-  while(dy>Math.PI) dy-=Math.PI*2;
-  while(dy<-Math.PI) dy+=Math.PI*2;
-  player.rotation.y += dy*Math.min(1, dt*12);
+  if(editorMode){
+    /* vitrina: gira despacito para verse de todos lados */
+    player.rotation.y += dt*.6;
+  } else {
+    /* giro suave hacia la dirección de movimiento */
+    let dy = P.yaw - player.rotation.y;
+    while(dy>Math.PI) dy-=Math.PI*2;
+    while(dy<-Math.PI) dy+=Math.PI*2;
+    player.rotation.y += dy*Math.min(1, dt*12);
+  }
 
   const u = player.userData;
   if(moving && P.onGround){
@@ -684,10 +948,14 @@ function tick(){
     u.armL.rotation.x *= .8; u.armR.rotation.x *= .8;
     u.legL.rotation.x *= .8; u.legR.rotation.x *= .8;
     /* respiración idle */
-    u.dress.scale.setScalar(1 + Math.sin(elapsed*2)*.012);
+    if(u.dress) u.dress.scale.setScalar(1 + Math.sin(elapsed*2)*.012);
   }
 
   /* --- cámara --- */
+  if(editorMode){
+    cam.dist  += (5   - cam.dist) *Math.min(1, dt*4);
+    cam.pitch += (.18 - cam.pitch)*Math.min(1, dt*4);
+  }
   const cx = P.pos.x + Math.sin(cam.yaw)*Math.cos(cam.pitch)*cam.dist;
   const cz = P.pos.z + Math.cos(cam.yaw)*Math.cos(cam.pitch)*cam.dist;
   const cy = P.pos.y + 1.6 + Math.sin(cam.pitch)*cam.dist;
@@ -705,6 +973,135 @@ function tick(){
 document.getElementById('helpBtn').addEventListener('click', ()=>{
   document.getElementById('helpPanel').classList.toggle('show');
 });
+
+/* ==========================================================
+   Editor de personaje · UI
+   ========================================================== */
+let editorMode = false, prevCamDist = 9;
+
+function openEditor(){
+  editorMode = true;
+  prevCamDist = cam.dist;
+  document.body.classList.add('editing');
+  refreshEditorUI();
+}
+function closeEditor(){
+  editorMode = false;
+  cam.dist = prevCamDist;
+  document.body.classList.remove('editing');
+  saveChar();
+}
+
+function ceEl(tag, cls, text){
+  const el = document.createElement(tag);
+  if(cls) el.className = cls;
+  if(text) el.textContent = text;
+  return el;
+}
+function addSwatches(sec, label, key){
+  sec.appendChild(ceEl('div','ce-label',label));
+  const row = ceEl('div','ce-swatches');
+  PALETTES[key].forEach(color=>{
+    const b = ceEl('button','ce-sw');
+    b.style.background = color;
+    b.dataset.key = key; b.dataset.val = color;
+    b.addEventListener('click', ()=>{
+      charCfg[key] = color;
+      applyCharacter();
+      refreshEditorUI();
+    });
+    row.appendChild(b);
+  });
+  sec.appendChild(row);
+}
+function addStyles(sec, label, key){
+  sec.appendChild(ceEl('div','ce-label',label));
+  const row = ceEl('div','ce-styles');
+  STYLE_OPTS[key].forEach(([val, name])=>{
+    const b = ceEl('button','ce-style',name);
+    b.dataset.key = key; b.dataset.val = val;
+    b.addEventListener('click', ()=>{
+      charCfg[key] = val;
+      applyCharacter();
+      refreshEditorUI();
+    });
+    row.appendChild(b);
+  });
+  sec.appendChild(row);
+}
+function addSize(sec){
+  sec.appendChild(ceEl('div','ce-label','Altura'));
+  const inp = document.createElement('input');
+  inp.type = 'range'; inp.min = '.85'; inp.max = '1.2'; inp.step = '.01';
+  inp.id = 'ceSize';
+  inp.addEventListener('input', ()=>{
+    charCfg.size = parseFloat(inp.value);
+    player.scale.setScalar(charCfg.size);
+    saveChar();
+  });
+  sec.appendChild(inp);
+}
+
+const TAB_DEFS = [
+  {id:'piel',   label:'🖐️ Piel',   build(s){ addSwatches(s,'Tono de piel','skin'); addSize(s); }},
+  {id:'pelo',   label:'💇‍♀️ Pelo',  build(s){ addStyles(s,'Peinado','hairStyle'); addSwatches(s,'Color de pelo','hair'); }},
+  {id:'carita', label:'🌸 Carita', build(s){ addStyles(s,'Ojitos','eyeStyle'); addSwatches(s,'Color de ojos','eyes'); addStyles(s,'Boquita','mouthStyle'); addStyles(s,'Cachetitos','blush'); }},
+  {id:'ropa',   label:'👗 Ropa',   build(s){ addStyles(s,'Outfit','outfit'); addSwatches(s,'Color principal','dress'); addSwatches(s,'Zapatitos','shoes'); }},
+  {id:'extras', label:'🎀 Extras', build(s){ addStyles(s,'Accesorio','accessory'); addSwatches(s,'Color del accesorio','acc'); }}
+];
+
+function buildEditorUI(){
+  const tabsEl = document.getElementById('ceTabs');
+  const secsEl = document.getElementById('ceSections');
+  TAB_DEFS.forEach((def, i)=>{
+    const tab = ceEl('button','ce-tab'+(i===0?' active':''), def.label);
+    tab.dataset.target = def.id;
+    tab.addEventListener('click', ()=>{
+      document.querySelectorAll('.ce-tab').forEach(t=>t.classList.toggle('active', t===tab));
+      document.querySelectorAll('.ce-section').forEach(s=>s.classList.toggle('active', s.id==='ce-'+def.id));
+    });
+    tabsEl.appendChild(tab);
+    const sec = ceEl('div','ce-section'+(i===0?' active':''));
+    sec.id = 'ce-'+def.id;
+    def.build(sec);
+    secsEl.appendChild(sec);
+  });
+}
+
+function refreshEditorUI(){
+  document.querySelectorAll('.ce-sw').forEach(b=>{
+    b.classList.toggle('active', charCfg[b.dataset.key] === b.dataset.val);
+  });
+  document.querySelectorAll('.ce-style').forEach(b=>{
+    b.classList.toggle('active', String(charCfg[b.dataset.key]) === b.dataset.val);
+  });
+  const slider = document.getElementById('ceSize');
+  if(slider) slider.value = charCfg.size || 1;
+}
+
+const pick = a => a[Math.floor(Math.random()*a.length)];
+function randomizeChar(){
+  charCfg.skin = pick(PALETTES.skin);
+  charCfg.hair = pick(PALETTES.hair);
+  charCfg.eyes = pick(PALETTES.eyes);
+  charCfg.dress = pick(PALETTES.dress);
+  charCfg.shoes = pick(PALETTES.shoes);
+  charCfg.acc = pick(PALETTES.acc);
+  charCfg.hairStyle = pick(STYLE_OPTS.hairStyle)[0];
+  charCfg.eyeStyle = pick(STYLE_OPTS.eyeStyle)[0];
+  charCfg.mouthStyle = pick(STYLE_OPTS.mouthStyle)[0];
+  charCfg.blush = pick(STYLE_OPTS.blush)[0];
+  charCfg.outfit = pick(STYLE_OPTS.outfit)[0];
+  charCfg.accessory = pick(STYLE_OPTS.accessory)[0];
+  charCfg.size = Math.round(rand(.9,1.1)*100)/100;
+  applyCharacter();
+  refreshEditorUI();
+}
+
+buildEditorUI();
+document.getElementById('charBtn').addEventListener('click', openEditor);
+document.getElementById('ceDone').addEventListener('click', closeEditor);
+document.getElementById('ceRandom').addEventListener('click', randomizeChar);
 const title = document.getElementById('worldTitle');
 title.textContent = window.PLAYER_NAME ? `El mundito de ${window.PLAYER_NAME} ♡` : 'Mi Mundito ♡';
 
@@ -715,7 +1112,7 @@ addEventListener('resize', ()=>{
 });
 
 /* exponer para fases futuras (construcción, crafteo, etc.) */
-window.WORLD = { scene, camera, renderer, player, P, obstacles, CHAR };
+window.WORLD = { scene, camera, renderer, P, obstacles, charCfg, get player(){ return player; } };
 
 /* arrancar */
 tick();

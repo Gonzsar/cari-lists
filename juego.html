@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Mi Mundito ♡</title>
+<meta name="theme-color" content="#f291ad"/>
+<link rel="icon" type="image/png" href="favicon.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{
+    width:100%;height:100%;overflow:hidden;
+    font-family:'Quicksand',sans-serif;
+    background:#ffd9ec;
+    touch-action:none;
+  }
+  #game-canvas{display:block;width:100%;height:100%;}
+
+  /* ===== Pantalla de carga ===== */
+  #loading{
+    position:fixed;inset:0;z-index:100;
+    background:linear-gradient(135deg,#ffeef4,#fde4c9);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+    transition:opacity .6s ease;
+  }
+  #loading.hide{opacity:0;pointer-events:none;}
+  #loading .heart{font-size:3.4rem;animation:beat 1.2s ease infinite;}
+  @keyframes beat{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
+  #loading h1{
+    font-family:'Dancing Script',cursive;color:#c84068;font-size:2.6rem;font-weight:700;
+  }
+  #loading p{color:#8a6878;font-size:.95rem;}
+
+  /* ===== HUD ===== */
+  .hud-btn{
+    position:fixed;z-index:20;
+    background:rgba(255,255,255,.85);backdrop-filter:blur(8px);
+    border:2px solid #f7b3c6;border-radius:50px;
+    color:#c84068;font-family:inherit;font-weight:700;font-size:.85rem;
+    padding:9px 16px;cursor:pointer;text-decoration:none;
+    display:inline-flex;align-items:center;gap:7px;
+    box-shadow:0 6px 18px rgba(232,106,145,.3);
+    transition:transform .2s ease;
+  }
+  .hud-btn:hover{transform:translateY(-2px);}
+  #backBtn{top:14px;left:14px;}
+  #helpBtn{top:14px;right:14px;}
+
+  #worldTitle{
+    position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:19;
+    font-family:'Dancing Script',cursive;font-size:1.7rem;font-weight:700;color:#c84068;
+    text-shadow:0 2px 8px rgba(255,255,255,.8);
+    pointer-events:none;white-space:nowrap;
+  }
+
+  /* Panel de controles */
+  #helpPanel{
+    position:fixed;top:64px;right:14px;z-index:21;
+    background:rgba(255,255,255,.94);backdrop-filter:blur(10px);
+    border:2px solid #f7b3c6;border-radius:18px;
+    padding:16px 18px;max-width:250px;
+    box-shadow:0 10px 30px rgba(232,106,145,.3);
+    color:#5a3a48;font-size:.86rem;line-height:1.9;
+    display:none;
+  }
+  #helpPanel.show{display:block;}
+  #helpPanel h3{
+    font-family:'Dancing Script',cursive;color:#c84068;font-size:1.4rem;margin-bottom:6px;
+  }
+  #helpPanel b{color:#e96a91;}
+
+  /* ===== Controles táctiles ===== */
+  #joystick{
+    position:fixed;bottom:26px;left:26px;z-index:22;
+    width:110px;height:110px;border-radius:50%;
+    background:rgba(255,255,255,.35);border:2px solid rgba(247,179,198,.8);
+    display:none;
+  }
+  #joyKnob{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:46px;height:46px;border-radius:50%;
+    background:rgba(233,106,145,.85);
+    box-shadow:0 3px 10px rgba(200,64,104,.4);
+  }
+  #jumpBtn{
+    position:fixed;bottom:40px;right:28px;z-index:22;
+    width:74px;height:74px;border-radius:50%;
+    background:rgba(233,106,145,.85);border:2px solid #fff;
+    color:#fff;font-size:1.6rem;font-family:inherit;
+    box-shadow:0 6px 18px rgba(200,64,104,.4);
+    display:none;align-items:center;justify-content:center;
+  }
+  body.touch #joystick{display:block;}
+  body.touch #jumpBtn{display:flex;}
+
+  /* Reloj del día */
+  #clock{
+    position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:19;
+    background:rgba(255,255,255,.7);backdrop-filter:blur(6px);
+    border:1.5px solid #f7b3c6;border-radius:40px;
+    padding:6px 16px;color:#c84068;font-weight:700;font-size:.85rem;
+    pointer-events:none;
+  }
+  @media (max-width:600px){
+    #worldTitle{font-size:1.3rem;top:60px;}
+    #clock{display:none;}
+  }
+</style>
+<script>
+  /* nombre desde la web principal */
+  window.PLAYER_NAME = (function(){
+    try{
+      const s = JSON.parse(localStorage.getItem('cariList_settings_v2')||'{}');
+      return s.name || '';
+    }catch(e){ return ''; }
+  })();
+</script>
+<script type="importmap">
+  { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+</script>
+</head>
+<body>
+
+<div id="loading">
+  <div class="heart">🌸</div>
+  <h1>Mi Mundito</h1>
+  <p>preparando tu mundo rosa...</p>
+</div>
+
+<a id="backBtn" class="hud-btn" href="index.html">← Mi rinconcito</a>
+<button id="helpBtn" class="hud-btn">🎀 Controles</button>
+<div id="worldTitle"></div>
+
+<div id="helpPanel">
+  <h3>Cómo jugar</h3>
+  <b>W A S D</b> o flechitas → moverte<br>
+  <b>Shift</b> → correr<br>
+  <b>Espacio</b> → saltar<br>
+  <b>Arrastrar mouse</b> → mirar<br>
+  <b>Rueda</b> → zoom<br>
+  <span style="font-size:.78rem;color:#8a6878;">En celu: joystick + botón de salto ♡</span>
+</div>
+
+<div id="joystick"><div id="joyKnob"></div></div>
+<button id="jumpBtn">↑</button>
+<div id="clock">☀️ Día</div>
+
+<canvas id="game-canvas"></canvas>
+
+<script type="module">
+import * as THREE from 'three';
+
+/* ==========================================================
+   MI MUNDITO · Fase 1 — mundo, personaje, día/noche
+   Preparado para crecer: fases futuras usan window.WORLD
+   ========================================================== */
+
+const WORLD_RADIUS = 230;
+
+/* --- personalización básica (Fase 2 la hará editable) --- */
+const CHAR = {
+  skin:  0xffe0cf,
+  hair:  0x6b4a3a,
+  dress: 0xf291ad,
+  shoes: 0xc84068
+};
+
+/* ---------- renderer / escena ---------- */
+const canvas = document.getElementById('game-canvas');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0xffd9ec, 45, 160);
+
+const camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, .1, 400);
+
+/* ---------- luces ---------- */
+const hemi = new THREE.HemisphereLight(0xfff2f8, 0xd8f0c8, .75);
+scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xfff0dd, 1.6);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.left = -55; sun.shadow.camera.right = 55;
+sun.shadow.camera.top = 55;  sun.shadow.camera.bottom = -55;
+sun.shadow.camera.far = 220;
+sun.shadow.bias = -0.0004;
+scene.add(sun); scene.add(sun.target);
+
+/* ---------- helpers ---------- */
+const mat = (c, opts={}) => new THREE.MeshStandardMaterial({color:c, roughness:.9, metalness:0, ...opts});
+function mesh(geo, m, x=0,y=0,z=0, shadow=true){
+  const o = new THREE.Mesh(geo, m);
+  o.position.set(x,y,z);
+  o.castShadow = shadow; o.receiveShadow = shadow;
+  return o;
+}
+const rand = (a,b)=>a+Math.random()*(b-a);
+
+/* Obstáculos para colisión simple (círculos en el plano) */
+const obstacles = [];   // {x, z, r}
+
+/* ---------- suelo ---------- */
+const ground = mesh(new THREE.CircleGeometry(WORLD_RADIUS+30, 64).rotateX(-Math.PI/2), mat(0xb9e3ae), 0,0,0);
+ground.castShadow = false;
+scene.add(ground);
+
+/* caminito de tierra clara */
+const path = mesh(new THREE.RingGeometry(14, 17, 48).rotateX(-Math.PI/2), mat(0xecd9b8), 0,.02,0, false);
+path.receiveShadow = true;
+scene.add(path);
+
+/* ---------- árboles ---------- */
+function sakura(x,z,s=1){
+  const g = new THREE.Group();
+  g.add(mesh(new THREE.CylinderGeometry(.4*s,.55*s,3.4*s,7), mat(0x9a6b4f), 0,1.7*s,0));
+  const foam = mat(0xf9b9d4);
+  [[0,4.2,0,1.9],[1.2,3.6,.5,1.3],[-1.1,3.7,-.4,1.2],[.3,3.4,-1.1,1.1],[-.4,3.5,1.0,1.0]]
+    .forEach(([px,py,pz,pr])=>g.add(mesh(new THREE.IcosahedronGeometry(pr*s,1), foam, px*s,py*s,pz*s)));
+  g.position.set(x,0,z);
+  scene.add(g);
+  obstacles.push({x,z,r:1.1*s});
+}
+function pino(x,z,s=1){
+  const g = new THREE.Group();
+  g.add(mesh(new THREE.CylinderGeometry(.3*s,.45*s,2*s,7), mat(0x9a6b4f), 0,1*s,0));
+  const green = mat(0x8fce8a);
+  g.add(mesh(new THREE.ConeGeometry(1.8*s,2.6*s,8), green, 0,3*s,0));
+  g.add(mesh(new THREE.ConeGeometry(1.4*s,2.2*s,8), green, 0,4.3*s,0));
+  g.add(mesh(new THREE.ConeGeometry(1.0*s,1.8*s,8), green, 0,5.4*s,0));
+  g.position.set(x,0,z);
+  scene.add(g);
+  obstacles.push({x,z,r:.9*s});
+}
+
+/* ---------- flores, hongos, rocas ---------- */
+const flowerColors = [0xff8fb3, 0xffd166, 0xc79bff, 0xffffff, 0xff6b9d];
+function flor(x,z){
+  const g = new THREE.Group();
+  g.add(mesh(new THREE.CylinderGeometry(.03,.03,.5,5), mat(0x7fbf72), 0,.25,0, false));
+  const c = flowerColors[Math.floor(Math.random()*flowerColors.length)];
+  const petal = mat(c);
+  for(let i=0;i<5;i++){
+    const a = i/5*Math.PI*2;
+    g.add(mesh(new THREE.SphereGeometry(.09,6,6), petal, Math.cos(a)*.12,.55,Math.sin(a)*.12, false));
+  }
+  g.add(mesh(new THREE.SphereGeometry(.07,6,6), mat(0xffe08a), 0,.55,0, false));
+  g.position.set(x,0,z);
+  scene.add(g);
+}
+function hongo(x,z,s=1){
+  const g = new THREE.Group();
+  g.add(mesh(new THREE.CylinderGeometry(.16*s,.2*s,.5*s,7), mat(0xfff4ec), 0,.25*s,0));
+  const cap = mesh(new THREE.SphereGeometry(.42*s,10,8,0,Math.PI*2,0,Math.PI/2), mat(0xf291ad), 0,.5*s,0);
+  g.add(cap);
+  for(let i=0;i<3;i++){
+    g.add(mesh(new THREE.SphereGeometry(.06*s,5,5), mat(0xffffff), rand(-.25,.25)*s, rand(.55,.75)*s, rand(-.25,.25)*s, false));
+  }
+  g.position.set(x,0,z);
+  scene.add(g);
+}
+function roca(x,z,s=1){
+  const r = mesh(new THREE.IcosahedronGeometry(s,0), mat(0xcfc8d4), x,s*.4,z);
+  r.scale.y = .6;
+  scene.add(r);
+  obstacles.push({x,z,r:s*.9});
+}
+
+/* ---------- casita cottage ---------- */
+function cottage(x,z,rotY=0){
+  const g = new THREE.Group();
+  g.add(mesh(new THREE.BoxGeometry(6,3.4,5), mat(0xfff4e6), 0,1.7,0));
+  const roof = mesh(new THREE.ConeGeometry(4.9,2.8,4), mat(0xf291ad), 0,4.8,0);
+  roof.rotation.y = Math.PI/4;
+  g.add(roof);
+  g.add(mesh(new THREE.BoxGeometry(.9,1.4,.9), mat(0xe8b4a0), 1.9,5.4,1.2));
+  g.add(mesh(new THREE.BoxGeometry(1.3,2.1,.15), mat(0xb9825f), 0,1.05,2.53));
+  g.add(mesh(new THREE.SphereGeometry(.08,6,6), mat(0xffe08a), .4,1.05,2.62, false));
+  const win = mat(0xbfe8ff, {emissive:0x224466, emissiveIntensity:.15});
+  g.add(mesh(new THREE.BoxGeometry(1.1,1.1,.12), win, -1.8,1.9,2.53));
+  g.add(mesh(new THREE.BoxGeometry(1.1,1.1,.12), win, 1.8,1.9,2.53));
+  g.add(mesh(new THREE.BoxGeometry(.12,1.1,1.1), win, 3.03,1.9,0));
+  g.position.set(x,0,z);
+  g.rotation.y = rotY;
+  scene.add(g);
+  obstacles.push({x,z,r:4.4});
+  return g;
+}
+
+/* ---------- vallas ---------- */
+function valla(x,z,rotY=0,len=4){
+  const g = new THREE.Group();
+  const wood = mat(0xd8a47c);
+  const n = Math.round(len/1);
+  for(let i=0;i<=n;i++){
+    g.add(mesh(new THREE.CylinderGeometry(.09,.09,1.1,6), wood, -len/2+i*(len/n),.55,0));
+  }
+  g.add(mesh(new THREE.BoxGeometry(len,.12,.1), wood, 0,.75,0));
+  g.add(mesh(new THREE.BoxGeometry(len,.12,.1), wood, 0,.4,0));
+  g.position.set(x,0,z); g.rotation.y = rotY;
+  scene.add(g);
+}
+
+/* ---------- poblar el mundo ---------- */
+cottage(12, -8, -.5);
+cottage(-18, 14, .9);
+cottage(60, 45, 2.1);
+cottage(-75, -50, .3);
+cottage(110, -90, -1.2);
+cottage(-140, 100, 1.7);
+valla(12, -3.2, 0, 7);
+valla(8.2, -6.5, Math.PI/2, 6);
+valla(60, 50, .4, 8);
+valla(-70, -45, -.6, 7);
+
+for(let i=0;i<95;i++){
+  const a = Math.random()*Math.PI*2, d = rand(22, WORLD_RADIUS-6);
+  (Math.random()<.55 ? sakura : pino)(Math.cos(a)*d, Math.sin(a)*d, rand(.8,1.6));
+}
+for(let i=0;i<170;i++){
+  const a = Math.random()*Math.PI*2, d = rand(4, WORLD_RADIUS-4);
+  flor(Math.cos(a)*d, Math.sin(a)*d);
+}
+for(let i=0;i<28;i++){
+  const a = Math.random()*Math.PI*2, d = rand(15, WORLD_RADIUS-10);
+  hongo(Math.cos(a)*d, Math.sin(a)*d, rand(.7,1.3));
+}
+for(let i=0;i<24;i++){
+  const a = Math.random()*Math.PI*2, d = rand(25, WORLD_RADIUS-8);
+  roca(Math.cos(a)*d, Math.sin(a)*d, rand(.6,1.5));
+}
+
+/* ---------- nubes ---------- */
+const clouds = [];
+for(let i=0;i<18;i++){
+  const g = new THREE.Group();
+  const white = mat(0xffffff, {roughness:1});
+  const n = 3+Math.floor(Math.random()*3);
+  for(let j=0;j<n;j++){
+    g.add(mesh(new THREE.SphereGeometry(rand(1.6,2.8),8,8), white, j*2.1-n, rand(-.3,.3), rand(-.8,.8), false));
+  }
+  g.position.set(rand(-230,230), rand(32,52), rand(-230,230));
+  g.userData.speed = rand(.4,1.1);
+  scene.add(g);
+  clouds.push(g);
+}
+
+/* ---------- pétalos cayendo ---------- */
+const petals = [];
+const petalGeo = new THREE.PlaneGeometry(.22,.22);
+const petalMat = new THREE.MeshBasicMaterial({color:0xffb3cd, side:THREE.DoubleSide, transparent:true, opacity:.85});
+for(let i=0;i<70;i++){
+  const p = new THREE.Mesh(petalGeo, petalMat);
+  p.position.set(rand(-40,40), rand(2,22), rand(-40,40));
+  p.userData = {vy:rand(.5,1.1), ph:Math.random()*Math.PI*2};
+  scene.add(p);
+  petals.push(p);
+}
+
+/* ---------- personaje ---------- */
+function buildCharacter(){
+  const g = new THREE.Group();
+
+  /* vestidito (cono) */
+  const dress = mesh(new THREE.ConeGeometry(.55,.95,10), mat(CHAR.dress), 0,.85,0);
+  g.add(dress);
+  /* torso */
+  g.add(mesh(new THREE.SphereGeometry(.34,10,10), mat(CHAR.dress), 0,1.28,0));
+  /* cabeza */
+  g.add(mesh(new THREE.SphereGeometry(.5,14,14), mat(CHAR.skin), 0,1.95,0));
+  /* pelo: casco + coletas */
+  const hairM = mat(CHAR.hair);
+  const hair = mesh(new THREE.SphereGeometry(.53,14,14,0,Math.PI*2,0,Math.PI/1.75), hairM, 0,2.02,0);
+  g.add(hair);
+  const c1 = mesh(new THREE.SphereGeometry(.2,8,8), hairM, -.58,1.85,-.05);
+  const c2 = mesh(new THREE.SphereGeometry(.2,8,8), hairM, .58,1.85,-.05);
+  g.add(c1); g.add(c2);
+  /* moñitos en las coletas */
+  g.add(mesh(new THREE.SphereGeometry(.09,6,6), mat(0xffd166), -.58,2.02,-.05, false));
+  g.add(mesh(new THREE.SphereGeometry(.09,6,6), mat(0xffd166), .58,2.02,-.05, false));
+  /* ojitos */
+  g.add(mesh(new THREE.SphereGeometry(.06,6,6), mat(0x3a2530), -.17,1.98,.45, false));
+  g.add(mesh(new THREE.SphereGeometry(.06,6,6), mat(0x3a2530), .17,1.98,.45, false));
+  /* cachetes */
+  const blushM = new THREE.MeshBasicMaterial({color:0xff9db8, transparent:true, opacity:.7});
+  g.add(mesh(new THREE.SphereGeometry(.055,6,6), blushM, -.3,1.86,.4, false));
+  g.add(mesh(new THREE.SphereGeometry(.055,6,6), blushM, .3,1.86,.4, false));
+  /* bracitos */
+  const armM = mat(CHAR.skin);
+  const armL = mesh(new THREE.CapsuleGeometry(.09,.4,4,6), armM, -.44,1.15,0);
+  const armR = mesh(new THREE.CapsuleGeometry(.09,.4,4,6), armM, .44,1.15,0);
+  armL.rotation.z = .35; armR.rotation.z = -.35;
+  g.add(armL); g.add(armR);
+  /* piecitos */
+  const shoeM = mat(CHAR.shoes);
+  const legL = mesh(new THREE.CapsuleGeometry(.1,.25,4,6), shoeM, -.18,.25,0);
+  const legR = mesh(new THREE.CapsuleGeometry(.1,.25,4,6), shoeM, .18,.25,0);
+  g.add(legL); g.add(legR);
+
+  g.userData = {armL, armR, legL, legR, dress};
+  return g;
+}
+const player = buildCharacter();
+scene.add(player);
+
+/* ---------- estado del jugador ---------- */
+const P = {
+  pos: new THREE.Vector3(0,0,8),
+  vel: new THREE.Vector3(),
+  vy: 0,
+  onGround: true,
+  yaw: 0,
+  walkT: 0
+};
+
+/* ---------- cámara orbital ---------- */
+const cam = { yaw: Math.PI, pitch: .35, dist: 9 };
+let dragging = false, lastX=0, lastY=0;
+
+canvas.addEventListener('pointerdown', e=>{
+  if(e.pointerType==='touch') return;   /* touch se maneja aparte */
+  dragging = true; lastX=e.clientX; lastY=e.clientY;
+});
+addEventListener('pointerup', ()=>dragging=false);
+addEventListener('pointermove', e=>{
+  if(!dragging || e.pointerType==='touch') return;
+  cam.yaw   -= (e.clientX-lastX)*.005;
+  cam.pitch += (e.clientY-lastY)*.004;
+  cam.pitch = Math.max(.08, Math.min(1.25, cam.pitch));
+  lastX=e.clientX; lastY=e.clientY;
+});
+addEventListener('wheel', e=>{
+  cam.dist = Math.max(4, Math.min(18, cam.dist + e.deltaY*.01));
+});
+
+/* ---------- teclado ---------- */
+const keys = {};
+addEventListener('keydown', e=>{ keys[e.code]=true; if(e.code==='Space') e.preventDefault(); });
+addEventListener('keyup',   e=>{ keys[e.code]=false; });
+
+/* ---------- controles táctiles ---------- */
+const isTouch = matchMedia('(pointer:coarse)').matches;
+if(isTouch) document.body.classList.add('touch');
+
+const joy = {active:false, id:null, cx:0, cy:0, dx:0, dy:0};
+const joyEl = document.getElementById('joystick');
+const knob = document.getElementById('joyKnob');
+let camTouch = {id:null, x:0, y:0};
+
+addEventListener('touchstart', e=>{
+  for(const t of e.changedTouches){
+    const r = joyEl.getBoundingClientRect();
+    if(isTouch && t.clientX>=r.left-20 && t.clientX<=r.right+20 && t.clientY>=r.top-20 && t.clientY<=r.bottom+20){
+      joy.active=true; joy.id=t.identifier;
+      joy.cx=r.left+r.width/2; joy.cy=r.top+r.height/2;
+    } else if(camTouch.id===null && t.target===canvas){
+      camTouch.id=t.identifier; camTouch.x=t.clientX; camTouch.y=t.clientY;
+    }
+  }
+},{passive:true});
+addEventListener('touchmove', e=>{
+  for(const t of e.changedTouches){
+    if(joy.active && t.identifier===joy.id){
+      let dx=t.clientX-joy.cx, dy=t.clientY-joy.cy;
+      const len=Math.hypot(dx,dy), max=44;
+      if(len>max){ dx*=max/len; dy*=max/len; }
+      joy.dx=dx/max; joy.dy=dy/max;
+      knob.style.transform=`translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+    } else if(t.identifier===camTouch.id){
+      cam.yaw   -= (t.clientX-camTouch.x)*.006;
+      cam.pitch += (t.clientY-camTouch.y)*.005;
+      cam.pitch = Math.max(.08, Math.min(1.25, cam.pitch));
+      camTouch.x=t.clientX; camTouch.y=t.clientY;
+    }
+  }
+},{passive:true});
+addEventListener('touchend', e=>{
+  for(const t of e.changedTouches){
+    if(t.identifier===joy.id){
+      joy.active=false; joy.id=null; joy.dx=0; joy.dy=0;
+      knob.style.transform='translate(-50%,-50%)';
+    }
+    if(t.identifier===camTouch.id) camTouch.id=null;
+  }
+});
+document.getElementById('jumpBtn').addEventListener('touchstart', e=>{
+  e.preventDefault();
+  if(P.onGround){ P.vy = 10; P.onGround=false; }
+});
+
+/* ---------- ciclo día / noche ---------- */
+const DAY_LENGTH = 300;  /* segundos por ciclo completo */
+const skyKeys = [
+  {t:0.00, sky:0xffe3f0, fog:0xffd9ec, sun:0xfff0dd, i:1.6, hemi:.75, label:'☀️ Día'},
+  {t:0.40, sky:0xffe3f0, fog:0xffd9ec, sun:0xfff0dd, i:1.6, hemi:.75, label:'☀️ Día'},
+  {t:0.50, sky:0xffb37d, fog:0xffc19a, sun:0xff9d5c, i:1.1, hemi:.5,  label:'🌇 Atardecer'},
+  {t:0.60, sky:0x241b3d, fog:0x2c2148, sun:0x8fa8ff, i:.25, hemi:.22, label:'🌙 Noche'},
+  {t:0.85, sky:0x241b3d, fog:0x2c2148, sun:0x8fa8ff, i:.25, hemi:.22, label:'🌙 Noche'},
+  {t:0.93, sky:0xffc9a3, fog:0xffd4b3, sun:0xffc07a, i:1.0, hemi:.5,  label:'🌅 Amanecer'},
+  {t:1.00, sky:0xffe3f0, fog:0xffd9ec, sun:0xfff0dd, i:1.6, hemi:.75, label:'☀️ Día'}
+];
+const _c1 = new THREE.Color(), _c2 = new THREE.Color();
+function lerpSky(t){
+  let a=skyKeys[0], b=skyKeys[skyKeys.length-1];
+  for(let i=0;i<skyKeys.length-1;i++){
+    if(t>=skyKeys[i].t && t<=skyKeys[i+1].t){ a=skyKeys[i]; b=skyKeys[i+1]; break; }
+  }
+  const f = (t-a.t)/Math.max(.0001,(b.t-a.t));
+  scene.background = _c1.set(a.sky).lerp(_c2.set(b.sky), f).clone();
+  scene.fog.color.set(_c1.set(a.fog).lerp(_c2.set(b.fog), f));
+  sun.color.set(_c1.set(a.sun).lerp(_c2.set(b.sun), f));
+  sun.intensity = a.i+(b.i-a.i)*f;
+  hemi.intensity = a.hemi+(b.hemi-a.hemi)*f;
+  return f<.5 ? a.label : b.label;
+}
+
+/* ---------- loop principal ---------- */
+const clockEl = document.getElementById('clock');
+const clock3 = new THREE.Clock();
+let elapsed = 0;
+
+function tick(){
+  requestAnimationFrame(tick);
+  const dt = Math.min(clock3.getDelta(), .05);
+  elapsed += dt;
+
+  /* --- ciclo del cielo --- */
+  const dayT = (elapsed % DAY_LENGTH)/DAY_LENGTH;
+  const label = lerpSky(dayT);
+  if(clockEl.textContent !== label) clockEl.textContent = label;
+  const sunA = dayT*Math.PI*2 - Math.PI/2;
+  sun.position.set(
+    P.pos.x + Math.cos(sunA)*60,
+    Math.max(12, Math.sin(sunA)*80),
+    P.pos.z + 40
+  );
+  sun.target.position.copy(P.pos);
+
+  /* --- input de movimiento --- */
+  let ix=0, iz=0;
+  if(keys['KeyW']||keys['ArrowUp'])    iz += 1;
+  if(keys['KeyS']||keys['ArrowDown'])  iz -= 1;
+  if(keys['KeyA']||keys['ArrowLeft'])  ix += 1;
+  if(keys['KeyD']||keys['ArrowRight']) ix -= 1;
+  if(joy.active){ ix -= joy.dx; iz -= joy.dy; }
+
+  const run = keys['ShiftLeft']||keys['ShiftRight'];
+  const speed = run ? 11 : 6;
+  const moving = Math.hypot(ix,iz) > .1;
+
+  if(moving){
+    const ang = Math.atan2(ix,iz) + cam.yaw + Math.PI;
+    P.vel.x = Math.sin(ang)*speed;
+    P.vel.z = Math.cos(ang)*speed;
+    P.yaw = ang;
+  } else {
+    P.vel.x *= .8; P.vel.z *= .8;
+  }
+
+  if((keys['Space']) && P.onGround){ P.vy = 10; P.onGround=false; }
+
+  /* --- física --- */
+  P.vy -= 28*dt;
+  P.pos.x += P.vel.x*dt;
+  P.pos.z += P.vel.z*dt;
+  P.pos.y += P.vy*dt;
+  if(P.pos.y <= 0){ P.pos.y=0; P.vy=0; P.onGround=true; }
+
+  /* borde del mundo */
+  const dCenter = Math.hypot(P.pos.x, P.pos.z);
+  if(dCenter > WORLD_RADIUS){
+    P.pos.x *= WORLD_RADIUS/dCenter;
+    P.pos.z *= WORLD_RADIUS/dCenter;
+  }
+  /* colisiones con obstáculos */
+  for(const o of obstacles){
+    const dx=P.pos.x-o.x, dz=P.pos.z-o.z;
+    const d=Math.hypot(dx,dz), minD=o.r+.45;
+    if(d < minD && d > .001){
+      P.pos.x = o.x + dx/d*minD;
+      P.pos.z = o.z + dz/d*minD;
+    }
+  }
+
+  /* --- animación del personaje --- */
+  player.position.copy(P.pos);
+  /* giro suave */
+  let dy = P.yaw - player.rotation.y;
+  while(dy>Math.PI) dy-=Math.PI*2;
+  while(dy<-Math.PI) dy+=Math.PI*2;
+  player.rotation.y += dy*Math.min(1, dt*12);
+
+  const u = player.userData;
+  if(moving && P.onGround){
+    P.walkT += dt*(run?13:9);
+    const s = Math.sin(P.walkT);
+    u.armL.rotation.x =  s*.7;  u.armR.rotation.x = -s*.7;
+    u.legL.rotation.x = -s*.8;  u.legR.rotation.x =  s*.8;
+    player.position.y = P.pos.y + Math.abs(Math.sin(P.walkT))*.08;
+  } else {
+    u.armL.rotation.x *= .8; u.armR.rotation.x *= .8;
+    u.legL.rotation.x *= .8; u.legR.rotation.x *= .8;
+    /* respiración idle */
+    u.dress.scale.setScalar(1 + Math.sin(elapsed*2)*.012);
+  }
+
+  /* --- cámara --- */
+  const cx = P.pos.x + Math.sin(cam.yaw)*Math.cos(cam.pitch)*cam.dist;
+  const cz = P.pos.z + Math.cos(cam.yaw)*Math.cos(cam.pitch)*cam.dist;
+  const cy = P.pos.y + 1.6 + Math.sin(cam.pitch)*cam.dist;
+  camera.position.lerp(new THREE.Vector3(cx,cy,cz), Math.min(1, dt*8));
+  camera.lookAt(P.pos.x, P.pos.y+1.5, P.pos.z);
+
+  /* --- nubes --- */
+  for(const c of clouds){
+    c.position.x += c.userData.speed*dt;
+    if(c.position.x > 250) c.position.x = -250;
+  }
+
+  /* --- pétalos --- */
+  for(const p of petals){
+    p.position.y -= p.userData.vy*dt;
+    p.position.x += Math.sin(elapsed*1.5 + p.userData.ph)*.35*dt;
+    p.rotation.x += dt*2; p.rotation.y += dt*1.5;
+    if(p.position.y < 0){
+      p.position.set(P.pos.x+rand(-35,35), rand(14,24), P.pos.z+rand(-35,35));
+    }
+  }
+
+  renderer.render(scene, camera);
+}
+
+/* ---------- UI ---------- */
+document.getElementById('helpBtn').addEventListener('click', ()=>{
+  document.getElementById('helpPanel').classList.toggle('show');
+});
+const title = document.getElementById('worldTitle');
+title.textContent = window.PLAYER_NAME ? `El mundito de ${window.PLAYER_NAME} ♡` : 'Mi Mundito ♡';
+
+addEventListener('resize', ()=>{
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+/* exponer para fases futuras (construcción, crafteo, etc.) */
+window.WORLD = { scene, camera, renderer, player, P, obstacles, CHAR };
+
+/* arrancar */
+tick();
+setTimeout(()=>document.getElementById('loading').classList.add('hide'), 700);
+</script>
+</body>
+</html>

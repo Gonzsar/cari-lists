@@ -170,8 +170,8 @@ const CHAR = {
 
 /* ---------- renderer / escena ---------- */
 const canvas = document.getElementById('game-canvas');
-const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -216,61 +216,118 @@ const path = mesh(new THREE.RingGeometry(14, 17, 48).rotateX(-Math.PI/2), mat(0x
 path.receiveShadow = true;
 scene.add(path);
 
-/* ---------- árboles ---------- */
-function sakura(x,z,s=1){
-  const g = new THREE.Group();
-  g.add(mesh(new THREE.CylinderGeometry(.4*s,.55*s,3.4*s,7), mat(0x9a6b4f), 0,1.7*s,0));
-  const foam = mat(0xf9b9d4);
-  [[0,4.2,0,1.9],[1.2,3.6,.5,1.3],[-1.1,3.7,-.4,1.2],[.3,3.4,-1.1,1.1],[-.4,3.5,1.0,1.0]]
-    .forEach(([px,py,pz,pr])=>g.add(mesh(new THREE.IcosahedronGeometry(pr*s,1), foam, px*s,py*s,pz*s)));
-  g.position.set(x,0,z);
-  scene.add(g);
-  obstacles.push({x,z,r:1.1*s});
-}
-function pino(x,z,s=1){
-  const g = new THREE.Group();
-  g.add(mesh(new THREE.CylinderGeometry(.3*s,.45*s,2*s,7), mat(0x9a6b4f), 0,1*s,0));
-  const green = mat(0x8fce8a);
-  g.add(mesh(new THREE.ConeGeometry(1.8*s,2.6*s,8), green, 0,3*s,0));
-  g.add(mesh(new THREE.ConeGeometry(1.4*s,2.2*s,8), green, 0,4.3*s,0));
-  g.add(mesh(new THREE.ConeGeometry(1.0*s,1.8*s,8), green, 0,5.4*s,0));
-  g.position.set(x,0,z);
-  scene.add(g);
-  obstacles.push({x,z,r:.9*s});
+/* ==========================================================
+   NATURALEZA INSTANCIADA
+   Todo el bosque se dibuja en ~14 draw calls (antes ~2000).
+   ========================================================== */
+const dummy = new THREE.Object3D();
+const tmpColor = new THREE.Color();
+
+function scatter(count, minD, maxD, sMin=.8, sMax=1.6){
+  const pts = [];
+  for(let i=0;i<count;i++){
+    const a = Math.random()*Math.PI*2, d = rand(minD, maxD);
+    pts.push({x:Math.cos(a)*d, z:Math.sin(a)*d, s:rand(sMin,sMax), rot:Math.random()*Math.PI*2});
+  }
+  return pts;
 }
 
-/* ---------- flores, hongos, rocas ---------- */
+function fillInstanced(geo, material, placements, castShadow=false){
+  const im = new THREE.InstancedMesh(geo, material, placements.length);
+  placements.forEach((pl,i)=>{
+    dummy.position.set(pl.x, pl.y||0, pl.z);
+    dummy.rotation.set(0, pl.rot||0, 0);
+    const s = pl.s ?? 1;
+    dummy.scale.set(pl.sx ?? s, pl.sy ?? s, pl.sz ?? pl.sx ?? s);
+    dummy.updateMatrix();
+    im.setMatrixAt(i, dummy.matrix);
+    if(pl.color) im.setColorAt(i, tmpColor.set(pl.color));
+  });
+  im.castShadow = castShadow;
+  im.receiveShadow = true;
+  if(im.instanceColor) im.instanceColor.needsUpdate = true;
+  scene.add(im);
+  return im;
+}
+
+/* --- dónde va cada cosa --- */
+const sakuras = scatter(60, 22, WORLD_RADIUS-6);
+const pinos   = scatter(50, 22, WORLD_RADIUS-6);
+const flores  = scatter(220, 4, WORLD_RADIUS-4, 1, 1);
+const hongos  = scatter(32, 15, WORLD_RADIUS-10, .7, 1.3);
+const rocas   = scatter(26, 25, WORLD_RADIUS-8, .6, 1.5);
+
+sakuras.forEach(p=>obstacles.push({x:p.x, z:p.z, r:1.1*p.s}));
+pinos.forEach(p=>obstacles.push({x:p.x, z:p.z, r:.9*p.s}));
+rocas.forEach(p=>obstacles.push({x:p.x, z:p.z, r:.9*p.s}));
+
+/* --- troncos --- */
+fillInstanced(
+  new THREE.CylinderGeometry(.4,.55,3.4,7), mat(0x9a6b4f),
+  sakuras.map(p=>({x:p.x, y:1.7*p.s, z:p.z, s:p.s, rot:p.rot})), true
+);
+fillInstanced(
+  new THREE.CylinderGeometry(.3,.45,2,7), mat(0x9a6b4f),
+  pinos.map(p=>({x:p.x, y:1*p.s, z:p.z, s:p.s, rot:p.rot})), true
+);
+
+/* --- copas de sakura (5 nubecitas por árbol, tonos variados) --- */
+const foamOffsets = [[0,4.2,0,1.9],[1.2,3.6,.5,1.3],[-1.1,3.7,-.4,1.2],[.3,3.4,-1.1,1.1],[-.4,3.5,1.0,1.0]];
+const foamPinks = [0xf9b9d4, 0xfcc8dd, 0xf5a8c8];
+const foamPl = [];
+sakuras.forEach(p=>{
+  foamOffsets.forEach(([ox,oy,oz,r])=>{
+    foamPl.push({x:p.x+ox*p.s, y:oy*p.s, z:p.z+oz*p.s, s:r*p.s,
+                 color:foamPinks[Math.floor(Math.random()*foamPinks.length)]});
+  });
+});
+fillInstanced(new THREE.IcosahedronGeometry(1,1), mat(0xffffff), foamPl, true);
+
+/* --- copas de pino (3 conos por árbol) --- */
+const coneLayers = [[1.8,2.6,3],[1.4,2.2,4.3],[1.0,1.8,5.4]];
+const conePl = [];
+pinos.forEach(p=>{
+  coneLayers.forEach(([r,h,y])=>{
+    conePl.push({x:p.x, y:y*p.s, z:p.z, sx:r*p.s, sy:h*p.s});
+  });
+});
+fillInstanced(new THREE.ConeGeometry(1,1,8), mat(0x8fce8a), conePl, true);
+
+/* --- flores: tallo + 5 pétalos + centro --- */
 const flowerColors = [0xff8fb3, 0xffd166, 0xc79bff, 0xffffff, 0xff6b9d];
-function flor(x,z){
-  const g = new THREE.Group();
-  g.add(mesh(new THREE.CylinderGeometry(.03,.03,.5,5), mat(0x7fbf72), 0,.25,0, false));
+fillInstanced(
+  new THREE.CylinderGeometry(.03,.03,.5,5), mat(0x7fbf72),
+  flores.map(p=>({x:p.x, y:.25, z:p.z}))
+);
+const petalPl = [];
+flores.forEach(p=>{
   const c = flowerColors[Math.floor(Math.random()*flowerColors.length)];
-  const petal = mat(c);
   for(let i=0;i<5;i++){
     const a = i/5*Math.PI*2;
-    g.add(mesh(new THREE.SphereGeometry(.09,6,6), petal, Math.cos(a)*.12,.55,Math.sin(a)*.12, false));
+    petalPl.push({x:p.x+Math.cos(a)*.12, y:.55, z:p.z+Math.sin(a)*.12, s:.09, color:c});
   }
-  g.add(mesh(new THREE.SphereGeometry(.07,6,6), mat(0xffe08a), 0,.55,0, false));
-  g.position.set(x,0,z);
-  scene.add(g);
-}
-function hongo(x,z,s=1){
-  const g = new THREE.Group();
-  g.add(mesh(new THREE.CylinderGeometry(.16*s,.2*s,.5*s,7), mat(0xfff4ec), 0,.25*s,0));
-  const cap = mesh(new THREE.SphereGeometry(.42*s,10,8,0,Math.PI*2,0,Math.PI/2), mat(0xf291ad), 0,.5*s,0);
-  g.add(cap);
-  for(let i=0;i<3;i++){
-    g.add(mesh(new THREE.SphereGeometry(.06*s,5,5), mat(0xffffff), rand(-.25,.25)*s, rand(.55,.75)*s, rand(-.25,.25)*s, false));
-  }
-  g.position.set(x,0,z);
-  scene.add(g);
-}
-function roca(x,z,s=1){
-  const r = mesh(new THREE.IcosahedronGeometry(s,0), mat(0xcfc8d4), x,s*.4,z);
-  r.scale.y = .6;
-  scene.add(r);
-  obstacles.push({x,z,r:s*.9});
-}
+});
+fillInstanced(new THREE.SphereGeometry(1,6,6), mat(0xffffff), petalPl);
+fillInstanced(
+  new THREE.SphereGeometry(1,6,6), mat(0xffe08a),
+  flores.map(p=>({x:p.x, y:.55, z:p.z, s:.07}))
+);
+
+/* --- honguitos --- */
+fillInstanced(
+  new THREE.CylinderGeometry(.16,.2,.5,7), mat(0xfff4ec),
+  hongos.map(p=>({x:p.x, y:.25*p.s, z:p.z, s:p.s}))
+);
+fillInstanced(
+  new THREE.SphereGeometry(.42,10,8,0,Math.PI*2,0,Math.PI/2), mat(0xf291ad),
+  hongos.map(p=>({x:p.x, y:.5*p.s, z:p.z, s:p.s})), true
+);
+
+/* --- rocas --- */
+fillInstanced(
+  new THREE.IcosahedronGeometry(1,0), mat(0xcfc8d4),
+  rocas.map(p=>({x:p.x, y:.4*p.s, z:p.z, s:p.s, sy:.6*p.s, rot:p.rot})), true
+);
 
 /* ---------- casita cottage ---------- */
 function cottage(x,z,rotY=0){
@@ -307,7 +364,7 @@ function valla(x,z,rotY=0,len=4){
   scene.add(g);
 }
 
-/* ---------- poblar el mundo ---------- */
+/* ---------- casitas y vallas ---------- */
 cottage(12, -8, -.5);
 cottage(-18, 14, .9);
 cottage(60, 45, 2.1);
@@ -319,48 +376,68 @@ valla(8.2, -6.5, Math.PI/2, 6);
 valla(60, 50, .4, 8);
 valla(-70, -45, -.6, 7);
 
-for(let i=0;i<95;i++){
-  const a = Math.random()*Math.PI*2, d = rand(22, WORLD_RADIUS-6);
-  (Math.random()<.55 ? sakura : pino)(Math.cos(a)*d, Math.sin(a)*d, rand(.8,1.6));
-}
-for(let i=0;i<170;i++){
-  const a = Math.random()*Math.PI*2, d = rand(4, WORLD_RADIUS-4);
-  flor(Math.cos(a)*d, Math.sin(a)*d);
-}
-for(let i=0;i<28;i++){
-  const a = Math.random()*Math.PI*2, d = rand(15, WORLD_RADIUS-10);
-  hongo(Math.cos(a)*d, Math.sin(a)*d, rand(.7,1.3));
-}
-for(let i=0;i<24;i++){
-  const a = Math.random()*Math.PI*2, d = rand(25, WORLD_RADIUS-8);
-  roca(Math.cos(a)*d, Math.sin(a)*d, rand(.6,1.5));
-}
-
 /* ---------- nubes ---------- */
-const clouds = [];
+const cloudData = [];
 for(let i=0;i<18;i++){
-  const g = new THREE.Group();
-  const white = mat(0xffffff, {roughness:1});
   const n = 3+Math.floor(Math.random()*3);
+  const cl = {x:rand(-230,230), y:rand(32,52), z:rand(-230,230), speed:rand(.4,1.1), blobs:[]};
   for(let j=0;j<n;j++){
-    g.add(mesh(new THREE.SphereGeometry(rand(1.6,2.8),8,8), white, j*2.1-n, rand(-.3,.3), rand(-.8,.8), false));
+    cl.blobs.push({ox:j*2.1-n, oy:rand(-.3,.3), oz:rand(-.8,.8), r:rand(1.6,2.8)});
   }
-  g.position.set(rand(-230,230), rand(32,52), rand(-230,230));
-  g.userData.speed = rand(.4,1.1);
-  scene.add(g);
-  clouds.push(g);
+  cloudData.push(cl);
+}
+const cloudCount = cloudData.reduce((a,c)=>a+c.blobs.length, 0);
+const cloudIM = new THREE.InstancedMesh(new THREE.SphereGeometry(1,8,8), mat(0xffffff,{roughness:1}), cloudCount);
+cloudIM.frustumCulled = false;
+scene.add(cloudIM);
+function updateClouds(dt){
+  let idx = 0;
+  for(const c of cloudData){
+    c.x += c.speed*dt;
+    if(c.x > 250) c.x = -250;
+    for(const b of c.blobs){
+      dummy.position.set(c.x+b.ox, c.y+b.oy, c.z+b.oz);
+      dummy.rotation.set(0,0,0);
+      dummy.scale.setScalar(b.r);
+      dummy.updateMatrix();
+      cloudIM.setMatrixAt(idx++, dummy.matrix);
+    }
+  }
+  cloudIM.instanceMatrix.needsUpdate = true;
 }
 
 /* ---------- pétalos cayendo ---------- */
-const petals = [];
-const petalGeo = new THREE.PlaneGeometry(.22,.22);
-const petalMat = new THREE.MeshBasicMaterial({color:0xffb3cd, side:THREE.DoubleSide, transparent:true, opacity:.85});
-for(let i=0;i<70;i++){
-  const p = new THREE.Mesh(petalGeo, petalMat);
-  p.position.set(rand(-40,40), rand(2,22), rand(-40,40));
-  p.userData = {vy:rand(.5,1.1), ph:Math.random()*Math.PI*2};
-  scene.add(p);
-  petals.push(p);
+const PETAL_N = 80;
+const petalData = [];
+for(let i=0;i<PETAL_N;i++){
+  petalData.push({x:rand(-40,40), y:rand(2,22), z:rand(-40,40),
+                  vy:rand(.5,1.1), ph:Math.random()*Math.PI*2, rx:0, ry:0});
+}
+const petalIM = new THREE.InstancedMesh(
+  new THREE.PlaneGeometry(.22,.22),
+  new THREE.MeshBasicMaterial({color:0xffb3cd, side:THREE.DoubleSide, transparent:true, opacity:.85}),
+  PETAL_N
+);
+petalIM.frustumCulled = false;
+scene.add(petalIM);
+function updatePetals(dt){
+  for(let i=0;i<PETAL_N;i++){
+    const p = petalData[i];
+    p.y -= p.vy*dt;
+    p.x += Math.sin(elapsed*1.5 + p.ph)*.35*dt;
+    p.rx += dt*2; p.ry += dt*1.5;
+    if(p.y < 0){
+      p.x = P.pos.x+rand(-35,35);
+      p.y = rand(14,24);
+      p.z = P.pos.z+rand(-35,35);
+    }
+    dummy.position.set(p.x, p.y, p.z);
+    dummy.rotation.set(p.rx, p.ry, 0);
+    dummy.scale.setScalar(1);
+    dummy.updateMatrix();
+    petalIM.setMatrixAt(i, dummy.matrix);
+  }
+  petalIM.instanceMatrix.needsUpdate = true;
 }
 
 /* ---------- personaje ---------- */
@@ -617,21 +694,9 @@ function tick(){
   camera.position.lerp(new THREE.Vector3(cx,cy,cz), Math.min(1, dt*8));
   camera.lookAt(P.pos.x, P.pos.y+1.5, P.pos.z);
 
-  /* --- nubes --- */
-  for(const c of clouds){
-    c.position.x += c.userData.speed*dt;
-    if(c.position.x > 250) c.position.x = -250;
-  }
-
-  /* --- pétalos --- */
-  for(const p of petals){
-    p.position.y -= p.userData.vy*dt;
-    p.position.x += Math.sin(elapsed*1.5 + p.userData.ph)*.35*dt;
-    p.rotation.x += dt*2; p.rotation.y += dt*1.5;
-    if(p.position.y < 0){
-      p.position.set(P.pos.x+rand(-35,35), rand(14,24), P.pos.z+rand(-35,35));
-    }
-  }
+  /* --- nubes y pétalos (instanciados) --- */
+  updateClouds(dt);
+  updatePetals(dt);
 
   renderer.render(scene, camera);
 }

@@ -1193,12 +1193,6 @@ h1.title{
   display:inline-block;
   animation:beat 1.6s ease infinite;
 }
-/* Botón del juego: mismo estilo, debajo del de letras */
-.letras-link.juego-link{
-  top:72px;
-  background:linear-gradient(135deg,var(--pink-500),var(--rose));
-}
-
 @media (max-width:600px){
   .letras-link{
     top:12px;right:12px;
@@ -1206,7 +1200,6 @@ h1.title{
     font-size:0.82rem;
   }
   .letras-link span:not(.letras-sparkle){display:none;}
-  .letras-link.juego-link{top:58px;}
 }
 
 /* ===== FAB ===== */

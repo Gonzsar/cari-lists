@@ -147,6 +147,7 @@
       <div class="profile-actions">
         <button class="btn ghost small" id="openStickersBtn">🎀 Sticker Book <span class="stickers-count-badge" id="stickersCount">0/15</span></button>
         <button class="btn ghost small" id="openRouletteBtn">🎡 Ruleta de indecisión</button>
+        <button class="btn ghost small" id="openFriendsBtn">👯‍♀️ Amigos</button>
       </div>
     </div>
   </header>
@@ -534,6 +535,16 @@
       <small>Si tu Spotify te dice "redirect_uri: Not matching configuration", es porque la URL del dashboard no coincide. Copiá la de arriba tal cual.</small>
     </div>
     <div class="form-row">
+      <label>☁️ Nube para amigos · URL del proyecto</label>
+      <input type="text" id="setSbUrl" placeholder="https://xxxxx.supabase.co"/>
+      <small>De Supabase → Settings → API → <b>Project URL</b></small>
+    </div>
+    <div class="form-row">
+      <label>☁️ Nube para amigos · Clave pública</label>
+      <input type="text" id="setSbKey" placeholder="eyJhbGciOi..."/>
+      <small>De Supabase → Settings → API → <b>anon public</b>. Antes pegá el archivo <b>supabase-setup.sql</b> en el SQL Editor.</small>
+    </div>
+    <div class="form-row">
       <label>Lista de origen para canciones random 🎵</label>
       <div style="display:flex;gap:6px;align-items:center;">
         <select id="setSpotifyPlaylist" style="flex:1;">
@@ -643,6 +654,59 @@
       <button class="btn ghost" id="profCancel">Cancelar</button>
       <button class="btn" id="profSave">Guardar ♡</button>
     </div>
+  </div>
+</div>
+
+<!-- ===== Modal: Amigos ===== -->
+<div class="modal-bg" id="friendsModal" aria-hidden="true">
+  <div class="modal modal-friends" role="dialog">
+    <button class="modal-close" id="friendsClose" aria-label="Cerrar">✕</button>
+    <h2>Tus Amigos 👯‍♀️</h2>
+
+    <!-- Aún sin código -->
+    <div id="friendsSetup">
+      <p class="friends-intro">
+        Creá tu código personal para que tus amigos puedan ver tu rinconcito,
+        y vos el de ellos ✨
+      </p>
+      <div id="cloudNotConfigured" class="friends-warn">
+        Primero configurá la nube en <b>⚙️ Ajustes</b> (pegá la URL y la clave de Supabase).
+        <br><small>Está todo explicado en el archivo <b>supabase-setup.sql</b> del proyecto.</small>
+      </div>
+      <button class="btn" id="createCodeBtn" style="width:100%;padding:13px;margin-top:12px;">✨ Crear mi código</button>
+    </div>
+
+    <!-- Ya tiene código -->
+    <div id="friendsActive" style="display:none;">
+      <div class="my-code-box">
+        <div class="my-code-label">Tu código ♡</div>
+        <div class="my-code" id="myCodeDisplay">—</div>
+        <button class="btn ghost small" id="copyCodeBtn">📋 Copiar</button>
+        <div class="cloud-status">☁️ <span id="cloudStatus">listo</span> · <button class="link-btn" id="syncNowBtn">sincronizar ahora</button></div>
+      </div>
+
+      <div class="form-row" style="margin-top:16px;">
+        <label>Agregar un amigo por su código</label>
+        <div class="add-friend-row">
+          <input type="text" id="friendCodeInput" placeholder="ej: cari#4821" autocomplete="off"/>
+          <button class="btn small" id="addFriendBtn">Agregar</button>
+        </div>
+      </div>
+
+      <div class="friends-list" id="friendsList"></div>
+
+      <p class="friends-note">
+        🔒 Tu <b>diario</b> siempre queda privado, nunca se comparte.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Modal: Perfil de un amigo ===== -->
+<div class="modal-bg" id="friendProfileModal" aria-hidden="true">
+  <div class="modal modal-friend-profile" role="dialog">
+    <button class="modal-close" id="fpClose" aria-label="Cerrar">✕</button>
+    <div id="fpBody"></div>
   </div>
 </div>
 

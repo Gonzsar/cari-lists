@@ -90,3 +90,27 @@ Edita las variables al inicio de `styles.css`:
 ---
 
 Hecho con ♥
+
+## 👯‍♀️ Amigos (sistema en la nube)
+
+Cada persona tiene un código tipo `cari#4821`. Se agregan como amigos y pueden
+ver el perfil del otro **siempre actualizado**.
+
+### Configurarlo (una sola vez)
+
+1. Crear cuenta gratis en [supabase.com](https://supabase.com) → New project (sin tarjeta)
+2. En el proyecto: **SQL Editor → New query** → pegar todo `supabase-setup.sql` → **Run**
+3. En **Settings → API** copiar:
+   - **Project URL**
+   - **anon public** key
+4. En la web: ⚙️ Ajustes → pegar ambas → Guardar
+5. Perfil → **👯‍♀️ Amigos** → *Crear mi código*
+6. Pasarle el código a la otra persona (y ella hace lo mismo)
+
+### Qué se comparte
+
+- ✅ Películas, series, música, libros, wishlist, outfits, lugares, date ideas
+- ✅ Nombre, bio, foto y banner del perfil
+- 🔒 **El diario NUNCA se comparte** — queda solo en su navegador
+
+Los datos se suben solos unos segundos después de cada cambio.

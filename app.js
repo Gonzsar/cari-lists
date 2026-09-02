@@ -19,7 +19,8 @@ const defaultSettings = {
   spotifyAccessToken:'',
   spotifyRefreshToken:'',
   spotifyTokenExpiry:0,
-  spotifyPlaylistId:'liked'
+  spotifyPlaylistId:'liked',
+  sbUrl:'', sbKey:'', myCode:'', ownerToken:'', lastSync:0
 };
 const emptyState = {
   movies:[], series:[], music:[], books:[], wishlist:[],
@@ -39,12 +40,18 @@ function loadState(){
     return Object.assign({}, emptyState, s || {});
   } catch(e){ return {...emptyState}; }
 }
-function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  if(typeof cloudSyncSoon === 'function') cloudSyncSoon();
+}
 function loadSettings(){
   try{ return Object.assign({},defaultSettings,JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}); }
   catch(e){ return {...defaultSettings}; }
 }
-function saveSettings(){ localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
+function saveSettings(){
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  if(typeof cloudSyncSoon === 'function') cloudSyncSoon();
+}
 
 /* === Labels por categoría === */
 const CAT_CONFIG = {
@@ -717,6 +724,10 @@ try {
     if(spotIdEl) spotIdEl.value = settings.spotifyClientId || '';
     const uriDisplay = document.getElementById('redirectUriDisplay');
     if(uriDisplay) uriDisplay.textContent = getSpotifyRedirectUri();
+    const sbU = document.getElementById('setSbUrl');
+    const sbK = document.getElementById('setSbKey');
+    if(sbU) sbU.value = settings.sbUrl || '';
+    if(sbK) sbK.value = settings.sbKey || '';
     // Cargar playlists si estamos conectados a Spotify
     populatePlaylistSelector();
     updateProviderFields();
@@ -770,6 +781,10 @@ try {
       settings.spotifyTokenExpiry = 0;
     }
     // Playlist seleccionada
+    const sbUEl = document.getElementById('setSbUrl');
+    const sbKEl = document.getElementById('setSbKey');
+    if(sbUEl) settings.sbUrl = sbUEl.value.trim().replace(/\/+$/,'');
+    if(sbKEl) settings.sbKey = sbKEl.value.trim();
     const playlistSel = document.getElementById('setSpotifyPlaylist');
     const oldPlaylist = settings.spotifyPlaylistId;
     if(playlistSel) settings.spotifyPlaylistId = playlistSel.value || 'liked';
@@ -2781,6 +2796,386 @@ function initDarkMode(){
   }
 }
 
+
+/* ==========================================================
+   ☁️ NUBE + AMIGOS
+   Cada rinconcito tiene un código tipo  cari#4821
+   Los datos se guardan en Supabase para que los amigos
+   puedan ver tu perfil siempre actualizado.
+   ========================================================== */
+
+/* --- llamada a las funciones de Supabase --- */
+async function sbRpc(fn, params){
+  if(!settings.sbUrl || !settings.sbKey) throw new Error('Falta configurar la nube en ajustes');
+  const url = settings.sbUrl.replace(/\/+$/,'') + '/rest/v1/rpc/' + fn;
+  const r = await fetch(url, {
+    method:'POST',
+    headers:{
+      'apikey': settings.sbKey,
+      'Authorization': 'Bearer ' + settings.sbKey,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(params)
+  });
+  if(!r.ok){
+    const txt = await r.text().catch(()=> '');
+    throw new Error(txt || ('Error ' + r.status));
+  }
+  const txt = await r.text();
+  return txt ? JSON.parse(txt) : null;
+}
+
+function cloudReady(){ return !!(settings.sbUrl && settings.sbKey); }
+function cloudLinked(){ return !!(cloudReady() && settings.myCode && settings.ownerToken); }
+
+/* --- generar código tipo  cari#4821 --- */
+function slugName(n){
+  const s = (n||'').toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/[^a-z0-9]/g,'')
+    .slice(0,10);
+  return s || 'amiga';
+}
+function randomToken(){
+  const a = new Uint8Array(18);
+  crypto.getRandomValues(a);
+  return Array.from(a).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function createMyCode(){
+  const base = slugName(settings.name);
+  const token = settings.ownerToken || randomToken();
+  for(let intento=0; intento<12; intento++){
+    const code = base + '#' + Math.floor(1000 + Math.random()*9000);
+    const ok = await sbRpc('claim_profile', {p_code: code, p_token: token});
+    if(ok === true){
+      settings.myCode = code;
+      settings.ownerToken = token;
+      saveSettings();
+      return code;
+    }
+  }
+  throw new Error('No pude generar un código libre, probá de nuevo');
+}
+
+/* --- qué se sube (el diario queda privado, no se comparte) --- */
+function buildCloudPayload(){
+  const lists = {};
+  Object.keys(CAT_CONFIG).forEach(cat=>{ lists[cat] = state[cat] || []; });
+  return {
+    v: 1,
+    profile: {
+      name: settings.name || '',
+      bio: settings.bio || '',
+      avatar: settings.avatar || '',
+      banner: settings.banner || '',
+      anniversaryDate: settings.anniversaryDate || ''
+    },
+    lists,
+    stickers: settings.unlockedStickers || []
+  };
+}
+
+let cloudSyncTimer = null;
+let cloudSyncing = false;
+
+function setCloudStatus(txt){
+  const el = document.getElementById('cloudStatus');
+  if(el) el.textContent = txt;
+}
+
+async function pushToCloud(silent){
+  if(silent === undefined) silent = true;
+  if(!cloudLinked()) return false;
+  if(cloudSyncing) return false;
+  cloudSyncing = true;
+  setCloudStatus('subiendo…');
+  try{
+    const payload = buildCloudPayload();
+    const size = JSON.stringify(payload).length;
+    if(size > 4.5 * 1024 * 1024){
+      setCloudStatus('perfil muy pesado');
+      if(!silent) toast('Tu perfil pesa mucho (fotos grandes) 🌸');
+      cloudSyncing = false;
+      return false;
+    }
+    const ok = await sbRpc('save_profile', {
+      p_code: settings.myCode,
+      p_token: settings.ownerToken,
+      p_name: settings.name || '',
+      p_payload: payload
+    });
+    if(ok === true){
+      settings.lastSync = Date.now();
+      saveSettings();
+      setCloudStatus('sincronizado ✓');
+      if(!silent) toast('¡Perfil sincronizado! ☁️');
+      cloudSyncing = false;
+      return true;
+    }
+    setCloudStatus('no autorizado');
+    if(!silent) toast('No pude guardar en la nube 🌸');
+  } catch(e){
+    console.warn('[nube] push:', e);
+    setCloudStatus('sin conexión');
+    if(!silent) toast('No pude conectar con la nube 🌸');
+  }
+  cloudSyncing = false;
+  return false;
+}
+
+/* sincronización automática (con retraso, para no spamear) */
+function cloudSyncSoon(){
+  if(!cloudLinked()) return;
+  clearTimeout(cloudSyncTimer);
+  cloudSyncTimer = setTimeout(function(){ pushToCloud(true); }, 4000);
+}
+
+/* --- amigos --- */
+async function loadFriends(){
+  if(!cloudLinked()) return [];
+  try{
+    const rows = await sbRpc('list_friends', {p_code: settings.myCode});
+    return Array.isArray(rows) ? rows : [];
+  } catch(e){
+    console.warn('[nube] amigos:', e);
+    return [];
+  }
+}
+
+async function addFriendByCode(code){
+  const clean = (code||'').trim().replace(/^@/,'');
+  if(!clean) return;
+  if(!cloudLinked()){ toast('Primero creá tu código ☁️'); return; }
+  try{
+    const res = await sbRpc('add_friend', {
+      p_code: settings.myCode, p_token: settings.ownerToken, p_friend: clean
+    });
+    const msgs = {
+      ok: '¡Amigo agregado! 💕',
+      no_existe: 'Ese código no existe 🌸',
+      vos_mismo: '¡Ese sos vos! 🤭',
+      no_auth: 'No pude verificar tu perfil'
+    };
+    toast(msgs[res] || 'Algo salió raro');
+    if(res === 'ok'){
+      document.getElementById('friendCodeInput').value = '';
+      renderFriendsList();
+    }
+  } catch(e){
+    console.warn('[nube] add friend:', e);
+    toast('No pude agregar al amigo 🌸');
+  }
+}
+
+async function removeFriendByCode(code){
+  const ok = await customConfirm('¿Sacar a esta persona de tus amigos?', {
+    title:'Quitar amigo', okText:'Sí, quitar', cancelText:'No'
+  });
+  if(!ok) return;
+  try{
+    await sbRpc('remove_friend', {
+      p_code: settings.myCode, p_token: settings.ownerToken, p_friend: code
+    });
+    toast('Amigo quitado');
+    renderFriendsList();
+  } catch(e){ toast('No pude quitarlo 🌸'); }
+}
+
+/* --- ver el perfil de un amigo --- */
+async function openFriendProfile(code){
+  const modal = document.getElementById('friendProfileModal');
+  const body  = document.getElementById('fpBody');
+  modal.classList.add('show');
+  body.innerHTML = '<div class="loading-text"><span class="loader"></span> abriendo su rinconcito…</div>';
+  try{
+    const rows = await sbRpc('get_profile', {p_code: code});
+    const prof = Array.isArray(rows) ? rows[0] : rows;
+    if(!prof){
+      body.innerHTML = '<div class="empty"><div class="empty-flower">🌸</div><h3>No encontré ese perfil</h3></div>';
+      return;
+    }
+    renderFriendProfile(prof);
+  } catch(e){
+    console.warn('[nube] perfil:', e);
+    body.innerHTML = '<div class="empty"><div class="empty-flower">🥀</div><h3>No pude abrir su perfil</h3><p>Revisá tu conexión</p></div>';
+  }
+}
+
+function renderFriendProfile(prof){
+  const body = document.getElementById('fpBody');
+  const payload = prof.payload || {};
+  const p = payload.profile || {};
+  const lists = payload.lists || {};
+  const name = p.name || prof.name || 'Su rinconcito';
+
+  const bannerStyle = p.banner
+    ? 'background-image:url("' + String(p.banner).replace(/"/g,'&quot;') + '")'
+    : '';
+  const avatarInner = p.avatar
+    ? '<img src="' + escAttr(p.avatar) + '" alt=""/>'
+    : '🌸';
+
+  const cats = Object.keys(CAT_CONFIG).filter(function(c){ return (lists[c]||[]).length > 0; });
+  const total = cats.reduce(function(a,c){ return a + lists[c].length; }, 0);
+  const loved = cats.reduce(function(a,c){
+    return a + lists[c].filter(function(i){ return i.status==='loved'; }).length;
+  }, 0);
+
+  const tabsHTML = cats.map(function(c,i){
+    const label = CAT_CONFIG[c].sectionTitle.replace(/^Tus?\s+/i,'');
+    return '<button class="fp-tab' + (i===0?' active':'') + '" data-cat="' + c + '">' +
+           CAT_CONFIG[c].icon + ' ' + esc(label) +
+           ' <span class="fp-count">' + lists[c].length + '</span></button>';
+  }).join('');
+
+  const gridsHTML = cats.map(function(c,i){
+    const items = lists[c].slice().sort(function(a,b){ return (b.dateAdded||0)-(a.dateAdded||0); });
+    const cards = items.map(function(it){
+      const hearts = it.rating
+        ? '♥'.repeat(it.rating) + '<span style="color:var(--pink-200)">' + '♥'.repeat(5-it.rating) + '</span>'
+        : '';
+      const cover = it.cover
+        ? '<img src="' + escAttr(it.cover) + '" class="item-cover" loading="lazy" onerror="this.style.display=\'none\'"/>'
+        : '<div class="item-cover" style="display:flex;align-items:center;justify-content:center;font-size:2.4rem;color:var(--pink-300);">' + CAT_CONFIG[c].icon + '</div>';
+      return '<div class="item-card">' +
+        '<div class="item-badge">' + esc(CAT_CONFIG[c].statusLabels[it.status] || it.status || '') + '</div>' +
+        (it.status==='loved' ? '<div class="item-badge fav-badge">💖</div>' : '') +
+        cover +
+        '<div class="item-info">' +
+          '<div class="item-title">' + esc(it.title||'') + '</div>' +
+          (it.meta ? '<div class="item-meta">' + esc(it.meta) + '</div>' : '') +
+          (it.price ? '<div class="item-price">' + esc(it.price) + '</div>' : '') +
+          '<div class="item-rating">' + hearts + '</div>' +
+          (it.note ? '<div class="item-note">"' + esc(it.note) + '"</div>' : '') +
+        '</div></div>';
+    }).join('');
+    return '<div class="fp-grid items-grid' + (i===0?' active':'') + '" data-cat="' + c + '">' + cards + '</div>';
+  }).join('');
+
+  const contentHTML = cats.length === 0
+    ? '<div class="empty"><div class="empty-flower">🌷</div><h3>Todavía no cargó nada</h3><p>Su rinconcito está empezando ✨</p></div>'
+    : '<div class="fp-tabs">' + tabsHTML + '</div>' + gridsHTML;
+
+  body.innerHTML =
+    '<div class="fp-banner" style="' + bannerStyle + '"></div>' +
+    '<div class="fp-avatar-wrap"><div class="fp-avatar">' + avatarInner + '</div></div>' +
+    '<div class="fp-head">' +
+      '<h3>' + esc(name) + '</h3>' +
+      '<div class="fp-code">' + esc(prof.code) + '</div>' +
+      (p.bio ? '<div class="fp-bio">' + esc(p.bio) + '</div>' : '') +
+      '<div class="fp-stats"><span><b>' + total + '</b> cositas</span>' +
+      '<span><b>' + loved + '</b> 💖 favoritas</span></div>' +
+    '</div>' + contentHTML;
+
+  body.querySelectorAll('.fp-tab').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      body.querySelectorAll('.fp-tab').forEach(function(t){ t.classList.toggle('active', t===tab); });
+      body.querySelectorAll('.fp-grid').forEach(function(g){
+        g.classList.toggle('active', g.dataset.cat===tab.dataset.cat);
+      });
+    });
+  });
+}
+
+/* --- panel de amigos --- */
+async function renderFriendsList(){
+  const listEl = document.getElementById('friendsList');
+  if(!listEl) return;
+  if(!cloudLinked()){ listEl.innerHTML = ''; return; }
+  listEl.innerHTML = '<div class="loading-text"><span class="loader"></span> buscando…</div>';
+  const friends = await loadFriends();
+  if(friends.length === 0){
+    listEl.innerHTML = '<div class="friends-empty">Todavía no agregaste a nadie 🌸<br><small>Pedile su código y agregalo arriba</small></div>';
+    return;
+  }
+  listEl.innerHTML = friends.map(function(f){
+    return '<div class="friend-row">' +
+      '<div class="friend-av">🌸</div>' +
+      '<div class="friend-info">' +
+        '<div class="friend-name">' + esc(f.name || 'Sin nombre') + '</div>' +
+        '<div class="friend-code">' + esc(f.code) + '</div>' +
+      '</div>' +
+      '<button class="friend-open" data-code="' + escAttr(f.code) + '">Ver ♡</button>' +
+      '<button class="friend-del" data-code="' + escAttr(f.code) + '" title="Quitar">✕</button>' +
+    '</div>';
+  }).join('');
+  listEl.querySelectorAll('.friend-open').forEach(function(b){
+    b.addEventListener('click', function(){ openFriendProfile(b.dataset.code); });
+  });
+  listEl.querySelectorAll('.friend-del').forEach(function(b){
+    b.addEventListener('click', function(){ removeFriendByCode(b.dataset.code); });
+  });
+}
+
+function refreshFriendsPanel(){
+  const setup  = document.getElementById('friendsSetup');
+  const active = document.getElementById('friendsActive');
+  const codeEl = document.getElementById('myCodeDisplay');
+  if(!setup || !active) return;
+  const linked = cloudLinked();
+  setup.style.display  = linked ? 'none' : 'block';
+  active.style.display = linked ? 'block' : 'none';
+  const createBtn = document.getElementById('createCodeBtn');
+  const notCfg = document.getElementById('cloudNotConfigured');
+  if(createBtn) createBtn.disabled = !cloudReady();
+  if(notCfg) notCfg.style.display = cloudReady() ? 'none' : 'block';
+  if(linked){
+    codeEl.textContent = settings.myCode;
+    renderFriendsList();
+  }
+}
+
+function initFriends(){
+  const modal = document.getElementById('friendsModal');
+  if(!modal) return;
+
+  document.getElementById('openFriendsBtn').addEventListener('click', function(){
+    modal.classList.add('show');
+    refreshFriendsPanel();
+  });
+  document.getElementById('friendsClose').addEventListener('click', function(){
+    modal.classList.remove('show');
+  });
+  modal.addEventListener('click', function(e){ if(e.target===modal) modal.classList.remove('show'); });
+
+  const fpModal = document.getElementById('friendProfileModal');
+  document.getElementById('fpClose').addEventListener('click', function(){ fpModal.classList.remove('show'); });
+  fpModal.addEventListener('click', function(e){ if(e.target===fpModal) fpModal.classList.remove('show'); });
+
+  document.getElementById('createCodeBtn').addEventListener('click', async function(){
+    const btn = document.getElementById('createCodeBtn');
+    btn.disabled = true; btn.textContent = 'creando…';
+    try{
+      const code = await createMyCode();
+      toast('¡Tu código es ' + code + '! 🎀');
+      await pushToCloud(false);
+      refreshFriendsPanel();
+    } catch(e){
+      console.warn('[nube] crear código:', e);
+      toast('No pude crear tu código 🌸');
+    }
+    btn.disabled = false; btn.textContent = '✨ Crear mi código';
+  });
+
+  document.getElementById('copyCodeBtn').addEventListener('click', async function(){
+    try{
+      await navigator.clipboard.writeText(settings.myCode);
+      toast('¡Código copiado! ♡');
+    } catch(e){ toast('Copialo a mano 🌸'); }
+  });
+
+  document.getElementById('addFriendBtn').addEventListener('click', function(){
+    addFriendByCode(document.getElementById('friendCodeInput').value);
+  });
+  document.getElementById('friendCodeInput').addEventListener('keydown', function(e){
+    if(e.key==='Enter'){ e.preventDefault(); addFriendByCode(e.target.value); }
+  });
+  document.getElementById('syncNowBtn').addEventListener('click', function(){ pushToCloud(false); });
+
+  if(cloudLinked()) pushToCloud(true);
+}
+
 /* === Init === */
 function safeRun(label, fn){
   try { fn(); }
@@ -2789,6 +3184,7 @@ function safeRun(label, fn){
 safeRun('spawnPetals', spawnPetals);
 safeRun('applyTheme', ()=>applyTheme(settings.theme || 'melody'));
 safeRun('initDarkMode', initDarkMode);
+safeRun('initFriends', initFriends);
 safeRun('initDiary', initDiary);
 safeRun('initMusicPlayer', initMusicPlayer);
 safeRun('initMelodyCompanion', initMelodyCompanion);

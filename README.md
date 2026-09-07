@@ -21,6 +21,7 @@ Todos los datos se guardan en el `localStorage` del navegador de quien la usa (n
 - 🎵 **Música** — búsqueda con iTunes Search (sin clave)
 - 📖 **Libros** — búsqueda con Open Library (sin clave)
 - 🎁 **Wishlist** — manual, con precio, enlace y foto (URL o subida)
+- 🎤 **Letras** — buscador de letras sincronizadas (página aparte, `letras-buscador.html`)
 
 ## Deploy en Vercel
 
@@ -114,3 +115,14 @@ ver el perfil del otro **siempre actualizado**.
 - 🔒 **El diario NUNCA se comparte** — queda solo en su navegador
 
 Los datos se suben solos unos segundos después de cada cambio.
+
+## 🎤 Buscador de letras
+
+Página aparte (`letras-buscador.html`) al estilo Apple Music: buscás una canción
+y la letra aparece **sincronizada, siguiendo la voz**.
+
+- Se entra con el botón **♪ Letras** (abajo a la izquierda, con animación de cortina)
+- Las letras vienen de [LRCLIB](https://lrclib.net) — gratis, sin clave
+- El audio puede venir de YouTube, un archivo tuyo, o el "reloj"
+  (le das play a la vez que en tu app de música)
+- Las canciones se pueden guardar para tenerlas a mano

@@ -894,6 +894,7 @@ function show(v){
   $('#player').classList.remove('on');
   const live=!!P.song;
   document.body.classList.toggle('in-player',v==='player');
+  paintMini();
   document.body.classList.toggle('mini-on',live&&v!=='player');
   document.body.classList.toggle('browsing',live&&v!=='player');
   if(v==='player'){
@@ -905,7 +906,8 @@ function show(v){
 }
 
 async function load(t,fromLib,auto){
-  stopAll();
+  /* si venís de la cola, la anterior se corta; si sólo estás mirando, sigue sonando */
+  if(auto) stopAll(); else parkPlayback();
   P.autoplay=!!auto;
   const synced=fromLib?t.lrc:t.syncedLyrics;
   const plain=fromLib?null:t.plainLyrics;
@@ -1014,6 +1016,89 @@ function buildLines(){
 }
 
 /* ---- fuentes de audio ---- */
+/* ---- la canción que suena queda sonando mientras mirás otra ---- */
+let bg=null, bgTick=null;
+
+function bgNow(){
+  if(!bg)return 0;
+  if(bg.src==='file'&&bg.audio)return bg.audio.currentTime;
+  if(bg.src==='yt'&&bg.yt&&bg.yt.getCurrentTime){try{return bg.yt.getCurrentTime()||0}catch(e){return 0}}
+  return bg.playing?bg.base+(performance.now()-bg.t0)/1000:bg.base;
+}
+function bgSetPlaying(v){
+  if(!bg)return;
+  const t=bgNow();          /* leer el tiempo ANTES de cambiar el estado */
+  bg.playing=v;
+  if(bg.src==='file'&&bg.audio){v?bg.audio.play().catch(()=>{}):bg.audio.pause();}
+  else if(bg.src==='yt'&&bg.yt){try{v?bg.yt.playVideo():bg.yt.pauseVideo()}catch(e){}}
+  else{bg.base=t; if(v)bg.t0=performance.now();}
+  paintPlay(v);
+}
+function bgSeek(t){
+  if(!bg)return;
+  t=Math.max(0,t);
+  if(bg.src==='file'&&bg.audio)bg.audio.currentTime=t;
+  else if(bg.src==='yt'&&bg.yt&&bg.yt.seekTo){try{bg.yt.seekTo(t,true)}catch(e){}}
+  else{bg.base=t;bg.t0=performance.now();}
+}
+function startBgTick(){
+  stopBgTick();
+  bgTick=setInterval(()=>{
+    if(!bg)return stopBgTick();
+    const t=bgNow();
+    const f=$('#m-fil'); if(f)f.style.width=Math.min(100,t/(bg.dur||1)*100)+'%';
+    const c=$('#m-cur'); if(c)c.textContent=fmt(t);
+    const d=$('#m-dur'); if(d)d.textContent=bg.dur?fmt(bg.dur):'—';
+  },500);
+}
+function stopBgTick(){if(bgTick){clearInterval(bgTick);bgTick=null;}}
+
+/* guardar lo que suena para que siga sonando */
+function parkPlayback(){
+  const suena = P.song && P.playing;
+  if(suena){
+    killBg();
+    bg={song:P.song,audio:P.audio,yt:P.yt,src:P.src,base:now(),t0:performance.now(),dur:P.dur,playing:true};
+    P.audio=null;P.yt=null;   /* la canción nueva arranca limpia */
+    startBgTick();
+  }else{
+    stopAll();
+  }
+  P.playing=false;
+  cancelAnimationFrame(P.raf);
+  document.body.classList.add('paused');
+}
+/* cortar la de atrás: sólo cuando la nueva empieza a sonar de verdad */
+function killBg(){
+  if(!bg)return;
+  try{if(bg.audio)bg.audio.pause();}catch(e){}
+  try{if(bg.yt&&bg.yt.destroy)bg.yt.destroy();}catch(e){}
+  bg=null;stopBgTick();
+}
+/* volver a la que quedó sonando, sin cortarla */
+function restoreBg(){
+  if(!bg)return false;
+  stopAll();
+  const b=bg; bg=null; stopBgTick();
+  P.song=b.song;P.audio=b.audio;P.yt=b.yt;P.src=b.src;
+  P.base=b.base;P.t0=b.t0;P.dur=b.dur;P.playing=b.playing;P.saved=true;
+  P.lines=parseLRC(b.song.lrc||'');
+  if(!P.lines.length&&b.song.plain)
+    P.lines=b.song.plain.split(/\r?\n/).map(x=>({time:null,text:x.trim()}));
+  P.cur=-1;
+  $('#p-title').textContent=P.song.title;
+  $('#p-artist').textContent=P.song.artist||'';
+  $('#p-off').textContent=(P.song.offset||0).toFixed(1).replace('.',',')+' s';
+  $('#p-dur').textContent=P.dur?fmt(P.dur):'—';
+  setCover(P.song.cover);
+  buildLines();
+  setSrc(P.src);
+  paintMini();
+  paintPlay(P.playing);
+  if(P.playing)loop();
+  return true;
+}
+
 function stopAll(){
   P.playing=false;cancelAnimationFrame(P.raf);
   if(P.audio){P.audio.pause();}
@@ -1044,11 +1129,13 @@ function paintPlay(v){
   document.body.classList.toggle('paused',!v);
 }
 function setPlaying(v){
+  if(v) killBg();
+  const _t=now();           /* leer el tiempo ANTES de cambiar el estado */
   P.playing=v;
   paintPlay(v);
   if(P.src==='file'&&P.audio){v?P.audio.play().catch(()=>{}):P.audio.pause();}
   else if(P.src==='yt'&&P.yt){try{v?P.yt.playVideo():P.yt.pauseVideo()}catch(e){}}
-  else{if(v)P.t0=performance.now();else P.base=now();}
+  else{P.base=_t; if(v)P.t0=performance.now();}
   if(v)loop();else cancelAnimationFrame(P.raf);
 }
 function loop(){cancelAnimationFrame(P.raf);const r=()=>{frame();if(P.playing)P.raf=requestAnimationFrame(r);};r();}
@@ -1153,7 +1240,7 @@ function useYT(id){
         if(P.autoplay){P.autoplay=false;try{e.target.playVideo()}catch(err){}}
         else toast('Listo · espacio para play');},
       onStateChange:e=>{
-        if(e.data===YT.PlayerState.PLAYING){P.playing=true;paintPlay(true);loop();}
+        if(e.data===YT.PlayerState.PLAYING){killBg();P.playing=true;paintPlay(true);loop();}
         if(e.data===YT.PlayerState.PAUSED){P.playing=false;paintPlay(false);cancelAnimationFrame(P.raf);}
         if(e.data===YT.PlayerState.ENDED){P.playing=false;cancelAnimationFrame(P.raf);onEnded();}
       },
@@ -1304,16 +1391,21 @@ $('#m-shuffle').onclick=()=>{
 };
 
 /* ---- barra de abajo ---- */
-$('#m-play').onclick=()=>setPlaying(!P.playing);
-$('#m-next').onclick=()=>nextTrack();
-$('#m-prev').onclick=()=>prevTrack();
-$('#m-open').onclick=()=>show('player');
-$('#m-seek').onclick=e=>{const r=e.currentTarget.getBoundingClientRect();seek((e.clientX-r.left)/r.width*(P.dur||0));};
+$('#m-play').onclick=()=>{ if(bg) bgSetPlaying(!bg.playing); else setPlaying(!P.playing); };
+$('#m-next').onclick=()=>{ restoreBg(); nextTrack(); };
+$('#m-prev').onclick=()=>{ restoreBg(); prevTrack(); };
+$('#m-open').onclick=()=>{ restoreBg(); show('player'); };
+$('#m-seek').onclick=e=>{
+  const r=e.currentTarget.getBoundingClientRect();
+  const p=(e.clientX-r.left)/r.width;
+  if(bg) bgSeek(p*(bg.dur||0)); else seek(p*(P.dur||0));
+};
 function paintMini(){
-  if(!P.song)return;
-  $('#m-title').textContent=P.song.title;
-  $('#m-artist').textContent=P.song.artist||'';
-  $('#m-art').innerHTML=P.song.cover?'<img alt="" src="'+P.song.cover+'">':'♪';
+  const s = bg ? bg.song : P.song;   /* muestra la que realmente suena */
+  if(!s)return;
+  $('#m-title').textContent=s.title;
+  $('#m-artist').textContent=s.artist||'';
+  $('#m-art').innerHTML=s.cover?'<img alt="" src="'+s.cover+'">':'♪';
 }
 
 $('#h-back').onclick=async()=>{

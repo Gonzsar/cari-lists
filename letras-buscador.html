@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Letras</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -113,7 +114,9 @@ h1{font-size:clamp(34px,6vw,52px);font-weight:800;letter-spacing:-.035em;line-he
 /* ---------- player ---------- */
 #player{display:none;position:fixed;inset:0;z-index:3;grid-template-columns:minmax(330px,41%) 1fr;align-items:center;gap:clamp(28px,5vw,84px);padding:clamp(24px,4vw,60px)}
 #player.on{display:grid}
-.side{display:flex;flex-direction:column;gap:22px;min-width:0}
+.side{display:flex;flex-direction:column;gap:22px;min-width:0;width:100%;max-width:520px;justify-self:center;
+      transition:transform .65s cubic-bezier(.33,1,.68,1)}
+body.idle .side{transform:translateY(var(--shift,0px))}
 .artbox{width:100%;max-width:520px;aspect-ratio:1;border-radius:16px;overflow:hidden;background:rgba(255,255,255,.08);box-shadow:0 40px 90px rgba(0,0,0,.62);transition:transform .6s cubic-bezier(.2,.7,.2,1);display:grid;place-items:center;color:rgba(255,255,255,.18);font-size:48px}
 .artbox img{width:100%;height:100%;object-fit:cover;display:block}
 .paused .artbox{transform:scale(.88)}
@@ -138,6 +141,8 @@ h1{font-size:clamp(34px,6vw,52px);font-weight:800;letter-spacing:-.035em;line-he
 .srcline button{color:rgba(255,255,255,.8);font-weight:600;font-size:12px;text-decoration:underline;text-underline-offset:3px}
 
 /* en reposo queda sólo portada, título y barra */
+.qonly{display:none !important}
+body.queued .qonly{display:grid !important}
 .ctrls,.srcline{transition:opacity .6s ease,transform .6s ease}
 body.idle .ctrls,body.idle .srcline{opacity:0;pointer-events:none;transform:translateY(6px)}
 body.idle #yt{opacity:0;pointer-events:none}
@@ -145,7 +150,7 @@ body.idle .times{opacity:.3}
 
 #lyr{height:100%;overflow-y:auto;scrollbar-width:none;padding:44vh 0;mask-image:linear-gradient(transparent,#000 16%,#000 76%,transparent 97%);-webkit-mask-image:linear-gradient(transparent,#000 16%,#000 76%,transparent 97%)}
 #lyr::-webkit-scrollbar{display:none}
-.ly{font-size:clamp(25px,3.1vw,42px);font-weight:800;letter-spacing:-.032em;line-height:1.24;padding:16px 8px;margin-bottom:2px;cursor:pointer;border-radius:12px;color:rgba(255,255,255,.32);transform-origin:left center;
+.ly{font-size:clamp(28px,3.5vw,53px);font-weight:800;letter-spacing:-.032em;line-height:1.26;padding:26px 8px;margin-bottom:2px;cursor:pointer;border-radius:14px;color:rgba(255,255,255,.32);transform-origin:left center;
      transition:color .55s cubic-bezier(.33,1,.68,1),opacity .7s cubic-bezier(.33,1,.68,1),filter .7s cubic-bezier(.33,1,.68,1),transform .65s cubic-bezier(.22,1,.36,1);
      will-change:opacity,filter,transform}
 .ly:hover{background:rgba(255,255,255,.05)}
@@ -192,6 +197,67 @@ w{display:inline}
 .ytr b{font-size:13.5px;font-weight:500;line-height:1.35;display:block}
 .ytr span{font-size:12px;color:var(--dim)}
 
+/* ---------- playlists ---------- */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:24px 18px}
+.pcard{text-align:left}
+.pcard .pa{aspect-ratio:1;border-radius:12px;overflow:hidden;position:relative;background:linear-gradient(140deg,var(--pa,#4a4a58),#15151b);box-shadow:0 14px 34px rgba(0,0,0,.5);transition:transform .22s;display:grid;place-items:center;font-size:42px}
+.pcard:hover .pa{transform:translateY(-4px)}
+.pcard .pa img{width:100%;height:100%;object-fit:cover;display:block}
+.pcard h3{font-size:14px;font-weight:600;margin-top:10px;letter-spacing:-.012em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pcard p{font-size:12.5px;color:var(--dim);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pnew .pa{background:none;border:1px dashed var(--line);color:var(--dim);font-size:30px}
+
+.hero{display:flex;gap:30px;align-items:flex-end;margin:30px 0 34px;flex-wrap:wrap}
+.hero .hc{width:212px;height:212px;flex:0 0 auto;border-radius:14px;overflow:hidden;background:linear-gradient(140deg,var(--pa,#4a4a58),#15151b);box-shadow:0 24px 60px rgba(0,0,0,.55);display:grid;place-items:center;font-size:64px}
+.hero .hc img{width:100%;height:100%;object-fit:cover;display:block}
+.hero .hi{min-width:0;flex:1}
+.hero .hi h1{font-size:clamp(28px,4.4vw,46px);line-height:1.05}
+.hero .hi .d{color:rgba(255,255,255,.66);font-size:15px;line-height:1.55;margin-top:10px;max-width:56ch;white-space:pre-wrap}
+.hero .hi .c{color:var(--dim);font-size:13px;margin-top:10px}
+.hero .row{margin-top:18px;display:flex;gap:10px;flex-wrap:wrap}
+
+.tr{display:flex;align-items:center;gap:14px;padding:9px 12px;border-radius:10px;transition:background .15s}
+.tr:hover{background:rgba(255,255,255,.07)}
+.tr .idx{width:22px;text-align:right;font-size:13px;color:var(--dim);font-variant-numeric:tabular-nums;flex:0 0 auto}
+.tr .th{width:44px;height:44px;border-radius:6px;overflow:hidden;background:rgba(255,255,255,.08);flex:0 0 auto;display:grid;place-items:center;font-size:16px;color:rgba(255,255,255,.25)}
+.tr .th img{width:100%;height:100%;object-fit:cover}
+.tr .tn{flex:1;min-width:0;text-align:left;cursor:pointer}
+.tr .tn b{display:block;font-size:14.5px;font-weight:600;letter-spacing:-.012em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tr .tn span{display:block;font-size:12.5px;color:var(--dim);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tr.noaudio .tn b{color:rgba(255,255,255,.5)}
+.tr .ta{display:flex;gap:4px;opacity:0;transition:opacity .15s;flex:0 0 auto}
+.tr:hover .ta{opacity:1}
+.tr .ta button{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.12);font-size:13px;display:grid;place-items:center}
+.tr .ta button:hover{background:rgba(255,255,255,.24)}
+.warn-sm{font-size:11.5px;color:rgba(255,190,120,.85);flex:0 0 auto}
+
+.modal{position:fixed;inset:0;z-index:8;display:none;background:rgba(0,0,0,.62);backdrop-filter:blur(10px);overflow-y:auto}
+.modal.on{display:block}
+.mbox{max-width:560px;margin:0 auto;padding:56px 26px 60px}
+.mbox h3{font-size:23px;font-weight:700;letter-spacing:-.025em;margin-bottom:18px}
+.fld{margin-top:16px}
+.fld label{display:block;font-size:13.5px;font-weight:600;margin-bottom:6px}
+.fld input[type=text],.fld textarea{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px 13px;font-size:14.5px}
+.fld textarea{min-height:78px;resize:vertical;line-height:1.55}
+.fld input:focus,.fld textarea:focus{outline:none;border-color:rgba(255,255,255,.4)}
+.frow{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
+.swatch{display:flex;gap:8px;align-items:center}
+.swatch input[type=color]{width:42px;height:42px;padding:0;border:1px solid var(--line);border-radius:9px;background:none;cursor:pointer}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;background:rgba(255,255,255,.1)}
+.seg button.sel{background:#fff;color:#000}
+.pv{width:96px;height:96px;border-radius:11px;overflow:hidden;background:linear-gradient(140deg,var(--pa,#4a4a58),#15151b);display:grid;place-items:center;font-size:34px;flex:0 0 auto}
+.pv img{width:100%;height:100%;object-fit:cover}
+.mfoot{display:flex;gap:10px;justify-content:flex-end;align-items:center;margin-top:28px;flex-wrap:wrap}
+.mfoot .err{color:#ff8f8f;font-size:13px;margin-right:auto}
+.plrow{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;width:100%;text-align:left}
+.plrow:hover{background:rgba(255,255,255,.08)}
+.plrow .pt{width:38px;height:38px;border-radius:7px;background:linear-gradient(140deg,var(--pa,#4a4a58),#15151b);display:grid;place-items:center;font-size:17px;overflow:hidden;flex:0 0 auto}
+.plrow .pt img{width:100%;height:100%;object-fit:cover}
+.plrow b{font-size:14.5px;font-weight:600;display:block}
+.plrow span{font-size:12.5px;color:var(--dim)}
+.plrow .chk{margin-left:auto;font-size:16px;color:rgba(255,255,255,.85)}
+
 #toast{position:fixed;left:50%;bottom:36px;transform:translate(-50%,20px);z-index:9;background:rgba(255,255,255,.14);backdrop-filter:blur(18px);padding:11px 20px;border-radius:999px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:.3s;max-width:80vw;text-align:center}
 #toast.on{opacity:1;transform:translate(-50%,0)}
 
@@ -201,7 +267,7 @@ w{display:inline}
   .artbox{width:70px;height:70px;flex:0 0 auto;font-size:24px}
   .bar,.ctrls,.srcline{display:none}
   #lyr{padding:6vh 0 40vh}
-  .ly{font-size:clamp(22px,6.2vw,30px)}
+  .ly{font-size:clamp(24px,6.6vw,33px);padding:18px 8px}
   #yt{width:150px;left:12px;bottom:12px}
 }
 </style>
@@ -228,9 +294,14 @@ w{display:inline}
       <input type="text" id="q" placeholder="Nombre de la canción, o canción y artista" autocomplete="off">
       <button class="btn solid" id="go">Buscar</button>
     </div>
-    <p class="note" id="q-note">Las letras vienen de LRCLIB, una base comunitaria y gratuita.</p>
+    <p class="note" id="q-note">Las letras vienen de LRCLIB, una base comunitaria y gratuita. <span style="opacity:.45">· build 5</span></p>
 
     <div class="res" id="res"></div>
+
+    <div class="sec" id="pl-sec">
+      <h2>Playlists</h2>
+      <div id="pls"></div>
+    </div>
 
     <div class="sec" id="lib-sec">
       <h2>Guardadas</h2>
@@ -252,9 +323,11 @@ w{display:inline}
       <div class="times"><span id="p-cur">0:00</span><span id="p-dur">0:00</span></div>
     </div>
     <div class="ctrls">
+      <button id="p-prev" class="qonly" title="Anterior"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3 6l9 6V6z"/></svg></button>
       <button id="p-back" title="Atrás 5 s"><svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/></svg></button>
       <button class="play" id="p-play"><svg viewBox="0 0 24 24" id="p-icon"><path d="M8 5v14l11-7z"/></svg></button>
       <button id="p-fwd" title="Adelante 5 s"><svg viewBox="0 0 24 24"><path d="M12 5V1l5 5-5 5V7a6 6 0 1 0 6 6h2a8 8 0 1 1-8-8z"/></svg></button>
+      <button id="p-next" class="qonly" title="Siguiente"><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zm-1 6L6 6v12z"/></svg></button>
       <div class="nudge">
         <button id="p-minus" title="Adelantar la letra">−</button>
         <span id="p-off">0,0 s</span>
@@ -272,6 +345,7 @@ w{display:inline}
   <button class="mini" id="h-back">← Inicio</button>
   <div class="hud-r">
     <button class="mini" id="h-save">Guardar</button>
+    <button class="mini" id="h-add">+ Playlist</button>
     <button class="mini" id="h-solo">Solo letra</button>
     <button class="mini" id="h-full">Pantalla completa</button>
   </div>
@@ -313,21 +387,111 @@ w{display:inline}
   </div>
 </div>
 
+<!-- ============ PLAYLIST ============ -->
+<section class="view" id="v-pl">
+  <div class="wrap">
+    <button class="back" id="pl-back">← Inicio</button>
+    <div class="hero">
+      <div class="hc" id="pl-cover">♪</div>
+      <div class="hi">
+        <h1 id="pl-name">—</h1>
+        <p class="d" id="pl-desc"></p>
+        <p class="c" id="pl-count"></p>
+        <div class="row">
+          <button class="btn solid" id="pl-play">Reproducir</button>
+          <button class="btn ghost" id="pl-shuffle">Aleatorio</button>
+          <button class="btn ghost" id="pl-edit">Personalizar</button>
+        </div>
+      </div>
+    </div>
+    <div id="pl-tracks"></div>
+  </div>
+</section>
+
+<!-- ============ EDITOR DE PLAYLIST ============ -->
+<div class="modal" id="pled">
+  <div class="mbox">
+    <h3 id="pled-h">Nueva playlist</h3>
+    <div class="fld">
+      <label for="pe-name">Nombre</label>
+      <input type="text" id="pe-name" placeholder="Para manejar de noche">
+    </div>
+    <div class="fld">
+      <label for="pe-desc">Descripción</label>
+      <textarea id="pe-desc" placeholder="Lo que quieras contar sobre esta lista"></textarea>
+    </div>
+    <div class="fld">
+      <label>Portada</label>
+      <div class="frow">
+        <div class="pv" id="pe-prev">♪</div>
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <div class="file"><span class="btn ghost sm">Subir imagen</span><input type="file" id="pe-img" accept="image/*"></div>
+          <button class="btn ghost sm" id="pe-noimg">Quitar imagen</button>
+        </div>
+        <div class="fld" style="margin:0">
+          <label for="pe-emoji">Emoji</label>
+          <input type="text" id="pe-emoji" maxlength="4" style="width:78px;text-align:center;font-size:20px" placeholder="🎧">
+        </div>
+      </div>
+    </div>
+    <div class="fld">
+      <label for="pe-color">Color</label>
+      <div class="swatch">
+        <input type="color" id="pe-color" value="#4a4a58">
+        <span class="note">Pinta la portada cuando no hay imagen, y el fondo si elegís color.</span>
+      </div>
+    </div>
+    <div class="fld">
+      <label>Fondo mientras suena</label>
+      <div class="seg" id="pe-bg">
+        <button data-bg="track" class="sel">Portada de cada tema</button>
+        <button data-bg="cover">Portada de la lista</button>
+        <button data-bg="color">Color sólido</button>
+      </div>
+    </div>
+    <div class="mfoot">
+      <span class="err" id="pe-err"></span>
+      <button class="btn ghost" id="pe-del" style="display:none">Eliminar lista</button>
+      <button class="btn ghost" id="pe-cancel">Cancelar</button>
+      <button class="btn solid" id="pe-save">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ AÑADIR A PLAYLIST ============ -->
+<div class="modal" id="addm">
+  <div class="mbox">
+    <h3>Añadir a una playlist</h3>
+    <div id="add-list"></div>
+    <div class="mfoot">
+      <button class="btn ghost" id="add-new">Nueva playlist</button>
+      <button class="btn solid" id="add-close">Listo</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
 /* ============================ base ============================ */
 const $=s=>document.querySelector(s);
+console.log('%cLetras · build 5','font-weight:bold');
 const LRCLIB='https://lrclib.net/api';
 let toastT;
 function toast(m){const e=$('#toast');e.textContent=m;e.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('on'),2600);}
 const fmt=t=>{if(!isFinite(t)||t<0)t=0;const m=Math.floor(t/60);return m+':'+String(Math.floor(t-m*60)).padStart(2,'0');};
 
 /* ---- almacenamiento ---- */
-const DB='letrasDB2',STORE='songs';let _db;
-function db(){if(_db)return Promise.resolve(_db);return new Promise((res,rej)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(STORE))r.result.createObjectStore(STORE,{keyPath:'id'});};r.onsuccess=()=>{_db=r.result;res(_db)};r.onerror=()=>rej(r.error);});}
-function tx(mode,fn){return db().then(d=>new Promise((res,rej)=>{const t=d.transaction(STORE,mode),s=t.objectStore(STORE);let o;try{o=fn(s)}catch(e){rej(e);return}t.oncomplete=()=>res(o&&o.result!==undefined?o.result:o);t.onerror=()=>rej(t.error);}));}
-const store={all:()=>tx('readonly',s=>s.getAll()).catch(()=>[]),get:id=>tx('readonly',s=>s.get(id)).catch(()=>null),put:o=>tx('readwrite',s=>s.put(o)),del:id=>tx('readwrite',s=>s.delete(id))};
+const DB='letrasDB2',STORE='songs',STORE2='playlists';let _db;
+function db(){if(_db)return Promise.resolve(_db);return new Promise((res,rej)=>{
+  const r=indexedDB.open(DB,2);
+  r.onupgradeneeded=()=>{const d=r.result;
+    if(!d.objectStoreNames.contains(STORE))d.createObjectStore(STORE,{keyPath:'id'});
+    if(!d.objectStoreNames.contains(STORE2))d.createObjectStore(STORE2,{keyPath:'id'});};
+  r.onsuccess=()=>{_db=r.result;res(_db)};r.onerror=()=>rej(r.error);});}
+function tx(name,mode,fn){return db().then(d=>new Promise((res,rej)=>{const t=d.transaction(name,mode),s=t.objectStore(name);let o;try{o=fn(s)}catch(e){rej(e);return}t.oncomplete=()=>res(o&&o.result!==undefined?o.result:o);t.onerror=()=>rej(t.error);}));}
+const mk=n=>({all:()=>tx(n,'readonly',s=>s.getAll()).catch(()=>[]),get:id=>tx(n,'readonly',s=>s.get(id)).catch(()=>null),put:o=>tx(n,'readwrite',s=>s.put(o)),del:id=>tx(n,'readwrite',s=>s.delete(id))});
+const store=mk(STORE),plists=mk(STORE2);
 const pref={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
 
 /* ---- letra ---- */
@@ -452,18 +616,231 @@ async function renderLib(){
   });
 }
 
+/* ============================ playlists ============================ */
+const Q={ids:[],i:-1,pl:null};
+let curPl=null, editPl=null, peCover=null, peBg='track';
+
+function plCoverHTML(p,fb){
+  if(p.cover) return '<img alt="" src="'+p.cover+'">';
+  return p.emoji||fb||'♪';
+}
+async function renderPls(){
+  const list=(await plists.all()).sort((a,b)=>(b.at||0)-(a.at||0));
+  const box=$('#pls');
+  box.innerHTML='<div class="pgrid"></div>';
+  const g=box.firstChild;
+  list.forEach(p=>{
+    const b=document.createElement('button');b.className='pcard';
+    b.style.setProperty('--pa',p.accent||'#4a4a58');
+    b.innerHTML='<div class="pa">'+plCoverHTML(p)+'</div><h3></h3><p></p>';
+    b.querySelector('h3').textContent=p.name;
+    b.querySelector('p').textContent=(p.items||[]).length+(p.items&&p.items.length===1?' tema':' temas');
+    b.onclick=()=>openPl(p.id);
+    g.appendChild(b);
+  });
+  const nb=document.createElement('button');nb.className='pcard pnew';
+  nb.innerHTML='<div class="pa">+</div><h3>Nueva playlist</h3><p>Armá una lista</p>';
+  nb.onclick=()=>openPlEditor(null);
+  g.appendChild(nb);
+}
+
+async function openPl(id){
+  const p=await plists.get(id); if(!p) return;
+  curPl=p;
+  $('#pl-cover').style.setProperty('--pa',p.accent||'#4a4a58');
+  $('#pl-cover').innerHTML=plCoverHTML(p);
+  $('#pl-name').textContent=p.name;
+  $('#pl-desc').textContent=p.desc||'';
+  $('#pl-desc').style.display=p.desc?'':'none';
+  await renderTracks();
+  show('pl');
+  window.scrollTo(0,0);
+}
+async function renderTracks(){
+  const box=$('#pl-tracks');box.innerHTML='';
+  const items=curPl.items||[];
+  const songs=await Promise.all(items.map(id=>store.get(id)));
+  const live=[];
+  songs.forEach((s,i)=>{if(s)live.push({s,i});});
+  $('#pl-count').textContent=live.length+(live.length===1?' tema':' temas')+
+    (live.some(x=>!x.s.ytid)?' · algunos sin audio':'');
+  if(!live.length){box.innerHTML='<div class="empty">Todavía no hay temas.<br>Buscá una canción, abrila y tocá «+ Playlist».</div>';return;}
+  live.forEach(({s},n)=>{
+    const d=document.createElement('div');
+    d.className='tr'+(s.ytid?'':' noaudio');
+    d.innerHTML='<span class="idx">'+(n+1)+'</span>'+
+      '<span class="th">'+(s.cover?'<img alt="" src="'+s.cover+'">':'♪')+'</span>'+
+      '<button class="tn"><b></b><span></span></button>'+
+      (s.ytid?'':'<span class="warn-sm">sin audio</span>')+
+      '<span class="ta"></span>';
+    d.querySelector('b').textContent=s.title;
+    d.querySelector('.tn span').textContent=s.artist||'—';
+    d.querySelector('.tn').onclick=()=>startQueue(curPl,false,s.id);
+    const ta=d.querySelector('.ta');
+    [['↑',()=>move(s.id,-1)],['↓',()=>move(s.id,1)],['✕',()=>remove(s.id)]].forEach(([t,fn])=>{
+      const b=document.createElement('button');b.textContent=t;b.onclick=fn;ta.appendChild(b);
+    });
+    box.appendChild(d);
+  });
+}
+async function move(id,d){
+  const a=curPl.items,i=a.indexOf(id),j=i+d;
+  if(i<0||j<0||j>=a.length)return;
+  a.splice(j,0,a.splice(i,1)[0]);
+  await plists.put(curPl);renderTracks();
+}
+async function remove(id){
+  curPl.items=curPl.items.filter(x=>x!==id);
+  await plists.put(curPl);renderTracks();renderPls();
+}
+
+/* ---- editor ---- */
+function openPlEditor(p){
+  editPl=p;peCover=p?p.cover:null;peBg=p?(p.bg||'track'):'track';
+  $('#pled-h').textContent=p?'Personalizar playlist':'Nueva playlist';
+  $('#pe-name').value=p?p.name:'';
+  $('#pe-desc').value=p?(p.desc||''):'';
+  $('#pe-emoji').value=p?(p.emoji||''):'';
+  $('#pe-color').value=p?(p.accent||'#4a4a58'):'#4a4a58';
+  $('#pe-del').style.display=p?'':'none';
+  $('#pe-err').textContent='';
+  syncPreview();
+  $('#pe-bg').querySelectorAll('button').forEach(b=>b.classList.toggle('sel',b.dataset.bg===peBg));
+  $('#pled').classList.add('on');
+  $('#pe-name').focus();
+}
+function syncPreview(){
+  const pv=$('#pe-prev');
+  pv.style.setProperty('--pa',$('#pe-color').value);
+  pv.innerHTML=peCover?'<img alt="" src="'+peCover+'">':($('#pe-emoji').value||'♪');
+}
+$('#pe-color').oninput=syncPreview;
+$('#pe-emoji').oninput=syncPreview;
+$('#pe-noimg').onclick=()=>{peCover=null;$('#pe-img').value='';syncPreview();};
+$('#pe-bg').onclick=e=>{
+  const b=e.target.closest('button[data-bg]');if(!b)return;
+  peBg=b.dataset.bg;
+  $('#pe-bg').querySelectorAll('button').forEach(x=>x.classList.toggle('sel',x===b));
+};
+$('#pe-img').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    const im=new Image();
+    im.onload=()=>{
+      const n=700,c=document.createElement('canvas');
+      const side=Math.min(im.width,im.height);
+      c.width=c.height=Math.min(n,side);
+      const x=c.getContext('2d');
+      x.drawImage(im,(im.width-side)/2,(im.height-side)/2,side,side,0,0,c.width,c.height);
+      peCover=c.toDataURL('image/jpeg',.86);
+      syncPreview();
+    };
+    im.onerror=()=>{peCover=r.result;syncPreview();};
+    im.src=r.result;
+  };
+  r.readAsDataURL(f);
+};
+$('#pe-cancel').onclick=()=>$('#pled').classList.remove('on');
+$('#pe-save').onclick=async()=>{
+  const name=$('#pe-name').value.trim();
+  if(!name){$('#pe-err').textContent='Ponele un nombre.';return;}
+  const p=editPl||{id:'p'+Date.now()+Math.random().toString(36).slice(2,5),items:[]};
+  p.name=name;p.desc=$('#pe-desc').value.trim();p.emoji=$('#pe-emoji').value.trim();
+  p.accent=$('#pe-color').value;p.cover=peCover;p.bg=peBg;p.at=p.at||Date.now();
+  try{
+    await plists.put(p);
+    $('#pled').classList.remove('on');
+    await renderPls();
+    if(curPl&&curPl.id===p.id)openPl(p.id);
+    else if(!editPl)openPl(p.id);
+    toast('Guardada');
+  }catch(e){$('#pe-err').textContent='No se pudo guardar. Probá con una imagen más chica.';}
+};
+$('#pe-del').onclick=async()=>{
+  if(!editPl||!confirm('¿Eliminar la playlist "'+editPl.name+'"? Los temas guardados no se borran.'))return;
+  await plists.del(editPl.id);
+  $('#pled').classList.remove('on');curPl=null;
+  await renderPls();await renderLib();show('home');
+};
+$('#pl-edit').onclick=()=>openPlEditor(curPl);
+$('#pl-back').onclick=async()=>{await renderPls();await renderLib();show('home');};
+
+/* ---- añadir el tema actual a una lista ---- */
+$('#h-add').onclick=async()=>{
+  if(!P.song)return;
+  if(!P.saved){try{await store.put({...P.song,duration:P.dur,at:Date.now()});P.saved=true;$('#h-save').textContent='Guardada';}catch(e){}}
+  const list=(await plists.all()).sort((a,b)=>(b.at||0)-(a.at||0));
+  const box=$('#add-list');box.innerHTML='';
+  if(!list.length)box.innerHTML='<div class="empty">No tenés playlists todavía.</div>';
+  list.forEach(p=>{
+    const has=(p.items||[]).includes(P.song.id);
+    const b=document.createElement('button');b.className='plrow';
+    b.style.setProperty('--pa',p.accent||'#4a4a58');
+    b.innerHTML='<span class="pt">'+plCoverHTML(p)+'</span><span><b></b><span></span></span><span class="chk">'+(has?'✓':'+')+'</span>';
+    b.querySelector('b').textContent=p.name;
+    b.querySelectorAll('span')[2].textContent=(p.items||[]).length+' temas';
+    b.onclick=async()=>{
+      p.items=p.items||[];
+      if(p.items.includes(P.song.id)){p.items=p.items.filter(x=>x!==P.song.id);b.querySelector('.chk').textContent='+';}
+      else{p.items.push(P.song.id);b.querySelector('.chk').textContent='✓';}
+      await plists.put(p);
+      b.querySelectorAll('span')[2].textContent=p.items.length+' temas';
+      renderPls();
+    };
+    box.appendChild(b);
+  });
+  $('#addm').classList.add('on');
+};
+$('#add-close').onclick=()=>$('#addm').classList.remove('on');
+$('#add-new').onclick=()=>{$('#addm').classList.remove('on');openPlEditor(null);};
+
+/* ---- cola ---- */
+async function startQueue(p,shuffle,firstId){
+  const songs=(await Promise.all((p.items||[]).map(id=>store.get(id)))).filter(Boolean);
+  let playable=songs.filter(s=>s.ytid);
+  if(!playable.length){toast('Ningún tema de esta lista tiene audio asociado');return;}
+  let ids=playable.map(s=>s.id);
+  if(shuffle){for(let i=ids.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[ids[i],ids[j]]=[ids[j],ids[i]];}}
+  let start=0;
+  if(firstId){
+    const k=ids.indexOf(firstId);
+    if(k<0){toast('Ese tema no tiene audio asociado');return;}
+    start=k;
+  }
+  Q.ids=ids;Q.i=start;Q.pl=p;
+  document.body.classList.add('queued');
+  await playAt(start,false);
+}
+async function playAt(i,auto){
+  if(i<0||i>=Q.ids.length){document.body.classList.remove('queued');Q.ids=[];Q.i=-1;Q.pl=null;return;}
+  Q.i=i;
+  const s=await store.get(Q.ids[i]);
+  if(!s){return playAt(i+1,auto);}
+  await load(s,true,true);
+}
+function nextTrack(){if(Q.ids.length)playAt(Q.i+1,true);}
+function prevTrack(){if(Q.ids.length)playAt(Q.i-1,true);}
+$('#p-next').onclick=nextTrack;
+$('#p-prev').onclick=prevTrack;
+$('#pl-play').onclick=()=>startQueue(curPl,false);
+$('#pl-shuffle').onclick=()=>startQueue(curPl,true);
+
 /* ============================ player ============================ */
 const P={song:null,lines:[],els:[],playing:false,base:0,t0:0,raf:0,cur:-1,dur:0,src:'clock',audio:null,yt:null,saved:false};
 
 function show(v){
   document.querySelectorAll('.view').forEach(e=>e.classList.remove('on'));
   $('#player').classList.remove('on');
-  if(v==='player'){$('#player').classList.add('on');document.body.classList.add('in-player');hudTimer();}
-  else{$('#v-home').classList.add('on');$('#hud').classList.add('hide');document.body.classList.remove('in-player');}
+  document.body.classList.toggle('in-player', v==='player');
+  if(v==='player'){$('#player').classList.add('on');hudTimer();}
+  else if(v==='pl'){$('#v-pl').classList.add('on');$('#hud').classList.add('hide');}
+  else{$('#v-home').classList.add('on');$('#hud').classList.add('hide');}
 }
 
-async function load(t,fromLib){
+async function load(t,fromLib,auto){
   stopAll();
+  P.autoplay=!!auto;
   const synced=fromLib?t.lrc:t.syncedLyrics;
   const plain=fromLib?null:t.plainLyrics;
   const lines=parseLRC(synced||'');
@@ -506,31 +883,46 @@ async function load(t,fromLib){
   document.body.classList.add('paused');
 
   if(P.song.ytid) useYT(P.song.ytid);
+  else if(Q.ids.length&&auto) nextTrack();
   else{ setSrc('clock'); openSheet(); }
 }
 
 function setCover(u){
   const box=$('#p-art'),amb=$('#amb');
   applyPalette(null);
-  if(!u){
-    box.innerHTML='♪';
+  const pl=Q.ids.length?Q.pl:null;
+  const bg=pl?(pl.bg||'track'):'track';
+  if(bg==='color'&&pl){
+    box.innerHTML=u?'':'♪';
+    if(u){const im=new Image();im.alt='';im.src=u;box.appendChild(im);}
+    amb.classList.remove('img');
+    const c=pl.accent||'#4a4a58';
+    document.documentElement.style.setProperty('--c1',c);
+    document.documentElement.style.setProperty('--c2',c);
+    document.documentElement.style.setProperty('--c3',c);
+    return;
+  }
+  const ambSrc=(bg==='cover'&&pl&&pl.cover)?pl.cover:u;
+  if(!u){box.innerHTML='♪';}
+  else{
+    box.innerHTML='';
+    const im=new Image();im.alt='';im.crossOrigin='anonymous';
+    im.onload=()=>{if(ambSrc===u)applyPalette(palette(im));};
+    im.onerror=()=>{const p=new Image();p.alt='';p.src=u;box.innerHTML='';box.appendChild(p);};
+    im.src=u;box.appendChild(im);
+  }
+  if(!ambSrc){
     amb.classList.remove('img');
     amb.querySelectorAll('.lay').forEach(l=>l.style.backgroundImage='');
     return;
   }
-  box.innerHTML='';
-  const im=new Image();im.alt='';im.crossOrigin='anonymous';
-  im.onload=()=>applyPalette(palette(im));
-  im.onerror=()=>{const p=new Image();p.alt='';p.src=u;box.innerHTML='';box.appendChild(p);};
-  im.src=u;box.appendChild(im);
-  // el fondo es la misma portada, repetida y desenfocada
   const pre=new Image();
   pre.onload=()=>{
-    amb.querySelectorAll('.lay').forEach(l=>l.style.backgroundImage='url("'+u+'")');
+    amb.querySelectorAll('.lay').forEach(l=>l.style.backgroundImage='url("'+ambSrc+'")');
     amb.classList.add('img');
   };
   pre.onerror=()=>amb.classList.remove('img');
-  pre.src=u;
+  pre.src=ambSrc;
 }
 
 function buildLines(){
@@ -677,12 +1069,17 @@ function useYT(id){
     videoId:id,
     playerVars:vars,
     events:{
-      onReady:e=>{P.dur=e.target.getDuration()||P.dur;$('#p-dur').textContent=fmt(P.dur);closeSheet();toast('Listo · espacio para play');},
+      onReady:e=>{P.dur=e.target.getDuration()||P.dur;$('#p-dur').textContent=fmt(P.dur);closeSheet();
+        if(P.autoplay){P.autoplay=false;try{e.target.playVideo()}catch(err){}}
+        else toast('Listo · espacio para play');},
       onStateChange:e=>{
         if(e.data===YT.PlayerState.PLAYING){P.playing=true;document.body.classList.remove('paused');$('#p-icon').innerHTML='<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>';loop();}
-        if(e.data===YT.PlayerState.PAUSED||e.data===YT.PlayerState.ENDED){P.playing=false;document.body.classList.add('paused');$('#p-icon').innerHTML='<path d="M8 5v14l11-7z"/>';cancelAnimationFrame(P.raf);}
+        if(e.data===YT.PlayerState.PAUSED){P.playing=false;document.body.classList.add('paused');$('#p-icon').innerHTML='<path d="M8 5v14l11-7z"/>';cancelAnimationFrame(P.raf);}
+        if(e.data===YT.PlayerState.ENDED){P.playing=false;cancelAnimationFrame(P.raf);
+          if(Q.ids.length)nextTrack();
+          else{document.body.classList.add('paused');$('#p-icon').innerHTML='<path d="M8 5v14l11-7z"/>';}}
       },
-      onError:e=>ytFail(e.data,id)
+      onError:e=>{if(Q.ids.length){toast('Un tema no cargó, sigo con el siguiente');nextTrack();}else ytFail(e.data,id);}
     }
   });
 }
@@ -799,7 +1196,11 @@ $('#h-save').onclick=async()=>{
   try{await store.put({...P.song,duration:P.dur,at:Date.now()});P.saved=true;$('#h-save').textContent='Guardada';toast('Guardada');renderLib();}
   catch(e){toast('No se pudo guardar');}
 };
-$('#h-back').onclick=async()=>{stopAll();document.body.classList.remove('idle');applyPalette(null);$('#amb').classList.remove('img');await renderLib();show('home');};
+$('#h-back').onclick=async()=>{
+  stopAll();document.body.classList.remove('idle');applyPalette(null);$('#amb').classList.remove('img');
+  if(Q.ids.length&&Q.pl){document.body.classList.remove('queued');Q.ids=[];Q.i=-1;const p=Q.pl;Q.pl=null;await renderPls();return openPl(p.id);}
+  await renderPls();await renderLib();show('home');
+};
 $('#h-solo').onclick=()=>document.body.classList.toggle('solo');
 $('#h-full').onclick=()=>{
   if(document.fullscreenElement)document.exitFullscreen();
@@ -808,17 +1209,26 @@ $('#h-full').onclick=()=>{
 document.addEventListener('fullscreenchange',()=>{$('#h-full').textContent=document.fullscreenElement?'Salir':'Pantalla completa';});
 
 let hudT;
+function idleShift(){
+  const side=document.querySelector('.side'),c=document.querySelector('.ctrls'),s=document.querySelector('.srcline');
+  if(!side||!c||!s)return;
+  const gap=parseFloat(getComputedStyle(side).rowGap)||0;
+  const h=c.offsetHeight?c.offsetHeight+s.offsetHeight+gap*2:0;
+  side.style.setProperty('--shift',(h/2)+'px');
+}
 function hudTimer(){
   clearTimeout(hudT);
   $('#hud').classList.remove('hide');
   document.body.classList.remove('idle');
   hudT=setTimeout(()=>{
-    if($('#player').classList.contains('on')&&!$('#sheet').classList.contains('on')){
+    if($('#player').classList.contains('on')&&!$('#sheet').classList.contains('on')&&!$('#addm').classList.contains('on')&&!$('#pled').classList.contains('on')){
+      idleShift();
       $('#hud').classList.add('hide');
       document.body.classList.add('idle');
     }
   },2600);
 }
+addEventListener('resize',()=>{if(document.body.classList.contains('idle'))idleShift();});
 document.addEventListener('mousemove',()=>{if($('#player').classList.contains('on'))hudTimer();});
 document.addEventListener('touchstart',()=>{if($('#player').classList.contains('on'))hudTimer();},{passive:true});
 
@@ -826,6 +1236,10 @@ document.addEventListener('keydown',e=>{
   const tag=document.activeElement.tagName;
   if(tag==='INPUT'||tag==='TEXTAREA')return;
   if(!$('#player').classList.contains('on'))return;
+  if($('#addm').classList.contains('on')||$('#pled').classList.contains('on')){
+    if(e.key==='Escape'){$('#addm').classList.remove('on');$('#pled').classList.remove('on');}
+    return;
+  }
   if($('#sheet').classList.contains('on')){if(e.key==='Escape')closeSheet();return;}
   if(e.code==='Space'){e.preventDefault();setPlaying(!P.playing);}
   if(e.code==='ArrowRight'){e.preventDefault();seek(now()+5);}
@@ -848,6 +1262,7 @@ try{inFrame=window.self!==window.top}catch(e){inFrame=true}
 })();
 
 renderLib();
+renderPls();
 loadYTAPI();
 $('#q').focus();
 </script>

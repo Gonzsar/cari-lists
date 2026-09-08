@@ -13,7 +13,8 @@ const defaultSettings = {
   anniversaryDate:'2023-12-15',
   unlockedStickers:[],
   darkMode:false,
-  sbUrl:'', sbKey:'', myCode:'', ownerToken:'', lastSync:0
+  sbUrl:'', sbKey:'', myCode:'', ownerToken:'', lastSync:0,
+  holidayPhotos:{ hw:[], xmas:[] }
 };
 const emptyState = {
   movies:[], series:[], music:[], books:[], wishlist:[],
@@ -2530,6 +2531,206 @@ function initPageTransition(){
   window.addEventListener('pageshow', function(){ curtain.classList.remove('on'); });
 }
 
+/* ============================================================
+   CONTADORES DE HALLOWEEN Y NAVIDAD
+   ============================================================ */
+const HOLI_DEF = {
+  hw:   { month:10, day:31, emoji:'🎃', title:'Tu fotito de Halloween',
+          today:'¡Es hoy!<br/>Feliz Halloween 🎃', slots:['🎃','🦇','👻'] },
+  xmas: { month:12, day:25, emoji:'🎄', title:'Tu fotito de Navidad',
+          today:'¡Es hoy!<br/>Feliz Navidad 🎄', slots:['🎅','🦌','⛄'] }
+};
+
+function holiPad(n){ return n < 10 ? '0' + n : '' + n; }
+
+/* Proxima fecha de la festividad (si ya paso este ano, la del ano que viene) */
+function holiNextDate(month, day){
+  const now = new Date();
+  const y = now.getFullYear();
+  const endOfDay = new Date(y, month - 1, day, 23, 59, 59, 999);
+  if(now > endOfDay) return new Date(y + 1, month - 1, day, 0, 0, 0, 0);
+  return new Date(y, month - 1, day, 0, 0, 0, 0);
+}
+
+/* Estructura interna del contador (se construye una sola vez para no
+   reiniciar las animaciones en cada tick) */
+function holiBuild(el){
+  el.innerHTML =
+    '<div class="holi-days">--</div>' +
+    '<div class="holi-days-label">días</div>' +
+    '<div class="holi-clock">00:00:00</div>';
+  return {
+    mode: 'count',
+    days: el.querySelector('.holi-days'),
+    label: el.querySelector('.holi-days-label'),
+    clock: el.querySelector('.holi-clock')
+  };
+}
+
+function holiTickOne(el, ref, fest){
+  const conf = HOLI_DEF[fest];
+  const target = holiNextDate(conf.month, conf.day);
+  const diff = target - new Date();
+
+  if(diff <= 0){
+    if(ref.mode !== 'today'){
+      el.innerHTML = '<div class="holi-today">' + conf.today + '</div>';
+      ref.mode = 'today';
+    }
+    return;
+  }
+  if(ref.mode !== 'count'){
+    const built = holiBuild(el);
+    ref.mode = 'count'; ref.days = built.days;
+    ref.label = built.label; ref.clock = built.clock;
+  }
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor(diff / 3600000) % 24;
+  const m = Math.floor(diff / 60000) % 60;
+  const s = Math.floor(diff / 1000) % 60;
+
+  if(ref.days.textContent !== String(d)) ref.days.textContent = d;
+  const lbl = (d === 1) ? 'día' : 'días';
+  if(ref.label.textContent !== lbl) ref.label.textContent = lbl;
+  ref.clock.textContent = holiPad(h) + ':' + holiPad(m) + ':' + holiPad(s);
+}
+
+/* --- fotitos de cada ranura --- */
+function holiPhotos(){
+  if(!settings.holidayPhotos || typeof settings.holidayPhotos !== 'object'){
+    settings.holidayPhotos = { hw:[], xmas:[] };
+  }
+  if(!Array.isArray(settings.holidayPhotos.hw))   settings.holidayPhotos.hw = [];
+  if(!Array.isArray(settings.holidayPhotos.xmas)) settings.holidayPhotos.xmas = [];
+  return settings.holidayPhotos;
+}
+
+function renderHoliPhotos(){
+  const store = holiPhotos();
+  document.querySelectorAll('.holi-photo').forEach(btn => {
+    const fest = btn.dataset.fest;
+    const slot = parseInt(btn.dataset.slot, 10) || 0;
+    const src = (store[fest] || [])[slot] || '';
+    if(src){
+      btn.style.backgroundImage = 'url("' + String(src).replace(/"/g, '%22') + '")';
+      btn.classList.add('has-photo');
+      btn.title = 'Cambiar la foto';
+    } else {
+      btn.style.backgroundImage = '';
+      btn.classList.remove('has-photo');
+      btn.title = 'Poner una foto';
+    }
+  });
+}
+
+let holiEditing = { fest:'hw', slot:0, value:'' };
+
+function holiPreviewSet(val){
+  const prev = document.getElementById('holiPreview');
+  if(!prev) return;
+  const conf = HOLI_DEF[holiEditing.fest];
+  if(val){
+    prev.style.backgroundImage = 'url("' + String(val).replace(/"/g, '%22') + '")';
+    prev.textContent = '';
+  } else {
+    prev.style.backgroundImage = '';
+    prev.textContent = conf.slots[holiEditing.slot] || conf.emoji;
+  }
+}
+
+function openHoliPhoto(fest, slot){
+  const conf = HOLI_DEF[fest];
+  if(!conf) return;
+  const store = holiPhotos();
+  holiEditing = { fest, slot, value:(store[fest] || [])[slot] || '' };
+
+  const icon  = document.getElementById('holiPhotoIcon');
+  const title = document.getElementById('holiPhotoTitle');
+  const url   = document.getElementById('holiUrlInput');
+  if(icon)  icon.textContent = conf.slots[slot] || conf.emoji;
+  if(title) title.textContent = conf.title;
+  if(url)   url.value = '';
+  holiPreviewSet(holiEditing.value);
+  document.getElementById('holiPhotoModal')?.classList.add('show');
+}
+
+function closeHoliPhoto(){
+  document.getElementById('holiPhotoModal')?.classList.remove('show');
+}
+
+function initHolidayCounters(){
+  const hwEl   = document.getElementById('hwCount');
+  const xmasEl = document.getElementById('xmasCount');
+  if(!hwEl || !xmasEl) return;
+
+  const refHw   = holiBuild(hwEl);
+  const refXmas = holiBuild(xmasEl);
+
+  const tick = () => {
+    holiTickOne(hwEl,   refHw,   'hw');
+    holiTickOne(xmasEl, refXmas, 'xmas');
+  };
+  tick();
+  setInterval(tick, 1000);
+
+  renderHoliPhotos();
+
+  document.querySelectorAll('.holi-photo').forEach(btn => {
+    btn.addEventListener('click', () => {
+      openHoliPhoto(btn.dataset.fest, parseInt(btn.dataset.slot, 10) || 0);
+    });
+  });
+
+  safeOn('holiPhotoClose', 'click', closeHoliPhoto);
+  safeOn('holiPhotoModal', 'click', (e) => {
+    if(e.target.id === 'holiPhotoModal') closeHoliPhoto();
+  });
+
+  safeOn('holiUploadBtn', 'click', () => {
+    document.getElementById('holiUploadInput')?.click();
+  });
+  safeOn('holiUploadInput', 'change', async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if(!file) return;
+    try{
+      holiEditing.value = await readImageFile(file, 400);
+      holiPreviewSet(holiEditing.value);
+    }catch(err){
+      console.error('[holiday photo]', err);
+      toast('No pude leer esa imagen 🌸');
+    }
+    e.target.value = '';
+  });
+  safeOn('holiUrlInput', 'input', (e) => {
+    const v = e.target.value.trim();
+    if(v){ holiEditing.value = v; holiPreviewSet(v); }
+  });
+
+  safeOn('holiRemoveBtn', 'click', () => {
+    const store = holiPhotos();
+    store[holiEditing.fest][holiEditing.slot] = '';
+    saveSettings();
+    renderHoliPhotos();
+    closeHoliPhoto();
+    toast('Fotito quitada 🌸');
+  });
+
+  safeOn('holiSaveBtn', 'click', () => {
+    const store = holiPhotos();
+    store[holiEditing.fest][holiEditing.slot] = holiEditing.value || '';
+    try{
+      saveSettings();
+    }catch(err){
+      console.error('[holiday photo save]', err);
+      toast('No entró en el storage, probá con una foto más chica 🌸');
+      return;
+    }
+    renderHoliPhotos();
+    closeHoliPhoto();
+    if(holiEditing.value) toast('Quedó preciosa ♡');
+  });
+}
+
 /* === Init === */
 function safeRun(label, fn){
   try { fn(); }
@@ -2542,6 +2743,7 @@ safeRun('initPageTransition', initPageTransition);
 safeRun('initFriends', initFriends);
 safeRun('initDiary', initDiary);
 safeRun('initMelodyCompanion', initMelodyCompanion);
+safeRun('initHolidayCounters', initHolidayCounters);
 safeRun('render', render);
 safeRun('maybeShowSetup', maybeShowSetup);
 safeRun('checkAchievements', ()=>checkAchievements(true));

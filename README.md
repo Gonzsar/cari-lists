@@ -116,6 +116,19 @@ ver el perfil del otro **siempre actualizado**.
 
 Los datos se suben solos unos segundos después de cada cambio.
 
+## 🎃🎄 Contadores de Halloween y Navidad
+
+Dos tarjetitas ambientadas (arriba a la derecha en pantallas anchas, o entre el
+perfil y las categorías en pantallas más chicas) que cuentan los días, horas,
+minutos y segundos que faltan.
+
+- Se pasan solas al año siguiente cuando la fecha ya pasó
+- El día de la festividad muestran **"¡Es hoy!"**
+- Cada tarjeta tiene **3 ranuras redondas** para poner fotitos (Papá Noel,
+  renos, lo que sea): click en la ranura → subir foto o pegar una URL
+- Las fotos se guardan en los ajustes, así que también se sincronizan con
+  la nube si tenés Supabase configurado
+
 ## 🎤 Buscador de letras
 
 Página aparte (`letras-buscador.html`) al estilo Apple Music: buscás una canción

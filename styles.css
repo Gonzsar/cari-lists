@@ -2073,3 +2073,397 @@ html[data-dark="true"] .my-code-box{
   background:linear-gradient(135deg,#3a2836,#2f1f2b);
 }
 html[data-dark="true"] .friend-row{ background:#2f1f2b; }
+
+/* ============================================================
+   CONTADORES DE HALLOWEEN Y NAVIDAD
+   ============================================================ */
+.holiday-counters{
+  display:flex;
+  flex-wrap:wrap;
+  gap:20px;
+  justify-content:center;
+  margin:0 0 34px;
+}
+
+.holi-card{
+  position:relative;
+  width:238px;
+  height:304px;
+  border-radius:26px;
+  overflow:hidden;
+  flex:0 0 auto;
+  isolation:isolate;
+  transition:transform .35s cubic-bezier(.4,1.4,.5,1), box-shadow .35s ease;
+}
+.holi-card:hover{ transform:translateY(-5px) rotate(-.6deg); }
+
+.holi-bg{ position:absolute; inset:0; z-index:1; overflow:hidden; }
+.holi-inner{
+  position:relative; z-index:3;
+  height:100%;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:18px 14px;
+  text-align:center;
+}
+
+.holi-head{
+  display:flex; align-items:center; gap:7px;
+  margin-bottom:10px;
+}
+.holi-emoji{ font-size:1.15rem; filter:drop-shadow(0 2px 4px rgba(0,0,0,.5)); }
+.holi-name{
+  font-family:'Quicksand',sans-serif;
+  font-weight:700;
+  font-size:1.02rem;
+  letter-spacing:.6px;
+}
+
+/* --- numeros --- */
+.holi-count{ display:flex; flex-direction:column; align-items:center; gap:2px; }
+.holi-days{
+  font-family:'Quicksand',sans-serif;
+  font-weight:700;
+  font-size:3.3rem;
+  line-height:1;
+  letter-spacing:-1px;
+}
+.holi-days-label{
+  font-family:'Quicksand',sans-serif;
+  font-size:.72rem;
+  font-weight:600;
+  letter-spacing:2.4px;
+  text-transform:uppercase;
+  opacity:.85;
+  margin-top:2px;
+}
+.holi-clock{
+  font-family:'Quicksand',sans-serif;
+  font-weight:600;
+  font-size:.82rem;
+  letter-spacing:1.6px;
+  margin-top:8px;
+  padding:4px 12px;
+  border-radius:50px;
+  backdrop-filter:blur(4px);
+}
+.holi-today{
+  font-family:'Dancing Script',cursive;
+  font-size:1.55rem;
+  line-height:1.15;
+  margin-top:4px;
+}
+
+/* --- ranuras de fotos --- */
+.holi-photos{ position:absolute; inset:0; z-index:5; pointer-events:none; }
+.holi-photo{
+  position:absolute;
+  pointer-events:auto;
+  width:46px; height:46px;
+  border-radius:50%;
+  padding:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.05rem;
+  cursor:pointer;
+  overflow:hidden;
+  background-size:cover;
+  background-position:center;
+  transition:transform .3s cubic-bezier(.4,1.4,.5,1), box-shadow .3s ease;
+}
+.holi-photo:hover{ transform:scale(1.14) rotate(-4deg); z-index:6; }
+.holi-photo.has-photo{ font-size:0; }
+.holi-photo[data-slot="0"]{ top:14px; left:12px; }
+.holi-photo[data-slot="1"]{ top:50%; right:10px; margin-top:-23px; }
+.holi-photo[data-slot="2"]{ bottom:14px; left:50%; margin-left:-23px; }
+
+/* ============================ HALLOWEEN ============================ */
+.holi-hw{
+  background:
+    radial-gradient(120% 85% at 78% 12%, rgba(255,160,50,.30), transparent 58%),
+    radial-gradient(100% 70% at 20% 100%, rgba(255,120,20,.24), transparent 62%),
+    linear-gradient(165deg,#2b1230 0%,#1a0a1d 48%,#0d0510 100%);
+  border:2px solid rgba(239,127,26,.55);
+  box-shadow:0 14px 34px rgba(20,5,25,.5), inset 0 0 40px rgba(239,127,26,.12);
+}
+.holi-hw:hover{ box-shadow:0 20px 44px rgba(20,5,25,.6), inset 0 0 50px rgba(239,127,26,.2); }
+.holi-hw .holi-name{ color:#ffb35c; text-shadow:0 0 14px rgba(239,127,26,.65); }
+.holi-hw .holi-days{
+  color:#ff8c1a;
+  text-shadow:0 0 22px rgba(255,140,26,.75), 0 0 46px rgba(255,90,0,.4);
+  animation:hwGlow 3.4s ease-in-out infinite;
+}
+@keyframes hwGlow{
+  0%,100%{ text-shadow:0 0 20px rgba(255,140,26,.6), 0 0 42px rgba(255,90,0,.32); }
+  50%    { text-shadow:0 0 30px rgba(255,165,60,.95), 0 0 62px rgba(255,90,0,.5); }
+}
+.holi-hw .holi-days-label{ color:#e6b98f; }
+.holi-hw .holi-clock{
+  color:#ffce9a;
+  background:rgba(239,127,26,.14);
+  border:1px solid rgba(239,127,26,.35);
+}
+.holi-hw .holi-today{ color:#ffb35c; text-shadow:0 0 18px rgba(255,140,26,.7); }
+.holi-hw .holi-photo{
+  border:2px solid rgba(239,127,26,.75);
+  background-color:rgba(43,18,48,.9);
+  box-shadow:0 0 14px rgba(239,127,26,.45);
+}
+.holi-hw .holi-photo:hover{ box-shadow:0 0 22px rgba(255,160,60,.85); }
+
+.hw-moon{
+  position:absolute; top:16px; right:16px;
+  width:52px; height:52px; border-radius:50%;
+  background:radial-gradient(circle at 36% 32%,#fff3d0,#ffd98a 55%,#f0b95e);
+  box-shadow:0 0 34px rgba(255,214,138,.55), 0 0 70px rgba(255,180,80,.28);
+}
+.hw-moon::before,.hw-moon::after{
+  content:''; position:absolute; border-radius:50%;
+  background:rgba(226,176,104,.5);
+}
+.hw-moon::before{ width:12px;height:12px; top:12px; left:9px; }
+.hw-moon::after{ width:8px;height:8px; bottom:12px; right:14px; }
+
+.hw-web{ position:absolute; top:-2px; left:-2px; width:82px; height:82px; opacity:.75; }
+
+.hw-spider{
+  position:absolute; top:0; left:52px;
+  width:1px; height:66px;
+  background:rgba(255,255,255,.32);
+  transform-origin:top center;
+  animation:hwSpider 4.5s ease-in-out infinite;
+}
+.hw-spider i{
+  position:absolute; bottom:-7px; left:-6px;
+  width:13px; height:11px; border-radius:50%;
+  background:#150a16;
+  box-shadow:
+    -8px -3px 0 -4px #150a16, 8px -3px 0 -4px #150a16,
+    -9px  1px 0 -4px #150a16, 9px  1px 0 -4px #150a16;
+}
+.hw-spider i::before{
+  content:''; position:absolute; top:-4px; left:3px;
+  width:7px;height:6px;border-radius:50%;background:#150a16;
+}
+.hw-spider i::after{
+  content:''; position:absolute; top:3px; left:2.5px;
+  width:2.5px;height:2.5px;border-radius:50%;
+  background:#ef7f1a; box-shadow:4px 0 0 -.4px #ef7f1a;
+}
+@keyframes hwSpider{
+  0%,100%{ transform:rotate(-7deg) translateY(0); }
+  50%    { transform:rotate(7deg) translateY(9px); }
+}
+
+.hw-bat{
+  position:absolute;
+  width:17px; height:9px;
+  background:#0e060f;
+  border-radius:50% 50% 40% 40%/70% 70% 100% 100%;
+  opacity:.9;
+}
+.hw-bat::before,.hw-bat::after{
+  content:''; position:absolute; top:1px;
+  width:9px; height:7px; background:#0e060f;
+  border-radius:60% 60% 0 60%;
+}
+.hw-bat::before{ left:-7px; transform-origin:right center; animation:hwWingL .5s ease-in-out infinite; }
+.hw-bat::after { right:-7px; transform-origin:left center;  animation:hwWingR .5s ease-in-out infinite; }
+@keyframes hwWingL{ 0%,100%{transform:rotate(-16deg) scaleY(1);} 50%{transform:rotate(26deg) scaleY(.6);} }
+@keyframes hwWingR{ 0%,100%{transform:rotate(16deg) scaleY(1);}  50%{transform:rotate(-26deg) scaleY(.6);} }
+.hw-bat.b1{ top:74px;  left:-24px; animation:hwFly1 11s linear infinite; }
+.hw-bat.b2{ top:126px; left:-24px; animation:hwFly2 14s linear infinite 2.5s; }
+.hw-bat.b3{ top:44px;  left:-24px; animation:hwFly1 17s linear infinite 6s; }
+@keyframes hwFly1{
+  0%  { transform:translate(0,0) scale(.8); opacity:0; }
+  10% { opacity:.95; }
+  50% { transform:translate(150px,-26px) scale(.95); }
+  90% { opacity:.95; }
+  100%{ transform:translate(290px,10px) scale(.8); opacity:0; }
+}
+@keyframes hwFly2{
+  0%  { transform:translate(0,0) scale(.62); opacity:0; }
+  12% { opacity:.9; }
+  55% { transform:translate(140px,28px) scale(.75); }
+  88% { opacity:.9; }
+  100%{ transform:translate(290px,-14px) scale(.62); opacity:0; }
+}
+
+.hw-pumpkin{
+  position:absolute; bottom:6px; left:8px;
+  width:62px; height:54px;
+  filter:drop-shadow(0 0 16px rgba(255,140,26,.55));
+  animation:hwPumpkin 2.6s ease-in-out infinite;
+}
+@keyframes hwPumpkin{
+  0%,100%{ filter:drop-shadow(0 0 12px rgba(255,140,26,.45)); }
+  45%    { filter:drop-shadow(0 0 24px rgba(255,170,60,.85)); }
+  55%    { filter:drop-shadow(0 0 14px rgba(255,140,26,.5)); }
+}
+.hw-crow{
+  position:absolute; bottom:8px; right:2px;
+  width:58px; height:45px;
+  opacity:1;
+  filter:drop-shadow(0 0 7px rgba(255,150,40,.5)) drop-shadow(0 0 2px rgba(255,200,120,.55));
+  animation:hwCrow 5s ease-in-out infinite;
+}
+@keyframes hwCrow{
+  0%,100%{ transform:rotate(0deg) translateY(0); }
+  50%    { transform:rotate(-4deg) translateY(-4px); }
+}
+
+/* ============================ NAVIDAD ============================ */
+.holi-xmas{
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(255,255,255,.20), transparent 55%),
+    radial-gradient(90% 60% at 18% 105%, rgba(232,67,79,.28), transparent 60%),
+    linear-gradient(170deg,#0f4a33 0%,#0b3a29 45%,#07241b 100%);
+  border:2px solid rgba(255,255,255,.5);
+  box-shadow:0 14px 34px rgba(7,36,27,.5), inset 0 0 44px rgba(255,255,255,.07);
+}
+.holi-xmas:hover{ box-shadow:0 20px 44px rgba(7,36,27,.6), inset 0 0 54px rgba(255,255,255,.12); }
+.holi-xmas .holi-name{ color:#fff; text-shadow:0 2px 10px rgba(0,0,0,.45); }
+.holi-xmas .holi-days{
+  color:#fff;
+  text-shadow:0 0 20px rgba(255,255,255,.55), 0 3px 10px rgba(0,0,0,.4);
+  animation:xmGlow 3.8s ease-in-out infinite;
+}
+@keyframes xmGlow{
+  0%,100%{ text-shadow:0 0 16px rgba(255,255,255,.45), 0 3px 10px rgba(0,0,0,.4); }
+  50%    { text-shadow:0 0 30px rgba(255,214,102,.8), 0 3px 10px rgba(0,0,0,.4); }
+}
+.holi-xmas .holi-days-label{ color:#ffd7d9; }
+.holi-xmas .holi-clock{
+  color:#fff;
+  background:rgba(232,67,79,.32);
+  border:1px solid rgba(255,255,255,.4);
+}
+.holi-xmas .holi-today{ color:#ffe08a; text-shadow:0 0 16px rgba(255,214,102,.7); }
+.holi-xmas .holi-photo{
+  border:2px solid #fff;
+  background-color:rgba(11,58,41,.9);
+  box-shadow:0 0 0 2px rgba(232,67,79,.6), 0 4px 12px rgba(0,0,0,.4);
+}
+.holi-xmas .holi-photo:hover{ box-shadow:0 0 0 2px rgba(255,209,102,.9), 0 0 20px rgba(255,255,255,.6); }
+
+.xm-snowcap{
+  position:absolute; top:0; left:0; right:0; height:18px;
+  background:linear-gradient(#ffffff,#eaf4ff);
+  border-radius:0 0 10px 10px;
+  box-shadow:0 3px 12px rgba(0,0,0,.18);
+  -webkit-mask:radial-gradient(13px 11px at 12px 22px, transparent 99%, #000 100%) repeat-x 0 0/24px 18px;
+          mask:radial-gradient(13px 11px at 12px 22px, transparent 99%, #000 100%) repeat-x 0 0/24px 18px;
+}
+
+.xm-lights{
+  position:absolute; top:22px; left:-6px; right:-6px; height:24px;
+  border-bottom:2px solid rgba(255,255,255,.35);
+  border-radius:0 0 50% 50%/0 0 22px 22px;
+}
+.xm-lights::before,.xm-lights::after{
+  content:''; position:absolute; top:100%;
+  width:7px; height:9px; border-radius:0 0 50% 50%/0 0 70% 70%;
+}
+.xm-lights::before{
+  left:24%;
+  background:#ffd166;
+  box-shadow:
+    38px 5px 0 #e8434f, 76px 6px 0 #7ee2a8,
+    114px 2px 0 #ffd166, -22px 4px 0 #e8434f;
+  animation:xmLights 2.6s steps(1,end) infinite;
+}
+.xm-lights::after{
+  left:44%;
+  background:#fff;
+  box-shadow:38px 4px 0 #ffd166, -60px 3px 0 #7ee2a8;
+  animation:xmLights 2.6s steps(1,end) infinite .9s;
+}
+@keyframes xmLights{
+  0%,100%{ opacity:1;   filter:drop-shadow(0 0 6px rgba(255,209,102,.9)); }
+  50%    { opacity:.42; filter:none; }
+}
+
+.xm-snow{
+  position:absolute; top:-12px;
+  width:6px; height:6px; border-radius:50%;
+  background:#fff;
+  box-shadow:0 0 6px rgba(255,255,255,.8);
+  opacity:0;
+  animation:xmFall linear infinite;
+}
+@keyframes xmFall{
+  0%  { transform:translate(0,-12px) scale(.7); opacity:0; }
+  10% { opacity:.95; }
+  85% { opacity:.9; }
+  100%{ transform:translate(16px,320px) scale(1); opacity:0; }
+}
+.xm-snow.s1{ left:12%;  animation-duration:7s;    animation-delay:0s;   }
+.xm-snow.s2{ left:27%;  animation-duration:9.5s;  animation-delay:1.2s; }
+.xm-snow.s3{ left:41%;  animation-duration:6.4s;  animation-delay:2.4s; }
+.xm-snow.s4{ left:56%;  animation-duration:11s;   animation-delay:.6s;  }
+.xm-snow.s5{ left:69%;  animation-duration:8.2s;  animation-delay:3.1s; }
+.xm-snow.s6{ left:83%;  animation-duration:10.4s; animation-delay:1.8s; }
+.xm-snow.s7{ left:92%;  animation-duration:7.6s;  animation-delay:4.2s; }
+.xm-snow.s8{ left:4%;   animation-duration:12s;   animation-delay:5.4s; }
+
+.xm-tree{
+  position:absolute; bottom:4px; left:6px;
+  width:54px; height:62px;
+  filter:drop-shadow(0 4px 10px rgba(0,0,0,.4));
+  animation:xmTree 4.2s ease-in-out infinite;
+}
+@keyframes xmTree{
+  0%,100%{ transform:rotate(-1.6deg); }
+  50%    { transform:rotate(1.6deg); }
+}
+.xm-cane{
+  position:absolute; top:56px; right:14px;
+  width:23px; height:48px;
+  filter:drop-shadow(0 3px 8px rgba(0,0,0,.35));
+  transform:rotate(12deg);
+}
+.xm-gift{
+  position:absolute; bottom:6px; right:8px;
+  width:42px; height:38px;
+  filter:drop-shadow(0 4px 10px rgba(0,0,0,.4));
+  animation:xmGift 3.2s ease-in-out infinite;
+}
+@keyframes xmGift{
+  0%,100%{ transform:translateY(0) rotate(0deg); }
+  50%    { transform:translateY(-4px) rotate(-3deg); }
+}
+
+/* --- modal de la foto --- */
+.holi-preview{
+  width:130px; height:130px;
+  margin:14px auto 0;
+  border-radius:50%;
+  border:3px solid var(--pink-300,#f7b3c6);
+  background:rgba(0,0,0,.05) center/cover no-repeat;
+  display:flex; align-items:center; justify-content:center;
+  font-size:2.4rem;
+  box-shadow:0 6px 18px rgba(0,0,0,.12);
+}
+
+/* --- ubicacion en el margen derecho en pantallas anchas --- */
+@media (min-width:1660px) and (min-height:800px){
+  .holiday-counters{
+    position:fixed;
+    top:78px;
+    right:26px;
+    width:238px;
+    margin:0;
+    z-index:38;
+    flex-direction:column;
+    gap:16px;
+  }
+  /* se achican solas para no chocar con My Melody */
+  .holi-card{ height:clamp(210px, calc((100vh - 380px) / 2), 304px); }
+}
+@media (max-width:560px){
+  .holi-card{ width:100%; max-width:300px; }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .hw-bat,.hw-spider,.xm-snow,.xm-lights::before,.xm-lights::after,
+  .hw-pumpkin,.hw-crow,.xm-tree,.xm-gift,.holi-days{ animation:none !important; }
+}

@@ -7,6 +7,7 @@ cari-list/
 ├── index.html       ← Estructura
 ├── styles.css       ← Estilos (paleta rosa, flores, animaciones)
 ├── app.js           ← Lógica (estado, búsquedas, modales)
+├── sfx/             ← Sonidos de los adornos de Halloween y Navidad
 ├── vercel.json      ← Configuración de Vercel
 ├── .gitignore
 └── README.md
@@ -132,18 +133,27 @@ minutos y segundos que faltan.
 ### Adornos con sonido
 
 Los adornos de cada tarjeta se pueden tocar y suenan (además tiran unas
-partículas). Todo está **sintetizado con Web Audio**: no hay ni un archivo
-de audio en el repo.
+partículas). Los audios viven en la carpeta `sfx/`:
 
-| Halloween | | Navidad | |
-|---|---|---|---|
-| 🌕 Luna | aullido de lobo | 🎄 Arbolito | cascabeles de trineo |
-| 🎃 Calabaza | risa de bruja | 🍬 Bastón | *Jingle Bells* en campanitas |
-| 🐦‍⬛ Cuervo | graznidos | 🎁 Regalo | destello mágico |
-| 🕷️ Araña | crujido y pasitos | ✨ Luces | tintineo suave |
+| Adorno | Archivo | | Adorno | Archivo |
+|---|---|---|---|---|
+| 🌕 Luna | `sfx/luna.mp3` | | 🎄 Arbolito | `sfx/arbol.mp3` |
+| 🎃 Calabaza | `sfx/calabaza.mp3` | | 🍬 Bastón | `sfx/dulce.mp3` |
+| 🐦‍⬛ Cuervo | `sfx/cuervo.mp3` | | 🎁 Regalo | `sfx/regalo.mp3` |
+| 🕷️ Araña | `sfx/arana.mp3` | | ✨ Luces | *(sintetizado)* |
 
-El audio solo arranca cuando ella toca algo (nunca suena solo). Las funciones
-están en `app.js`, bajo *"SONIDOS DE LAS FESTIVIDADES"*.
+**Para cambiar un sonido**: pisá el mp3 de `sfx/` con el nuevo, manteniendo
+el mismo nombre. Las luces del arbolito son las únicas que siguen
+sintetizadas con Web Audio (no tienen mp3 propio todavía); si querés darles
+uno, poné `sfx/luces.mp3` y en `app.js`, dentro de `HOLI_SFX`, cambiá
+`twinkle: { fn:sfxTwinkle, ... }` por `twinkle: { src:'sfx/luces.mp3', ... }`.
+
+Detalles del reproductor (en `app.js`, bajo *"SONIDOS DE LAS FESTIVIDADES"*):
+
+- Los mp3 se empiezan a descargar recién cuando ella roza o toca una tarjeta
+- Suena uno a la vez: tocar otro adorno corta el anterior
+- Tocar el mismo adorno mientras suena lo corta
+- Mientras algo suena, la tarjeta muestra un ♪ que late
 
 ## 🎤 Buscador de letras
 

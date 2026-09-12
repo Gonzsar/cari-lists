@@ -2087,9 +2087,9 @@ html[data-dark="true"] .friend-row{ background:#2f1f2b; }
 
 .holi-card{
   position:relative;
-  width:206px;
-  height:264px;
-  border-radius:23px;
+  width:168px;
+  height:214px;
+  border-radius:19px;
   overflow:hidden;
   flex:0 0 auto;
   isolation:isolate;
@@ -2104,20 +2104,20 @@ html[data-dark="true"] .friend-row{ background:#2f1f2b; }
   height:100%;
   display:flex; flex-direction:column;
   align-items:center; justify-content:center;
-  padding:14px 12px;
+  padding:11px 9px;
   text-align:center;
 }
 
 .holi-head{
-  display:flex; align-items:center; gap:6px;
-  margin-bottom:8px;
+  display:flex; align-items:center; gap:5px;
+  margin-bottom:6px;
 }
-.holi-emoji{ font-size:1.02rem; filter:drop-shadow(0 2px 4px rgba(0,0,0,.5)); }
+.holi-emoji{ font-size:.85rem; filter:drop-shadow(0 2px 4px rgba(0,0,0,.5)); }
 .holi-name{
   font-family:'Quicksand',sans-serif;
   font-weight:700;
-  font-size:.9rem;
-  letter-spacing:.5px;
+  font-size:.76rem;
+  letter-spacing:.4px;
 }
 
 /* --- numeros --- */
@@ -2125,15 +2125,15 @@ html[data-dark="true"] .friend-row{ background:#2f1f2b; }
 .holi-days{
   font-family:'Quicksand',sans-serif;
   font-weight:700;
-  font-size:2.8rem;
+  font-size:2.3rem;
   line-height:1;
   letter-spacing:-1px;
 }
 .holi-days-label{
   font-family:'Quicksand',sans-serif;
-  font-size:.64rem;
+  font-size:.56rem;
   font-weight:600;
-  letter-spacing:2px;
+  letter-spacing:1.6px;
   text-transform:uppercase;
   opacity:.85;
   margin-top:2px;
@@ -2141,16 +2141,16 @@ html[data-dark="true"] .friend-row{ background:#2f1f2b; }
 .holi-clock{
   font-family:'Quicksand',sans-serif;
   font-weight:600;
-  font-size:.74rem;
-  letter-spacing:1.4px;
-  margin-top:7px;
-  padding:3px 10px;
+  font-size:.64rem;
+  letter-spacing:1.2px;
+  margin-top:5px;
+  padding:2px 8px;
   border-radius:50px;
   backdrop-filter:blur(4px);
 }
 .holi-today{
   font-family:'Dancing Script',cursive;
-  font-size:1.35rem;
+  font-size:1.1rem;
   line-height:1.15;
   margin-top:4px;
 }
@@ -2160,11 +2160,11 @@ html[data-dark="true"] .friend-row{ background:#2f1f2b; }
 .holi-photo{
   position:absolute;
   pointer-events:auto;
-  width:40px; height:40px;
+  width:33px; height:33px;
   border-radius:50%;
   padding:0;
   display:flex; align-items:center; justify-content:center;
-  font-size:.95rem;
+  font-size:.8rem;
   cursor:pointer;
   overflow:hidden;
   background-size:cover;
@@ -2173,9 +2173,9 @@ html[data-dark="true"] .friend-row{ background:#2f1f2b; }
 }
 .holi-photo:hover{ transform:scale(1.14) rotate(-4deg); z-index:6; }
 .holi-photo.has-photo{ font-size:0; }
-.holi-photo[data-slot="0"]{ top:12px; left:10px; }
-.holi-photo[data-slot="1"]{ top:50%; right:9px; margin-top:-20px; }
-.holi-photo[data-slot="2"]{ bottom:12px; left:50%; margin-left:-20px; }
+.holi-photo[data-slot="0"]{ top:10px; left:8px; }
+.holi-photo[data-slot="1"]{ top:50%; right:7px; margin-top:-16px; }
+.holi-photo[data-slot="2"]{ bottom:10px; left:50%; margin-left:-16px; }
 
 /* ============================ HALLOWEEN ============================ */
 .holi-hw{
@@ -2212,8 +2212,8 @@ html[data-dark="true"] .friend-row{ background:#2f1f2b; }
 .holi-hw .holi-photo:hover{ box-shadow:0 0 22px rgba(255,160,60,.85); }
 
 .hw-moon{
-  position:absolute; top:13px; right:13px;
-  width:45px; height:45px; border-radius:50%;
+  position:absolute; top:10px; right:10px;
+  width:37px; height:37px; border-radius:50%;
   background:radial-gradient(circle at 36% 32%,#fff3d0,#ffd98a 55%,#f0b95e);
   box-shadow:0 0 34px rgba(255,214,138,.55), 0 0 70px rgba(255,180,80,.28);
 }
@@ -2224,11 +2224,11 @@ html[data-dark="true"] .friend-row{ background:#2f1f2b; }
 .hw-moon::before{ width:12px;height:12px; top:12px; left:9px; }
 .hw-moon::after{ width:8px;height:8px; bottom:12px; right:14px; }
 
-.hw-web{ position:absolute; top:-2px; left:-2px; width:72px; height:72px; opacity:.75; }
+.hw-web{ position:absolute; top:-2px; left:-2px; width:58px; height:58px; opacity:.75; }
 
 .hw-spider{
-  position:absolute; top:0; left:86px;
-  width:1px; height:42px;
+  position:absolute; top:0; left:70px;
+  width:1px; height:34px;
   background:rgba(255,255,255,.32);
   transform-origin:top center;
   animation:hwSpider 4.5s ease-in-out infinite;
@@ -2285,21 +2285,21 @@ html[data-dark="true"] .friend-row{ background:#2f1f2b; }
 @keyframes hwFly1{
   0%  { transform:translate(0,0) scale(.8); opacity:0; }
   10% { opacity:.95; }
-  50% { transform:translate(130px,-24px) scale(.95); }
+  50% { transform:translate(106px,-20px) scale(.95); }
   90% { opacity:.95; }
-  100%{ transform:translate(254px,9px) scale(.8); opacity:0; }
+  100%{ transform:translate(208px,8px) scale(.8); opacity:0; }
 }
 @keyframes hwFly2{
   0%  { transform:translate(0,0) scale(.62); opacity:0; }
   12% { opacity:.9; }
-  55% { transform:translate(122px,25px) scale(.75); }
+  55% { transform:translate(100px,20px) scale(.75); }
   88% { opacity:.9; }
-  100%{ transform:translate(254px,-12px) scale(.62); opacity:0; }
+  100%{ transform:translate(208px,-10px) scale(.62); opacity:0; }
 }
 
 .hw-pumpkin{
-  position:absolute; bottom:5px; left:6px;
-  width:54px; height:47px;
+  position:absolute; bottom:4px; left:5px;
+  width:44px; height:38px;
   filter:drop-shadow(0 0 16px rgba(255,140,26,.55));
   animation:hwPumpkin 2.6s ease-in-out infinite;
 }
@@ -2309,8 +2309,8 @@ html[data-dark="true"] .friend-row{ background:#2f1f2b; }
   55%    { filter:drop-shadow(0 0 14px rgba(255,140,26,.5)); }
 }
 .hw-crow{
-  position:absolute; bottom:7px; right:1px;
-  width:51px; height:39px;
+  position:absolute; bottom:6px; right:1px;
+  width:42px; height:32px;
   opacity:1;
   filter:drop-shadow(0 0 7px rgba(255,150,40,.5)) drop-shadow(0 0 2px rgba(255,200,120,.55));
   animation:hwCrow 5s ease-in-out infinite;
@@ -2355,35 +2355,35 @@ html[data-dark="true"] .friend-row{ background:#2f1f2b; }
 .holi-xmas .holi-photo:hover{ box-shadow:0 0 0 2px rgba(255,209,102,.9), 0 0 20px rgba(255,255,255,.6); }
 
 .xm-snowcap{
-  position:absolute; top:0; left:0; right:0; height:16px;
+  position:absolute; top:0; left:0; right:0; height:13px;
   background:linear-gradient(#ffffff,#eaf4ff);
   border-radius:0 0 10px 10px;
   box-shadow:0 3px 12px rgba(0,0,0,.18);
-  -webkit-mask:radial-gradient(12px 10px at 11px 20px, transparent 99%, #000 100%) repeat-x 0 0/22px 16px;
-          mask:radial-gradient(12px 10px at 11px 20px, transparent 99%, #000 100%) repeat-x 0 0/22px 16px;
+  -webkit-mask:radial-gradient(10px 8px at 9px 16px, transparent 99%, #000 100%) repeat-x 0 0/18px 13px;
+          mask:radial-gradient(10px 8px at 9px 16px, transparent 99%, #000 100%) repeat-x 0 0/18px 13px;
 }
 
 .xm-lights{
-  position:absolute; top:19px; left:-6px; right:-6px; height:22px;
+  position:absolute; top:15px; left:-5px; right:-5px; height:18px;
   border-bottom:2px solid rgba(255,255,255,.35);
   border-radius:0 0 50% 50%/0 0 22px 22px;
 }
 .xm-lights::before,.xm-lights::after{
   content:''; position:absolute; top:100%;
-  width:7px; height:9px; border-radius:0 0 50% 50%/0 0 70% 70%;
+  width:6px; height:8px; border-radius:0 0 50% 50%/0 0 70% 70%;
 }
 .xm-lights::before{
   left:24%;
   background:#ffd166;
   box-shadow:
-    38px 5px 0 #e8434f, 76px 6px 0 #7ee2a8,
-    114px 2px 0 #ffd166, -22px 4px 0 #e8434f;
+    31px 4px 0 #e8434f, 62px 5px 0 #7ee2a8,
+    93px 2px 0 #ffd166, -18px 3px 0 #e8434f;
   animation:xmLights 2.6s steps(1,end) infinite;
 }
 .xm-lights::after{
   left:44%;
   background:#fff;
-  box-shadow:38px 4px 0 #ffd166, -60px 3px 0 #7ee2a8;
+  box-shadow:31px 3px 0 #ffd166, -49px 2px 0 #7ee2a8;
   animation:xmLights 2.6s steps(1,end) infinite .9s;
 }
 @keyframes xmLights{
@@ -2393,7 +2393,7 @@ html[data-dark="true"] .friend-row{ background:#2f1f2b; }
 
 .xm-snow{
   position:absolute; top:-12px;
-  width:6px; height:6px; border-radius:50%;
+  width:5px; height:5px; border-radius:50%;
   background:#fff;
   box-shadow:0 0 6px rgba(255,255,255,.8);
   opacity:0;
@@ -2403,7 +2403,7 @@ html[data-dark="true"] .friend-row{ background:#2f1f2b; }
   0%  { transform:translate(0,-12px) scale(.7); opacity:0; }
   10% { opacity:.95; }
   85% { opacity:.9; }
-  100%{ transform:translate(14px,278px) scale(1); opacity:0; }
+  100%{ transform:translate(12px,226px) scale(1); opacity:0; }
 }
 .xm-snow.s1{ left:12%;  animation-duration:7s;    animation-delay:0s;   }
 .xm-snow.s2{ left:27%;  animation-duration:9.5s;  animation-delay:1.2s; }
@@ -2415,8 +2415,8 @@ html[data-dark="true"] .friend-row{ background:#2f1f2b; }
 .xm-snow.s8{ left:4%;   animation-duration:12s;   animation-delay:5.4s; }
 
 .xm-tree{
-  position:absolute; bottom:3px; left:5px;
-  width:47px; height:54px;
+  position:absolute; bottom:3px; left:4px;
+  width:38px; height:44px;
   filter:drop-shadow(0 4px 10px rgba(0,0,0,.4));
   animation:xmTree 4.2s ease-in-out infinite;
 }
@@ -2425,14 +2425,14 @@ html[data-dark="true"] .friend-row{ background:#2f1f2b; }
   50%    { transform:rotate(1.6deg); }
 }
 .xm-cane{
-  position:absolute; top:48px; right:12px;
-  width:20px; height:42px;
+  position:absolute; top:40px; right:10px;
+  width:17px; height:34px;
   filter:drop-shadow(0 3px 8px rgba(0,0,0,.35));
   transform:rotate(12deg);
 }
 .xm-gift{
-  position:absolute; bottom:5px; right:7px;
-  width:37px; height:33px;
+  position:absolute; bottom:4px; right:6px;
+  width:30px; height:27px;
   filter:drop-shadow(0 4px 10px rgba(0,0,0,.4));
   animation:xmGift 3.2s ease-in-out infinite;
 }
@@ -2463,7 +2463,7 @@ html[data-dark="true"] .friend-row{ background:#2f1f2b; }
   position:absolute;
   z-index:7;
   pointer-events:none;
-  font-size:1rem;
+  font-size:.85rem;
   line-height:1;
   transform:translate(-50%,-50%);
   animation:holiPop 1.1s cubic-bezier(.25,.9,.4,1) forwards;
@@ -2489,6 +2489,15 @@ html[data-dark="true"] .friend-row{ background:#2f1f2b; }
 .holi-hw::after{ color:rgba(255,179,92,.75); }
 .holi-xmas::after{ color:rgba(255,255,255,.75); }
 .holi-card:hover::after{ opacity:1; }
+/* mientras suena un adorno el ♪ queda prendido y late */
+.holi-card.sfx-playing::after{
+  opacity:1;
+  animation:holiBeat 1s ease-in-out infinite;
+}
+@keyframes holiBeat{
+  0%,100%{ transform:scale(1);   opacity:.55; }
+  50%    { transform:scale(1.5); opacity:1; }
+}
 
 @media (prefers-reduced-motion:reduce){
   .holi-pop{ animation-duration:.5s; }
@@ -2511,18 +2520,18 @@ html[data-dark="true"] .friend-row{ background:#2f1f2b; }
   .holiday-counters{
     position:fixed;
     top:78px;
-    right:24px;
-    width:206px;
+    right:22px;
+    width:168px;
     margin:0;
     z-index:38;
     flex-direction:column;
     gap:16px;
   }
   /* se achican solas para no chocar con My Melody */
-  .holi-card{ height:clamp(186px, calc((100vh - 360px) / 2), 264px); }
+  .holi-card{ height:clamp(152px, calc((100vh - 330px) / 2), 214px); }
 }
 @media (max-width:560px){
-  .holi-card{ width:100%; max-width:270px; }
+  .holi-card{ width:100%; max-width:230px; }
 }
 
 @media (prefers-reduced-motion:reduce){

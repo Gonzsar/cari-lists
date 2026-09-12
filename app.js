@@ -2733,9 +2733,11 @@ function initHolidayCounters(){
 
 /* ============================================================
    SONIDOS DE LAS FESTIVIDADES
-   Todo sintetizado con Web Audio: no hay ni un archivo de audio.
+   Cada adorno tiene su mp3 en la carpeta /sfx. Las luces del arbolito
+   son las unicas que siguen sintetizadas con Web Audio, porque todavia
+   no tienen archivo propio.
    ============================================================ */
-let holiAC = null, holiBus = null, holiNoiseBuf = null;
+let holiAC = null, holiBus = null;
 
 function holiCtx(){
   try{
@@ -2752,20 +2754,7 @@ function holiCtx(){
   }catch(e){ console.warn('[sfx] no hay audio', e); return null; }
 }
 
-function holiNoiseSrc(ctx){
-  if(!holiNoiseBuf){
-    const len = Math.floor(ctx.sampleRate * 1.5);
-    holiNoiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
-    const d = holiNoiseBuf.getChannelData(0);
-    for(let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
-  }
-  const src = ctx.createBufferSource();
-  src.buffer = holiNoiseBuf;
-  src.loop = true;
-  return src;
-}
-
-/* Campanita: armónicos inarmónicos + caída larga (cascabel / campana) */
+/* Campanita: armónicos inarmónicos + caída larga */
 function holiBell(ctx, t0, freq, dur, vol){
   const g = ctx.createGain();
   g.gain.setValueAtTime(0.0001, t0);
@@ -2783,171 +2772,7 @@ function holiBell(ctx, t0, freq, dur, vol){
   });
 }
 
-/* ---------------- HALLOWEEN ---------------- */
-
-/* Luna → aullido de lobo */
-function sfxHowl(ctx){
-  const t0 = ctx.currentTime + 0.02, dur = 1.9;
-  const o = ctx.createOscillator(); o.type = 'sawtooth';
-  o.frequency.setValueAtTime(170, t0);
-  o.frequency.exponentialRampToValueAtTime(430, t0 + 0.5);
-  o.frequency.setValueAtTime(430, t0 + 1.05);
-  o.frequency.exponentialRampToValueAtTime(190, t0 + dur);
-
-  const lfo = ctx.createOscillator(); lfo.frequency.value = 5.2;
-  const lfoG = ctx.createGain(); lfoG.gain.value = 13;
-  lfo.connect(lfoG); lfoG.connect(o.frequency);
-
-  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 7;
-  lp.frequency.setValueAtTime(700, t0);
-  lp.frequency.linearRampToValueAtTime(1700, t0 + 0.6);
-  lp.frequency.linearRampToValueAtTime(520, t0 + dur);
-
-  const g = ctx.createGain();
-  g.gain.setValueAtTime(0.0001, t0);
-  g.gain.exponentialRampToValueAtTime(0.24, t0 + 0.3);
-  g.gain.setValueAtTime(0.24, t0 + 1.15);
-  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-
-  o.connect(lp); lp.connect(g); g.connect(holiBus);
-  o.start(t0); lfo.start(t0);
-  o.stop(t0 + dur + 0.05); lfo.stop(t0 + dur + 0.05);
-}
-
-/* Calabaza → risa de bruja */
-function sfxCackle(ctx){
-  const t0 = ctx.currentTime + 0.02;
-  [1.00, 1.10, 0.98, 0.92, 0.84, 0.78, 0.70, 0.66].forEach(function(k, i){
-    const t = t0 + i * 0.108;
-    const f = 470 * k;
-    const o = ctx.createOscillator(); o.type = 'sawtooth';
-    o.frequency.setValueAtTime(f, t);
-    o.frequency.exponentialRampToValueAtTime(f * 0.7, t + 0.085);
-
-    const lfo = ctx.createOscillator(); lfo.frequency.value = 26;
-    const lg = ctx.createGain(); lg.gain.value = 30;
-    lfo.connect(lg); lg.connect(o.frequency);
-
-    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass';
-    bp.frequency.value = 1000; bp.Q.value = 1.6;
-
-    const g = ctx.createGain();
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(0.52, t + 0.014);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.1);
-
-    o.connect(bp); bp.connect(g); g.connect(holiBus);
-    o.start(t); lfo.start(t);
-    o.stop(t + 0.12); lfo.stop(t + 0.12);
-  });
-}
-
-/* Cuervo → graznido áspero, tres veces */
-function sfxCaw(ctx){
-  const t0 = ctx.currentTime + 0.02;
-  [[0, 780], [0.34, 700], [0.64, 640]].forEach(function(par, i){
-    const t = t0 + par[0], f0 = par[1], dur = 0.3 - i * 0.02;
-    const o = ctx.createOscillator(); o.type = 'sawtooth';
-    o.frequency.setValueAtTime(f0, t);
-    o.frequency.exponentialRampToValueAtTime(f0 * 0.45, t + dur);
-
-    const lfo = ctx.createOscillator(); lfo.type = 'square'; lfo.frequency.value = 62;
-    const lg = ctx.createGain(); lg.gain.value = 55;
-    lfo.connect(lg); lg.connect(o.frequency);
-
-    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 1.1;
-    bp.frequency.setValueAtTime(1900, t);
-    bp.frequency.exponentialRampToValueAtTime(900, t + dur);
-
-    const g = ctx.createGain();
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(0.62, t + 0.025);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-
-    o.connect(bp); bp.connect(g); g.connect(holiBus);
-    o.start(t); lfo.start(t);
-    o.stop(t + dur + 0.02); lfo.stop(t + dur + 0.02);
-  });
-}
-
-/* Araña → puerta que cruje + pasitos */
-function sfxSpider(ctx){
-  const t0 = ctx.currentTime + 0.02;
-  const o = ctx.createOscillator(); o.type = 'sawtooth';
-  o.frequency.setValueAtTime(58, t0);
-  for(let i = 1; i <= 10; i++){
-    o.frequency.setValueAtTime(52 + Math.random() * 46, t0 + i * 0.075);
-  }
-  const bp = ctx.createBiquadFilter(); bp.type = 'bandpass';
-  bp.frequency.value = 720; bp.Q.value = 11;
-  const g = ctx.createGain();
-  g.gain.setValueAtTime(0.0001, t0);
-  g.gain.exponentialRampToValueAtTime(0.5, t0 + 0.1);
-  g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.86);
-  o.connect(bp); bp.connect(g); g.connect(holiBus);
-  o.start(t0); o.stop(t0 + 0.9);
-
-  for(let i = 0; i < 7; i++){
-    const t = t0 + 0.12 + i * 0.062 + Math.random() * 0.02;
-    const n = holiNoiseSrc(ctx);
-    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 4200;
-    const ng = ctx.createGain();
-    ng.gain.setValueAtTime(0.0001, t);
-    ng.gain.exponentialRampToValueAtTime(0.3, t + 0.004);
-    ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
-    n.connect(hp); hp.connect(ng); ng.connect(holiBus);
-    n.start(t); n.stop(t + 0.05);
-  }
-}
-
-/* ---------------- NAVIDAD ---------------- */
-
-/* Arbolito → cascabeles de trineo */
-function sfxSleigh(ctx){
-  const t0 = ctx.currentTime + 0.02;
-  [0, 0.14, 0.28, 0.46, 0.60, 0.74, 0.92, 1.06, 1.20].forEach(function(off, i){
-    const t = t0 + off;
-    const vol = (i % 3 === 0) ? 0.42 : 0.26;
-    const n = holiNoiseSrc(ctx);
-    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 3200;
-    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 2.4;
-    bp.frequency.value = 5200 + Math.random() * 900;
-    const g = ctx.createGain();
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(vol, t + 0.006);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.19);
-    n.connect(hp); hp.connect(bp); bp.connect(g); g.connect(holiBus);
-    n.start(t); n.stop(t + 0.22);
-    holiBell(ctx, t, 2350 + Math.random() * 500, 0.24, vol * 0.22);
-  });
-}
-
-/* Bastón de caramelo → "Jingle Bells" (dominio público) en campanitas */
-function sfxJingle(ctx){
-  const t0 = ctx.currentTime + 0.02;
-  const E = 659.25;
-  [[0.00, 0.30], [0.20, 0.30], [0.40, 0.60],
-   [0.66, 0.30], [0.86, 0.30], [1.06, 0.75]].forEach(function(n){
-    holiBell(ctx, t0 + n[0], E, n[1], 0.2);
-  });
-  [0, 0.4, 0.66, 1.06].forEach(function(off){
-    holiBell(ctx, t0 + off, 1318.5, 0.22, 0.05);
-  });
-}
-
-/* Regalo → destello mágico ascendente */
-function sfxSparkle(ctx){
-  const t0 = ctx.currentTime + 0.02;
-  const C = 523.25;
-  [0, 4, 7, 12, 16, 19, 24].forEach(function(semi, i){
-    holiBell(ctx, t0 + i * 0.052, C * Math.pow(2, semi / 12), Math.max(0.3, 1.2 - i * 0.1), 0.13);
-  });
-  for(let i = 0; i < 5; i++){
-    holiBell(ctx, t0 + 0.34 + Math.random() * 0.5, 1500 + Math.random() * 1800, 0.5, 0.045);
-  }
-}
-
-/* Luces → tintineo suave */
+/* Luces → tintineo suave (sin mp3 todavía) */
 function sfxTwinkle(ctx){
   const t0 = ctx.currentTime + 0.02;
   [1046.5, 1318.5, 1568, 2093].forEach(function(f, i){
@@ -2955,17 +2780,49 @@ function sfxTwinkle(ctx){
   });
 }
 
-/* ---------------- disparo ---------------- */
 const HOLI_SFX = {
-  howl:    { fn:sfxHowl,    pop:'🐺' },
-  cackle:  { fn:sfxCackle,  pop:'🧙' },
-  caw:     { fn:sfxCaw,     pop:'🪶' },
-  spider:  { fn:sfxSpider,  pop:'🕸️' },
-  sleigh:  { fn:sfxSleigh,  pop:'🔔' },
-  jingle:  { fn:sfxJingle,  pop:'🎵' },
-  sparkle: { fn:sfxSparkle, pop:'✨' },
-  twinkle: { fn:sfxTwinkle, pop:'💡' }
+  howl:    { src:'sfx/luna.mp3',     pop:'🐺' },
+  cackle:  { src:'sfx/calabaza.mp3', pop:'🧙' },
+  caw:     { src:'sfx/cuervo.mp3',   pop:'🪶' },
+  spider:  { src:'sfx/arana.mp3',    pop:'🕸️' },
+  sleigh:  { src:'sfx/arbol.mp3',    pop:'🔔' },
+  jingle:  { src:'sfx/dulce.mp3',    pop:'🎵' },
+  sparkle: { src:'sfx/regalo.mp3',   pop:'✨' },
+  twinkle: { fn:sfxTwinkle,          pop:'💡' }
 };
+
+const holiAudioEls = {};
+let holiSfxPlaying = null;
+let holiSfxCard = null;
+let holiSfxWarmed = false;
+
+/* Los mp3 se empiezan a bajar recién cuando roza o toca una tarjeta,
+   así la página no arranca descargando nada. */
+function holiWarmSfx(){
+  if(holiSfxWarmed) return;
+  holiSfxWarmed = true;
+  Object.keys(HOLI_SFX).forEach(function(key){
+    const conf = HOLI_SFX[key];
+    if(!conf.src) return;
+    try{
+      const a = new Audio(conf.src);
+      a.preload = 'auto';
+      a.volume = 0.85;
+      a.addEventListener('error', function(){
+        console.warn('[sfx] no se pudo cargar', conf.src);
+      });
+      holiAudioEls[key] = a;
+    }catch(e){ console.warn('[sfx]', key, e); }
+  });
+}
+
+function holiStopSfx(){
+  if(holiSfxPlaying){
+    try{ holiSfxPlaying.pause(); holiSfxPlaying.currentTime = 0; }catch(e){}
+    holiSfxPlaying = null;
+  }
+  if(holiSfxCard){ holiSfxCard.classList.remove('sfx-playing'); holiSfxCard = null; }
+}
 
 function holiPopBurst(el, emoji){
   const card = el.closest ? el.closest('.holi-card') : null;
@@ -2978,10 +2835,10 @@ function holiPopBurst(el, emoji){
     const s = document.createElement('span');
     s.className = 'holi-pop';
     s.textContent = emoji;
-    s.style.left = (cx + (Math.random() * 26 - 13)) + 'px';
-    s.style.top  = (cy + (Math.random() * 14 - 7)) + 'px';
+    s.style.left = (cx + (Math.random() * 22 - 11)) + 'px';
+    s.style.top  = (cy + (Math.random() * 12 - 6)) + 'px';
     s.style.animationDelay = (i * 0.09) + 's';
-    s.style.fontSize = (0.75 + Math.random() * 0.45) + 'rem';
+    s.style.fontSize = (0.65 + Math.random() * 0.4) + 'rem';
     card.appendChild(s);
     setTimeout(function(){ s.remove(); }, 1500 + i * 120);
   }
@@ -2989,23 +2846,55 @@ function holiPopBurst(el, emoji){
 
 let holiLastSfx = 0;
 function playHoliSfx(el){
-  const conf = HOLI_SFX[el.dataset ? el.dataset.sfx : ''];
+  const key = el.dataset ? el.dataset.sfx : '';
+  const conf = HOLI_SFX[key];
   if(!conf) return;
+
+  holiWarmSfx();
+
   const now = Date.now();
-  if(now - holiLastSfx < 140) return;
+  if(now - holiLastSfx < 120) return;
   holiLastSfx = now;
 
   holiPopBurst(el, conf.pop);
   el.classList.add('sfx-on');
   setTimeout(function(){ el.classList.remove('sfx-on'); }, 150);
 
-  const ctx = holiCtx();
-  if(!ctx) return;
-  try{ conf.fn(ctx); }
-  catch(e){ console.warn('[sfx]', el.dataset.sfx, e); }
+  /* las luces son las únicas sintetizadas */
+  if(conf.fn){
+    holiStopSfx();
+    const ctx = holiCtx();
+    if(ctx){
+      try{ conf.fn(ctx); }
+      catch(e){ console.warn('[sfx]', key, e); }
+    }
+    return;
+  }
+
+  const a = holiAudioEls[key];
+  if(!a) return;
+
+  /* tocar el mismo adorno mientras suena lo corta */
+  if(holiSfxPlaying === a && !a.paused){ holiStopSfx(); return; }
+
+  holiStopSfx();
+  try{ a.currentTime = 0; }catch(e){}
+  const p = a.play();
+  if(p && p.catch) p.catch(function(e){ console.warn('[sfx] no se pudo reproducir', key, e); });
+  holiSfxPlaying = a;
+  /* los audios son largos: dejamos el ♪ prendido mientras suena, para que
+     se vea que se puede volver a tocar el adorno y cortarlo */
+  holiSfxCard = el.closest ? el.closest('.holi-card') : null;
+  if(holiSfxCard) holiSfxCard.classList.add('sfx-playing');
+  a.onended = function(){ if(holiSfxPlaying === a) holiStopSfx(); };
 }
 
 function initHolidaySounds(){
+  const block = document.getElementById('holidayCounters');
+  if(block){
+    block.addEventListener('pointerenter', holiWarmSfx, { once:true });
+    block.addEventListener('touchstart', holiWarmSfx, { once:true, passive:true });
+  }
   document.querySelectorAll('.holi-sfx').forEach(function(el){
     el.addEventListener('click', function(e){ e.preventDefault(); playHoliSfx(el); });
     el.addEventListener('keydown', function(e){

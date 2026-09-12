@@ -129,6 +129,22 @@ minutos y segundos que faltan.
 - Las fotos se guardan en los ajustes, así que también se sincronizan con
   la nube si tenés Supabase configurado
 
+### Adornos con sonido
+
+Los adornos de cada tarjeta se pueden tocar y suenan (además tiran unas
+partículas). Todo está **sintetizado con Web Audio**: no hay ni un archivo
+de audio en el repo.
+
+| Halloween | | Navidad | |
+|---|---|---|---|
+| 🌕 Luna | aullido de lobo | 🎄 Arbolito | cascabeles de trineo |
+| 🎃 Calabaza | risa de bruja | 🍬 Bastón | *Jingle Bells* en campanitas |
+| 🐦‍⬛ Cuervo | graznidos | 🎁 Regalo | destello mágico |
+| 🕷️ Araña | crujido y pasitos | ✨ Luces | tintineo suave |
+
+El audio solo arranca cuando ella toca algo (nunca suena solo). Las funciones
+están en `app.js`, bajo *"SONIDOS DE LAS FESTIVIDADES"*.
+
 ## 🎤 Buscador de letras
 
 Página aparte (`letras-buscador.html`) al estilo Apple Music: buscás una canción

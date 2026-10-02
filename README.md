@@ -117,6 +117,23 @@ ver el perfil del otro **siempre actualizado**.
 
 Los datos se suben solos unos segundos después de cada cambio.
 
+## 🎃 Ambiente de Halloween (octubre)
+
+Durante todo octubre el inicio cambia solo: fondo de noche violeta con
+resplandor naranja, telarañas en las esquinas con una arañita colgando,
+calabazas que caen y murciélagos que cruzan volando (en lugar de los pétalos).
+El 1 de noviembre vuelve todo a la normalidad sin tocar nada.
+
+- El botón 🎃 de arriba a la izquierda lo apaga y lo vuelve a prender
+  (solo aparece en octubre; la elección queda guardada)
+- Mientras está prendido el modo oscuro es fijo y la paleta naranja/violeta
+  reemplaza al tema elegido; al apagarlo vuelven su tema y su modo de siempre
+- El banner de Halloween es solo el de por defecto: si ella puso el suyo, se respeta
+- Todo está en `styles.css` (bloque *"AMBIENTE DE HALLOWEEN"*) y en `app.js`
+  (`halloweenActive()`, `spawnHalloween()`). Para que dure más o menos días,
+  cambiá `isHalloweenSeason()` en `app.js` y la misma condición en el script
+  del `<head>` de `index.html`
+
 ## 🎃🎄 Contadores de Halloween y Navidad
 
 Dos tarjetitas ambientadas (arriba a la derecha en pantallas anchas, o entre el

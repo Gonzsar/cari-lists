@@ -14,7 +14,8 @@ const defaultSettings = {
   unlockedStickers:[],
   darkMode:false,
   sbUrl:'', sbKey:'', myCode:'', ownerToken:'', lastSync:0,
-  holidayPhotos:{ hw:[], xmas:[] }
+  holidayPhotos:{ hw:[], xmas:[] },
+  halloweenOff:false
 };
 const emptyState = {
   movies:[], series:[], music:[], books:[], wishlist:[],
@@ -126,6 +127,9 @@ const CAT_CONFIG = {
 /* === Petals === */
 function spawnPetals(){
   const wrap = document.getElementById('petals');
+  if(!wrap) return;
+  // En octubre no caen pétalos: caen calabazas y vuelan murciélagos
+  if(halloweenActive()){ spawnHalloween(wrap); return; }
   // Lee los colores del tema actual desde las variables CSS
   const css = getComputedStyle(document.documentElement);
   const colors = [
@@ -2113,7 +2117,9 @@ safeOn('rouletteSpin', 'click', spinRoulette);
    Modo oscuro 🌙
    ========================================================== */
 function applyDarkMode(on){
-  document.documentElement.setAttribute('data-dark', on ? 'true' : 'false');
+  // el ambiente de Halloween va siempre en oscuro, elija lo que elija acá
+  const dark = on || halloweenActive();
+  document.documentElement.setAttribute('data-dark', dark ? 'true' : 'false');
 }
 function initDarkMode(){
   applyDarkMode(!!settings.darkMode);
@@ -2906,6 +2912,118 @@ function initHolidaySounds(){
   });
 }
 
+/* ==========================================================
+   🎃 Ambiente de Halloween
+   Se prende solo durante octubre (y se apaga solo el 1 de noviembre).
+   Con el botón de la calabaza se puede apagar / volver a prender.
+   ========================================================== */
+function isHalloweenSeason(){ return new Date().getMonth() === 9; }
+function halloweenActive(){ return isHalloweenSeason() && !settings.halloweenOff; }
+
+const HWEEN_ORANGES = [['#ef7f1a','#d96a10'], ['#f59331','#dd7718'], ['#e86c12','#c9560a']];
+
+function hweenPumpkinSvg(){
+  const c = HWEEN_ORANGES[Math.floor(Math.random() * HWEEN_ORANGES.length)];
+  const r = Math.random();
+  /* tres tipos: con carita encendida, con carita apagada, o lisa */
+  const face = r < 0.45 ? '#ffd976' : (r < 0.8 ? '#2a0f05' : '');
+  return '<svg viewBox="0 0 64 56" xmlns="http://www.w3.org/2000/svg">' +
+    '<ellipse cx="32" cy="34" rx="26" ry="21" fill="' + c[0] + '"/>' +
+    '<ellipse cx="19" cy="34" rx="11" ry="20" fill="' + c[1] + '" opacity=".55"/>' +
+    '<ellipse cx="45" cy="34" rx="11" ry="20" fill="' + c[1] + '" opacity=".55"/>' +
+    '<path d="M30 14 q1 -9 -5 -12 q9 0 9 12z" fill="#4e7a2a"/>' +
+    (face ?
+      '<path d="M22 28 l7 9 -14 0z" fill="' + face + '"/>' +
+      '<path d="M42 28 l-7 9 14 0z" fill="' + face + '"/>' +
+      '<path d="M20 43 q12 8 24 0 q-4 4 -12 4 q-8 0 -12 -4z" fill="' + face + '"/>' : '') +
+    '</svg>';
+}
+
+const HWEEN_BAT_SVG =
+  '<svg class="hween-bat" viewBox="0 0 64 32" xmlns="http://www.w3.org/2000/svg">' +
+    '<g fill="#4b2c66">' +
+      '<path class="wl" d="M28 13 C22 6 12 4 2 7 C6 9 7 12 6 15 C10 13 13 14 15 18 C18 15 22 15 25 20 C26 18 27 16 28 16 Z"/>' +
+      '<path class="wr" d="M36 13 C42 6 52 4 62 7 C58 9 57 12 58 15 C54 13 51 14 49 18 C46 15 42 15 39 20 C38 18 37 16 36 16 Z"/>' +
+      '<ellipse cx="32" cy="16" rx="4.6" ry="7"/>' +
+      '<circle cx="32" cy="9" r="4.2"/>' +
+      '<path d="M28.6 7 L28 1.5 L31.4 5.6Z"/><path d="M35.4 7 L36 1.5 L32.6 5.6Z"/>' +
+    '</g>' +
+    '<circle cx="30.4" cy="8.7" r=".9" fill="#ffb347"/><circle cx="33.6" cy="8.7" r=".9" fill="#ffb347"/>' +
+  '</svg>';
+
+function spawnHalloween(wrap){
+  const small = window.innerWidth < 700;
+  const pumpkins = small ? 11 : 20;
+  const bats = small ? 5 : 8;
+
+  for(let i = 0; i < pumpkins; i++){
+    /* d = "cercanía": las de adelante son más grandes, rápidas y nítidas */
+    const d = Math.random();
+    const dur = 23 - d * 10 + Math.random() * 3;
+    const el = document.createElement('div');
+    el.className = 'hween-fall';
+    el.style.left = (Math.random() * 98) + 'vw';
+    el.style.width = (24 + d * 30) + 'px';
+    el.style.setProperty('--o', (0.6 + d * 0.35).toFixed(2));
+    el.style.animationDuration = dur + 's';
+    el.style.animationDelay = (-Math.random() * dur) + 's';   // negativo: ya arrancan repartidas
+    const sway = document.createElement('div');
+    sway.className = 'hween-sway';
+    sway.style.animationDuration = (2.4 + Math.random() * 2.2) + 's';
+    sway.innerHTML = hweenPumpkinSvg();
+    el.appendChild(sway);
+    wrap.appendChild(el);
+  }
+
+  for(let i = 0; i < bats; i++){
+    const dur = 13 + Math.random() * 13;
+    const el = document.createElement('div');
+    el.className = 'hween-fly' + (Math.random() < 0.4 ? ' rev' : '');
+    el.style.top = (4 + Math.random() * 66) + 'vh';
+    el.style.width = (42 + Math.random() * 40) + 'px';
+    el.style.animationDuration = dur + 's';
+    el.style.animationDelay = (-Math.random() * dur) + 's';
+    const bob = document.createElement('div');
+    bob.className = 'hween-bob';
+    bob.style.animationDuration = (1.3 + Math.random() * 0.9) + 's';
+    bob.innerHTML = HWEEN_BAT_SVG;
+    el.appendChild(bob);
+    wrap.appendChild(el);
+  }
+}
+
+function applySeason(){
+  const on = halloweenActive();
+  const root = document.documentElement;
+  if(on) root.setAttribute('data-season', 'halloween');
+  else root.removeAttribute('data-season');
+  applyDarkMode(!!settings.darkMode);
+
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content', on ? '#190e20' : '#f291ad');
+
+  const btn = document.getElementById('seasonToggle');
+  if(btn){
+    btn.hidden = !isHalloweenSeason();
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.title = on ? 'Apagar el ambiente de Halloween' : 'Prender el ambiente de Halloween 🎃';
+  }
+
+  /* cambia lo que cae: calabazas y murciélagos, o los pétalos de siempre */
+  const wrap = document.getElementById('petals');
+  if(wrap){ wrap.innerHTML = ''; spawnPetals(); }
+}
+
+function initSeason(){
+  safeOn('seasonToggle', 'click', ()=>{
+    settings.halloweenOff = !settings.halloweenOff;
+    saveSettings();
+    applySeason();
+    toast(settings.halloweenOff ? 'Volvimos a lo de siempre 🌸' : '¡Feliz Halloween! 🎃');
+  });
+  applySeason();
+}
+
 /* === Init === */
 function safeRun(label, fn){
   try { fn(); }
@@ -2914,6 +3032,7 @@ function safeRun(label, fn){
 safeRun('spawnPetals', spawnPetals);
 safeRun('applyTheme', ()=>applyTheme(settings.theme || 'melody'));
 safeRun('initDarkMode', initDarkMode);
+safeRun('initSeason', initSeason);
 safeRun('initPageTransition', initPageTransition);
 safeRun('initFriends', initFriends);
 safeRun('initDiary', initDiary);

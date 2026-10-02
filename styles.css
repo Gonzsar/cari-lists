@@ -2538,3 +2538,199 @@ html[data-dark="true"] .friend-row{ background:#2f1f2b; }
   .hw-bat,.hw-spider,.xm-snow,.xm-lights::before,.xm-lights::after,
   .hw-pumpkin,.hw-crow,.xm-tree,.xm-gift,.holi-days{ animation:none !important; }
 }
+
+/* ==========================================================
+   🎃 AMBIENTE DE HALLOWEEN (se prende solo en octubre)
+   Se activa con html[data-season="halloween"], que siempre viene
+   acompañado de data-dark="true": reutiliza todo el modo oscuro y
+   encima cambia la paleta a naranja + violeta.
+   ========================================================== */
+html[data-season="halloween"]{
+  --pink-50:#241530;
+  --pink-100:#33203f;
+  --pink-200:#ffd2a1;
+  --pink-300:#ffb469;
+  --pink-400:#ff9838;
+  --pink-500:#ee7410;
+  --pink-600:#d65f0a;
+  --rose:#f07a1a;
+  --cream:#1b1022;
+  --gold:#b88cff;
+  --gold-soft:#8e6bd1;
+  --text:#f8eadb;
+  --text-soft:#cfae95;
+  --surface:#231430;
+  --surface-2:#2d1a3b;
+  --shadow:0 8px 30px rgba(0,0,0,0.5);
+  --shadow-hover:0 12px 40px rgba(0,0,0,0.6);
+  color-scheme:dark;
+}
+
+/* Noche violeta con resplandor de calabaza */
+html[data-season="halloween"] body{
+  background:
+    radial-gradient(900px 520px at 86% -8%, rgba(255,128,24,0.24) 0%, transparent 62%),
+    radial-gradient(800px 520px at -6% 6%, rgba(126,62,196,0.28) 0%, transparent 58%),
+    radial-gradient(1000px 620px at 50% 118%, rgba(255,110,10,0.17) 0%, transparent 60%),
+    linear-gradient(180deg,#190e20 0%,#130a18 55%,#0d0611 100%);
+  background-attachment:fixed;
+}
+
+/* Banner por defecto (si ella puso el suyo, manda el suyo) */
+html[data-season="halloween"] .profile-banner{
+  background-image:
+    radial-gradient(120px 120px at 82% 34%, rgba(255,214,138,0.95) 0 26%, rgba(255,170,70,0.35) 40%, transparent 70%),
+    linear-gradient(135deg,#3b1d52 0%,#5a2a4e 45%,#c2560c 100%);
+}
+
+/* Corazoncito del cursor en naranja */
+html[data-season="halloween"],
+html[data-season="halloween"] body{
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24'><path fill='%23ff8a1f' stroke='%231b1022' stroke-width='1.5' stroke-linejoin='round' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/></svg>") 14 14, auto;
+}
+
+/* Afuera las flores, adentro las telarañas */
+html[data-season="halloween"] .corner-flower{ display:none; }
+html[data-season="halloween"] .petals{ opacity:1; }
+
+.hween-web,
+.hween-spider{ display:none; }
+html[data-season="halloween"] .hween-web,
+html[data-season="halloween"] .hween-spider{ display:block; }
+
+.hween-web{
+  position:fixed; top:-4px;
+  width:210px; height:210px;
+  pointer-events:none; z-index:1;
+  opacity:.5;
+}
+.hween-web.tl{ left:-4px; }
+.hween-web.tr{ right:-4px; transform:scaleX(-1); }
+
+.hween-spider{
+  position:fixed; top:0; left:132px;
+  width:26px;
+  pointer-events:none; z-index:1;
+  animation:hweenSpider 6s ease-in-out infinite alternate;
+}
+.hween-spider::before{
+  content:'';
+  display:block;
+  width:1px; height:96px;
+  margin:0 auto;
+  background:rgba(255,255,255,.3);
+}
+.hween-spider svg{ display:block; width:26px; height:24px; margin-top:-3px; }
+@keyframes hweenSpider{
+  0%  { transform:translateY(-58px); }
+  100%{ transform:translateY(0); }
+}
+
+/* Calabazas que caen */
+.hween-fall{
+  position:absolute; top:0;
+  opacity:0;
+  animation:hweenFall linear infinite;
+  will-change:transform;
+}
+.hween-fall svg{ display:block; width:100%; height:auto; }
+@keyframes hweenFall{
+  0%  { transform:translateY(-14vh); opacity:0; }
+  7%  { opacity:var(--o,.8); }
+  93% { opacity:var(--o,.8); }
+  100%{ transform:translateY(114vh); opacity:0; }
+}
+.hween-sway{ animation:hweenSway ease-in-out infinite alternate; }
+@keyframes hweenSway{
+  0%  { transform:translateX(-16px) rotate(-17deg); }
+  100%{ transform:translateX(16px)  rotate(17deg); }
+}
+
+/* Murciélagos que cruzan volando */
+.hween-fly{
+  position:absolute; left:0;
+  animation:hweenFlyX linear infinite;
+  will-change:transform;
+}
+.hween-fly.rev{ animation-name:hweenFlyXRev; }
+@keyframes hweenFlyX{
+  0%  { transform:translateX(-14vw); }
+  100%{ transform:translateX(114vw); }
+}
+@keyframes hweenFlyXRev{
+  0%  { transform:translateX(114vw); }
+  100%{ transform:translateX(-14vw); }
+}
+.hween-bob{ animation:hweenBob ease-in-out infinite alternate; }
+@keyframes hweenBob{
+  0%  { transform:translateY(-18px) rotate(-6deg); }
+  100%{ transform:translateY(18px)  rotate(6deg); }
+}
+.hween-bat{
+  display:block; width:100%; height:auto;
+  overflow:visible;
+  filter:drop-shadow(0 0 6px rgba(255,150,50,.45));
+}
+.hween-bat .wl,
+.hween-bat .wr{
+  transform-box:fill-box;
+  animation:hweenFlapL .3s ease-in-out infinite alternate;
+}
+.hween-bat .wl{ transform-origin:100% 45%; }
+.hween-bat .wr{ transform-origin:0% 45%; animation-name:hweenFlapR; }
+@keyframes hweenFlapL{
+  0%  { transform:rotate(20deg); }
+  100%{ transform:rotate(-26deg) scaleX(.8); }
+}
+@keyframes hweenFlapR{
+  0%  { transform:rotate(-20deg); }
+  100%{ transform:rotate(26deg) scaleX(.8); }
+}
+
+/* Botón 🎃 para prender / apagar el ambiente (solo aparece en octubre) */
+.season-toggle{
+  position:fixed;
+  top:18px; left:72px;
+  z-index:47;
+  width:44px; height:44px;
+  border-radius:50%;
+  border:2px solid rgba(255,255,255,0.6);
+  background:linear-gradient(135deg,#3a2146,#1d1026);
+  font-size:1.15rem; line-height:1;
+  cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 6px 18px rgba(0,0,0,0.28);
+  transition:transform 0.25s ease, box-shadow 0.25s ease;
+}
+.season-toggle[hidden]{ display:none; }
+.season-toggle:hover{ transform:translateY(-2px) scale(1.06); }
+.season-toggle span{ filter:grayscale(.55); opacity:.85; }
+
+/* con Halloween prendido el modo oscuro es fijo: su botón se va
+   y la calabaza ocupa ese lugar */
+html[data-season="halloween"] .darkmode-toggle{ display:none; }
+html[data-season="halloween"] .season-toggle{
+  left:18px;
+  background:linear-gradient(135deg,#ff9838,#e2650c);
+  box-shadow:0 6px 20px rgba(255,120,20,0.5);
+}
+html[data-season="halloween"] .season-toggle span{ filter:none; opacity:1; }
+
+/* resplandor naranja en los botones flotantes (antes era rosa) */
+html[data-season="halloween"] .letras-link,
+html[data-season="halloween"] .letras-player-btn,
+html[data-season="halloween"] .fab{
+  box-shadow:0 6px 20px rgba(255,120,20,0.42);
+}
+
+@media (max-width:600px){
+  .season-toggle{ top:12px; left:58px; width:38px; height:38px; font-size:1rem; }
+  html[data-season="halloween"] .season-toggle{ left:12px; }
+  .hween-web{ width:130px; height:130px; }
+  .hween-spider{ left:84px; }
+  .hween-spider::before{ height:60px; }
+  @keyframes hweenSpider{
+    0%  { transform:translateY(-36px); }
+    100%{ transform:translateY(0); }
+  }
+}
